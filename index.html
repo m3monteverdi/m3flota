@@ -228,26 +228,26 @@ const ADMIN_KEY='monteverdi';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let camiones=[],choferes=[],otCounter=1,otSeleccionada=null,adminAutorizado=false;
 
-// Resumen editable — se guarda en Supabase en tabla resumen_flota (key/value)
+// Resumen editable - se guarda en Supabase en tabla resumen_flota (key/value)
 // Por simplicidad usamos localStorage para el resumen ya que son datos estáticos editables
 const RESUMEN_DEFAULT = [
-  {id:'100',nombre:'IVECO TRAKKER 350',patente:'NBK032',chofer:'—',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'21/01/2026',ult_service:'05/04/2025',prox_service:'224.000 km',ult_engrase:'05/04/2025',prox_engrase:'214.900 km',ult_cubiertas:'05/04/2025',prox_cubiertas:'224.000 km',ult_bateria:'—',prox_bateria:'—'},
-  {id:'101',nombre:'IVECO TECTOR ATTACK',patente:'AG-160-NG',chofer:'David Maldonado',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'03/06/2027',ult_service:'12/05/2026',prox_service:'3.000 hs',ult_engrase:'12/05/2026',prox_engrase:'2.650 hs',ult_cubiertas:'12/05/2026',prox_cubiertas:'3.000 hs',ult_bateria:'—',prox_bateria:'—'},
-  {id:'102',nombre:'SCANIA P380',patente:'AD-774-EJ',chofer:'Victor Rosa',capacidad:'8m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'27/04/2026',prox_service:'315.580 km',ult_engrase:'27/04/2026',prox_engrase:'306.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'315.580 km',ult_bateria:'09/08/2024',prox_bateria:'—'},
-  {id:'104',nombre:'SCANIA P420',patente:'AD-774-ED',chofer:'Mauricio Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'17/04/2026',prox_service:'260.000 km',ult_engrase:'05/05/2026',prox_engrase:'250.800 km',ult_cubiertas:'19/02/2026',prox_cubiertas:'258.133 km',ult_bateria:'—',prox_bateria:'—'},
-  {id:'105',nombre:'SCANIA 380',patente:'AD-774-EK',chofer:'Horacio Chacon',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'27/04/2026',prox_service:'228.620 km',ult_engrase:'27/04/2026',prox_engrase:'219.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'228.620 km',ult_bateria:'—',prox_bateria:'—'},
-  {id:'108',nombre:'IVECO TRAKKER 380',patente:'AG-473-RK',chofer:'Diego Silva',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'08/05/2026',ult_service:'17/04/2026',prox_service:'347.779 km',ult_engrase:'17/04/2026',prox_engrase:'338.000 km',ult_cubiertas:'17/04/2026',prox_cubiertas:'338.000 km',ult_bateria:'24/02/2025',prox_bateria:'—'},
-  {id:'110',nombre:'IVECO TRAKKER 410',patente:'AG-473-RJ',chofer:'Luis Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'21/04/2026',prox_service:'308.900 km',ult_engrase:'21/04/2026',prox_engrase:'299.300 km',ult_cubiertas:'21/04/2026',prox_cubiertas:'308.900 km',ult_bateria:'30/01/2025',prox_bateria:'—'},
-  {id:'113',nombre:'FORD CARGO 2625',patente:'DMQ335',chofer:'—',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/11/2026',ult_service:'05/05/2026',prox_service:'130.665 km',ult_engrase:'05/05/2026',prox_engrase:'121.000 km',ult_cubiertas:'05/05/2026',prox_cubiertas:'130.665 km',ult_bateria:'08/11/2024',prox_bateria:'—'},
-  {id:'114',nombre:'IVECO TECTOR BOMBA',patente:'AE-378-JW',chofer:'Dario Guerra',capacidad:'32mts',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'18/05/2027',ult_service:'16/04/2026',prox_service:'5.000 km',ult_engrase:'16/04/2026',prox_engrase:'4.700 km',ult_cubiertas:'16/04/2026',prox_cubiertas:'5.000 km',ult_bateria:'15/07/2024',prox_bateria:'—'},
-  {id:'918',nombre:'CAT CARGADORA 918',patente:'—',chofer:'—',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'—',rto_venc:'—',ult_service:'23/04/2026',prox_service:'28.100 hs',ult_engrase:'23/04/2026',prox_engrase:'28.750 hs',ult_cubiertas:'23/04/2026',prox_cubiertas:'28.100 hs',ult_bateria:'23/04/2026',prox_bateria:'—'},
-  {id:'106',nombre:'DIMEX 74-310',patente:'CMS120',chofer:'David',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'28/11/2024',ult_service:'—',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'—',prox_bateria:'—'},
-  {id:'109',nombre:'IVECO CURSOR 330',patente:'PJD392',chofer:'David',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'29/07/2025',rto_venc:'03/04/2024',ult_service:'13/08/2025',prox_service:'210.000 km',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'17/02/2025',prox_bateria:'—'},
-  {id:'007',nombre:'MERCEDES HIDRO',patente:'IVA173',chofer:'J. Moran',capacidad:'6.000 kg',estado:'DISPONIBLE',seguro_hasta:'07/12/2024',rto_venc:'—',ult_service:'20/10/2025',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'—',prox_bateria:'—'},
-  {id:'015',nombre:'MERCEDES ACCELO',patente:'AF-026-OS',chofer:'Marcos',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'29/10/2025',rto_venc:'—',ult_service:'18/12/2025',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'26/05/2025',prox_bateria:'—'},
-  {id:'116',nombre:'ISUZU NPR 75',patente:'AG664XK',chofer:'—',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'—',rto_venc:'—',ult_service:'—',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'—',prox_bateria:'—'},
-  {id:'CARR',nombre:'CARRETÓN ECOMEC',patente:'UPL348',chofer:'David',capacidad:'—',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'03/04/2024',ult_service:'—',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'—',prox_bateria:'—'},
-  {id:'SEMI',nombre:'SEMIRREMOLQUE GOMATRO',patente:'UPL515',chofer:'—',capacidad:'25.000 kg',estado:'DISPONIBLE',seguro_hasta:'19/11/2025',rto_venc:'03/04/2024',ult_service:'—',prox_service:'—',ult_engrase:'—',prox_engrase:'—',ult_cubiertas:'—',prox_cubiertas:'—',ult_bateria:'—',prox_bateria:'—'},
+  {id:'100',nombre:'IVECO TRAKKER 350',patente:'NBK032',chofer:'-',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'21/01/2026',ult_service:'05/04/2025',prox_service:'224.000 km',ult_engrase:'05/04/2025',prox_engrase:'214.900 km',ult_cubiertas:'05/04/2025',prox_cubiertas:'224.000 km',ult_bateria:'-',prox_bateria:'-'},
+  {id:'101',nombre:'IVECO TECTOR ATTACK',patente:'AG-160-NG',chofer:'David Maldonado',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'03/06/2027',ult_service:'12/05/2026',prox_service:'3.000 hs',ult_engrase:'12/05/2026',prox_engrase:'2.650 hs',ult_cubiertas:'12/05/2026',prox_cubiertas:'3.000 hs',ult_bateria:'-',prox_bateria:'-'},
+  {id:'102',nombre:'SCANIA P380',patente:'AD-774-EJ',chofer:'Victor Rosa',capacidad:'8m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'27/04/2026',prox_service:'315.580 km',ult_engrase:'27/04/2026',prox_engrase:'306.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'315.580 km',ult_bateria:'09/08/2024',prox_bateria:'-'},
+  {id:'104',nombre:'SCANIA P420',patente:'AD-774-ED',chofer:'Mauricio Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'17/04/2026',prox_service:'260.000 km',ult_engrase:'05/05/2026',prox_engrase:'250.800 km',ult_cubiertas:'19/02/2026',prox_cubiertas:'258.133 km',ult_bateria:'-',prox_bateria:'-'},
+  {id:'105',nombre:'SCANIA 380',patente:'AD-774-EK',chofer:'Horacio Chacon',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'27/04/2026',prox_service:'228.620 km',ult_engrase:'27/04/2026',prox_engrase:'219.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'228.620 km',ult_bateria:'-',prox_bateria:'-'},
+  {id:'108',nombre:'IVECO TRAKKER 380',patente:'AG-473-RK',chofer:'Diego Silva',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'08/05/2026',ult_service:'17/04/2026',prox_service:'347.779 km',ult_engrase:'17/04/2026',prox_engrase:'338.000 km',ult_cubiertas:'17/04/2026',prox_cubiertas:'338.000 km',ult_bateria:'24/02/2025',prox_bateria:'-'},
+  {id:'110',nombre:'IVECO TRAKKER 410',patente:'AG-473-RJ',chofer:'Luis Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'21/04/2026',prox_service:'308.900 km',ult_engrase:'21/04/2026',prox_engrase:'299.300 km',ult_cubiertas:'21/04/2026',prox_cubiertas:'308.900 km',ult_bateria:'30/01/2025',prox_bateria:'-'},
+  {id:'113',nombre:'FORD CARGO 2625',patente:'DMQ335',chofer:'-',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/11/2026',ult_service:'05/05/2026',prox_service:'130.665 km',ult_engrase:'05/05/2026',prox_engrase:'121.000 km',ult_cubiertas:'05/05/2026',prox_cubiertas:'130.665 km',ult_bateria:'08/11/2024',prox_bateria:'-'},
+  {id:'114',nombre:'IVECO TECTOR BOMBA',patente:'AE-378-JW',chofer:'Dario Guerra',capacidad:'32mts',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'18/05/2027',ult_service:'16/04/2026',prox_service:'5.000 km',ult_engrase:'16/04/2026',prox_engrase:'4.700 km',ult_cubiertas:'16/04/2026',prox_cubiertas:'5.000 km',ult_bateria:'15/07/2024',prox_bateria:'-'},
+  {id:'918',nombre:'CAT CARGADORA 918',patente:'-',chofer:'-',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'-',rto_venc:'-',ult_service:'23/04/2026',prox_service:'28.100 hs',ult_engrase:'23/04/2026',prox_engrase:'28.750 hs',ult_cubiertas:'23/04/2026',prox_cubiertas:'28.100 hs',ult_bateria:'23/04/2026',prox_bateria:'-'},
+  {id:'106',nombre:'DIMEX 74-310',patente:'CMS120',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'28/11/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
+  {id:'109',nombre:'IVECO CURSOR 330',patente:'PJD392',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'29/07/2025',rto_venc:'03/04/2024',ult_service:'13/08/2025',prox_service:'210.000 km',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'17/02/2025',prox_bateria:'-'},
+  {id:'007',nombre:'MERCEDES HIDRO',patente:'IVA173',chofer:'J. Moran',capacidad:'6.000 kg',estado:'DISPONIBLE',seguro_hasta:'07/12/2024',rto_venc:'-',ult_service:'20/10/2025',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
+  {id:'015',nombre:'MERCEDES ACCELO',patente:'AF-026-OS',chofer:'Marcos',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'29/10/2025',rto_venc:'-',ult_service:'18/12/2025',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'26/05/2025',prox_bateria:'-'},
+  {id:'116',nombre:'ISUZU NPR 75',patente:'AG664XK',chofer:'-',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'-',rto_venc:'-',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
+  {id:'CARR',nombre:'CARRETÓN ECOMEC',patente:'UPL348',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'03/04/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
+  {id:'SEMI',nombre:'SEMIRREMOLQUE GOMATRO',patente:'UPL515',chofer:'-',capacidad:'25.000 kg',estado:'DISPONIBLE',seguro_hasta:'19/11/2025',rto_venc:'03/04/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
 ];
 
 function loadResumen() {
@@ -392,7 +392,7 @@ async function cargarOTsPendientes(){
   const urgLabel={alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'};
   el.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:8px">Tocá una OT para registrar la reparación:</p>'+
     data.map(r=>`<div class="rep-falla" onclick='seleccionarOT(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
-      <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">${r.id} — ${r.camion}</span><span style="font-size:12px;color:#856404">${urgLabel[r.urgencia]||''}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">${r.id} - ${r.camion}</span><span style="font-size:12px;color:#856404">${urgLabel[r.urgencia]||''}</span></div>
       <div style="font-size:12px;color:#666;margin-top:3px">${r.fecha} | ${r.descripcion.substring(0,60)}...</div>
     </div>`).join('');
 }
@@ -404,7 +404,7 @@ function seleccionarOT(r){
   const urgLabel={alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'};
   document.getElementById('falla-seleccionada').innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-      <span style="font-weight:700;font-size:14px">${r.id} — Camión ${r.camion}</span>
+      <span style="font-weight:700;font-size:14px">${r.id} - Camión ${r.camion}</span>
       <span>${urgLabel[r.urgencia]||''}</span>
     </div>
     <div style="font-size:13px;color:#444;margin-bottom:6px">📅 ${r.fecha} | 👤 ${r.chofer}</div>
@@ -428,7 +428,7 @@ async function guardarReparacion(){
   const costo=parseInt(document.getElementById('rep-costo').value)||0;
   const fecha=document.getElementById('rep-fecha').value;
   const rep={id:'REP-'+Date.now(),fecha,camion:otSeleccionada.camion,chofer:otSeleccionada.chofer,tipo:'reparacion',
-    descripcion:`[OT:${otSeleccionada.id}] ${taller?'Taller: '+taller+' — ':''}${trabajos}`,
+    descripcion:`[OT:${otSeleccionada.id}] ${taller?'Taller: '+taller+' - ':''}${trabajos}`,
     km:otSeleccionada.km,urgencia:'',repuestos,costo,es_ot:false};
   const{error}=await sb.from('reportes').insert([rep]);
   if(error){showMsg('err-rep-msg','err','Error: '+error.message);return;}
@@ -469,7 +469,7 @@ function renderResumen(){
     let alertas=[];
     ['rto_venc','seguro_hasta'].forEach(k=>{
       const v=c[k];
-      if(v&&v!=='—'){
+      if(v&&v!=='-'){
         const p=v.split('/');
         if(p.length===3){
           const d=Math.ceil((new Date(p[2],p[1]-1,p[0])-hoy)/864e5);
@@ -482,7 +482,7 @@ function renderResumen(){
     const adminBtn=adminAutorizado?`<button class="edit-btn" onclick="toggleEdit(${idx})">✏️ Editar</button>`:'';
 
     const editForm=`<div class="edit-form hidden" id="edit-${idx}">
-      <div class="grid2">${campos.map(f=>`<div class="field"><label>${f.label}</label><input type="text" id="ef-${idx}-${f.key}" value="${c[f.key]||'—'}" placeholder="—"></div>`).join('')}
+      <div class="grid2">${campos.map(f=>`<div class="field"><label>${f.label}</label><input type="text" id="ef-${idx}-${f.key}" value="${c[f.key]||'-'}" placeholder="-"></div>`).join('')}
       <div class="field"><label>Estado</label><select id="ef-${idx}-estado"><option value="DISPONIBLE" ${c.estado==='DISPONIBLE'?'selected':''}>Operativo</option><option value="REPARACION" ${c.estado==='REPARACION'?'selected':''}>En reparación</option></select></div>
       </div>
       <button class="btn-p" onclick="guardarEdit(${idx})" style="margin-top:8px">💾 Guardar cambios</button>
@@ -490,7 +490,7 @@ function renderResumen(){
 
     return `<div class="res-camion">
       <div class="res-header">
-        <div><div class="res-nombre">${c.id} — ${c.nombre}</div><div class="res-patente">📋 ${c.patente} &nbsp;|&nbsp; 👤 ${c.chofer} &nbsp;|&nbsp; 📦 ${c.capacidad}</div></div>
+        <div><div class="res-nombre">${c.id} - ${c.nombre}</div><div class="res-patente">📋 ${c.patente} &nbsp;|&nbsp; 👤 ${c.chofer} &nbsp;|&nbsp; 📦 ${c.capacidad}</div></div>
         ${estadoBadge}
       </div>
       <div class="res-grid">
@@ -524,7 +524,7 @@ function guardarEdit(idx){
   const campos=['rto_venc','seguro_hasta','ult_cubiertas','prox_cubiertas','ult_bateria','prox_bateria','ult_engrase','prox_engrase','ult_service','prox_service'];
   campos.forEach(k=>{
     const el=document.getElementById(`ef-${idx}-${k}`);
-    if(el) resumenData[idx][k]=el.value.trim()||'—';
+    if(el) resumenData[idx][k]=el.value.trim()||'-';
   });
   const est=document.getElementById(`ef-${idx}-estado`);
   if(est) resumenData[idx].estado=est.value;
@@ -652,7 +652,7 @@ CHOFERES
 
     // Descargar
     const fecha = new Date().toISOString().split('T')[0];
-    const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+    const blob = new Blob([''+csv], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
