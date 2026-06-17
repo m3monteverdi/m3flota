@@ -615,8 +615,7 @@ async function exportarExcel() {
     const headerReportes = ['ID','Fecha','Camion','Chofer','Tipo','Descripcion','Km','Urgencia','Repuestos','Costo','Es OT'];
     const rowsReportes = reportes.map(r => [
       r.id, r.fecha, r.camion, r.chofer||'', r.tipo,
-      (r.descripcion||'').replace(/,/g,' ').replace(/
-/g,' '),
+      (r.descripcion||'').replace(/,/g,' ').replace(/\n/g,' '),
       r.km||'', r.urgencia||'', (r.repuestos||'').replace(/,/g,' '),
       r.costo||0, r.es_ot?'SI':'NO'
     ]);
