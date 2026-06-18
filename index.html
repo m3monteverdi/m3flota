@@ -3,129 +3,116 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M3 Monteverdi Cúbico</title>
+<title>M3 Monteverdi Cubico</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{--azul:#1A56DB;--azul-dark:#1341B0;--azul-light:#EEF4FF;--azul-mid:#BFCFEF}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4ff;color:#111;min-height:100vh}
-  .header{background:var(--azul);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(26,86,219,.3)}
-  .header-logo{width:36px;height:36px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:var(--azul);letter-spacing:-1px}
-  .header-title{font-size:16px;font-weight:700;color:#fff}
-  .header-sub{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px}
-  .tabs{display:flex;background:#fff;border-bottom:2px solid var(--azul-mid);overflow-x:auto}
-  .tab{flex:1;padding:11px 4px;font-size:12px;border:none;background:none;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;min-width:60px;margin-bottom:-2px}
-  .tab.on{color:var(--azul);font-weight:700;border-bottom-color:var(--azul)}
-  .pane{display:none;padding:16px;max-width:640px;margin:0 auto}
-  .pane.on{display:block}
-  .card{background:#fff;border-radius:12px;border:1px solid #dde3f5;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(26,86,219,.07)}
-  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-  .field label{font-size:12px;color:#555;font-weight:600}
-  .field input,.field select,.field textarea{font-size:15px;padding:10px 12px;border:1.5px solid #c5d0ef;border-radius:8px;width:100%;background:#fff;color:#111;-webkit-appearance:none}
-  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
-  .field textarea{min-height:80px;resize:vertical}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .btn-p{background:var(--azul);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;width:100%;margin-top:4px;transition:background .15s}
-  .btn-p:active{background:var(--azul-dark)}
-  .btn-o{background:#fff;color:var(--azul);border:1.5px solid var(--azul-mid);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
-  .btn-danger{background:#fff;color:#c0392b;border:1px solid #f5c6c6;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px}
-  .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
-  .b-red{background:#FDECEA;color:#c0392b}
-  .b-amb{background:#FEF3CD;color:#856404}
-  .b-grn{background:#D4EDDA;color:#155724}
-  .b-blu{background:#EEF4FF;color:var(--azul)}
-  .b-gry{background:#f1f1ef;color:#666}
-  .b-pur{background:#EDE7F6;color:#4527A0}
-  .row-item{padding:12px 0;border-bottom:1px solid #eef0f8}
-  .row-item:last-child{border-bottom:none}
-  .row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-  .row-sub{color:#888;font-size:12px;margin-top:4px}
-  .chip{background:var(--azul-light);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--azul);font-weight:600;margin-right:4px}
-  .msg{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px;display:none}
-  .msg-ok{background:#D4EDDA;color:#155724}
-  .msg-err{background:#FDECEA;color:#c0392b}
-  .loader{text-align:center;padding:2rem;color:#888;font-size:13px}
-  .hidden{display:none}
-  .urgbadge-alta{color:#c0392b;font-weight:700}
-  .urgbadge-media{color:#856404;font-weight:700}
-  .urgbadge-baja{color:#155724;font-weight:700}
-  .ot-wrap{background:#fff;border-radius:12px;border:2px solid #111;padding:20px;margin-top:12px}
-  .ot-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:14px}
-  .ot-logo{font-size:13px;font-weight:800;color:var(--azul)}
-  .ot-title{font-size:18px;font-weight:800;margin-top:4px}
-  .ot-sub{font-size:12px;color:#666;margin-top:2px}
-  .ot-sec{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:12px 0 5px;font-weight:700}
-  .ot-kv{display:flex;gap:8px;font-size:13px;padding:3px 0}
-  .ot-k{color:#666;min-width:90px}
-  .ot-desc{background:#f8f8f6;border-radius:8px;padding:10px;font-size:14px;margin:4px 0}
-  .firma-row{display:flex;gap:16px;margin-top:28px}
-  .firma{border-top:1px solid #999;flex:1;padding-top:4px;font-size:11px;color:#888}
-  .print-btn{display:flex;gap:8px;margin-top:14px}
-  .rep-falla{background:#FEF9EC;border:1px solid #F5E6A3;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
-  .rep-falla:hover{background:#FEF3CD}
-  .res-camion{background:#fff;border:1px solid #dde3f5;border-radius:8px;padding:10px 12px;margin-bottom:6px;box-shadow:0 1px 3px rgba(26,86,219,.07)}
-  .res-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .res-nombre{font-weight:700;font-size:13px;color:#111}
-  .res-patente{font-size:11px;color:#888;margin-top:0}
-  .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
-  .res-item{background:var(--azul-light);border-radius:6px;padding:6px 8px}
-  .res-item-titulo{font-size:10px;color:var(--azul);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
-  .res-item-val{font-size:12px;font-weight:600}
-  .res-item-sub{font-size:10px;color:#888;margin-top:1px}
-  .res-alerta{background:#FEF3CD;border-radius:8px;padding:8px 10px;font-size:12px;color:#856404;margin-top:8px}
-  .datos-table{width:100%;font-size:11px;border-collapse:collapse;margin-top:6px}
-  .datos-table th{text-align:left;color:#888;font-weight:600;padding:4px 6px;border-bottom:1px solid #eee}
-  .datos-table td{padding:5px 6px;border-bottom:1px solid #f5f5f3;vertical-align:top}
-  .edit-btn{background:var(--azul-light);color:var(--azul);border:1px solid var(--azul-mid);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;margin-top:8px}
-  .edit-form{background:#f8faff;border:1px solid var(--azul-mid);border-radius:10px;padding:12px;margin-top:8px}
-  @media print{.no-print{display:none!important}body{background:white}.header,.tabs{display:none}.pane{padding:0;display:block!important}.ot-wrap{border:2px solid #111}}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--az:#1A56DB;--azd:#1341B0;--azl:#EEF4FF;--azm:#BFCFEF}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4ff;color:#111;min-height:100vh}
+.header{background:var(--az);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.logo{width:36px;height:36px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--az)}
+.htit{font-size:16px;font-weight:700;color:#fff}
+.hsub{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px}
+.tabs{display:flex;background:#fff;border-bottom:2px solid var(--azm);overflow-x:auto}
+.tab{flex:1;padding:11px 4px;font-size:12px;border:none;background:none;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;min-width:60px;margin-bottom:-2px}
+.tab.on{color:var(--az);font-weight:700;border-bottom-color:var(--az)}
+.pane{display:none;padding:16px;max-width:640px;margin:0 auto}
+.pane.on{display:block}
+.card{background:#fff;border-radius:12px;border:1px solid #dde3f5;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(26,86,219,.07)}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:12px;color:#555;font-weight:600}
+.field input,.field select,.field textarea{font-size:15px;padding:10px 12px;border:1.5px solid #c5d0ef;border-radius:8px;width:100%;background:#fff;color:#111;-webkit-appearance:none}
+.field textarea{min-height:80px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btnp{background:var(--az);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;width:100%;margin-top:4px}
+.btno{background:#fff;color:var(--az);border:1.5px solid var(--azm);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.btnd{background:#fff;color:#c0392b;border:1px solid #f5c6c6;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.bred{background:#FDECEA;color:#c0392b}
+.bamb{background:#FEF3CD;color:#856404}
+.bgrn{background:#D4EDDA;color:#155724}
+.bblu{background:#EEF4FF;color:var(--az)}
+.bgry{background:#f1f1ef;color:#666}
+.bpur{background:#EDE7F6;color:#4527A0}
+.ri{padding:12px 0;border-bottom:1px solid #eef0f8}
+.ri:last-child{border-bottom:none}
+.rt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.rs{color:#888;font-size:12px;margin-top:4px}
+.chip{background:var(--azl);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--az);font-weight:600;margin-right:4px}
+.msg{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px;display:none}
+.mok{background:#D4EDDA;color:#155724}
+.merr{background:#FDECEA;color:#c0392b}
+.loader{text-align:center;padding:2rem;color:#888;font-size:13px}
+.hid{display:none}
+.ot-wrap{border:2px solid #111;border-radius:12px;padding:20px;margin-top:12px;background:#fff}
+.ot-hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:14px}
+.ot-logo{font-size:13px;font-weight:800;color:var(--az)}
+.ot-tit{font-size:18px;font-weight:800;margin-top:4px}
+.ot-sub{font-size:12px;color:#666;margin-top:2px}
+.ot-sec{font-size:11px;text-transform:uppercase;color:#888;margin:12px 0 5px;font-weight:700}
+.ot-kv{display:flex;gap:8px;font-size:13px;padding:3px 0}
+.ot-k{color:#666;min-width:90px}
+.firma-row{display:flex;gap:16px;margin-top:28px}
+.firma{border-top:1px solid #999;flex:1;padding-top:4px;font-size:11px;color:#888}
+.rfalla{background:#FEF9EC;border:1px solid #F5E6A3;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
+.rfalla:hover{background:#FEF3CD}
+.rc{background:#fff;border:1px solid #dde3f5;border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.rc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rc-nom{font-weight:700;font-size:13px}
+.rc-pat{font-size:11px;color:#888}
+.rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+.rc-item{background:var(--azl);border-radius:6px;padding:6px 8px}
+.rc-itit{font-size:10px;color:var(--az);font-weight:700;text-transform:uppercase;margin-bottom:2px}
+.rc-ival{font-size:12px;font-weight:600}
+.rc-isub{font-size:10px;color:#888;margin-top:1px}
+.rc-alerta{background:#FEF3CD;border-radius:8px;padding:8px 10px;font-size:12px;color:#856404;margin-top:8px}
+.dt{width:100%;font-size:11px;border-collapse:collapse;margin-top:6px}
+.dt th{text-align:left;color:#888;font-weight:600;padding:4px 6px;border-bottom:1px solid #eee}
+.dt td{padding:5px 6px;border-bottom:1px solid #f5f5f3}
+.ebtn{background:var(--azl);color:var(--az);border:1px solid var(--azm);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;margin-top:8px}
+.eform{background:#f8faff;border:1px solid var(--azm);border-radius:10px;padding:12px;margin-top:8px}
+@media print{.noprint{display:none!important}body{background:white}.header,.tabs{display:none}.pane{padding:0;display:block!important}}
 </style>
 </head>
 <body>
-
-<div class="header no-print">
-  <div class="header-logo">M3</div>
-  <div>
-    <div class="header-title">M3 Monteverdi Cúbico</div>
-    <div class="header-sub">Sistema de gestión de flota</div>
-  </div>
+<div class="header noprint">
+  <div class="logo">M3</div>
+  <div><div class="htit">M3 Monteverdi Cubico</div><div class="hsub">Sistema de gestion de flota</div></div>
+</div>
+<div class="tabs noprint">
+  <button class="tab on" onclick="showTab('chofer',this)">Reporte</button>
+  <button class="tab" onclick="showTab('reparaciones',this)">Reparaciones</button>
+  <button class="tab" onclick="showTab('resumen',this)">Resumen</button>
+  <button class="tab" onclick="showTab('historial',this)">Historial</button>
+  <button class="tab" onclick="askKey(this)">Config</button>
 </div>
 
-<div class="tabs no-print">
-  <button class="tab on" onclick="switchTab('chofer',this)">📋 Reporte</button>
-  <button class="tab" onclick="switchTab('reparaciones',this)">🔧 Reparaciones</button>
-  <button class="tab" onclick="switchTab('resumen',this)">📊 Resumen</button>
-  <button class="tab" onclick="switchTab('historial',this)">🕐 Historial</button>
-  <button class="tab" onclick="pedirClave(this)">⚙️ Config</button>
-</div>
-
-<!-- CHOFER -->
 <div class="pane on" id="pane-chofer">
-  <div class="msg msg-ok" id="ok-msg"></div>
-  <div class="msg msg-err" id="err-msg"></div>
+  <div class="msg mok hid" id="ok-msg"></div>
+  <div class="msg merr hid" id="err-msg"></div>
   <div class="card">
-    <div class="field"><label>Camión *</label><select id="r-cam"><option value="">Seleccioná...</option></select></div>
-    <div class="field"><label>Chofer *</label><select id="r-cho"><option value="">Seleccioná...</option></select></div>
+    <div class="field"><label>Camion *</label><select id="r-cam"><option value="">Selecciona...</option></select></div>
+    <div class="field"><label>Chofer *</label><select id="r-cho"><option value="">Selecciona...</option></select></div>
     <div class="grid2">
       <div class="field"><label>Tipo *</label>
-        <select id="r-tip" onchange="toggleFalla()">
-          <option value="">Seleccioná...</option>
-          <option value="falla">🔴 Falla</option>
-          <option value="service">🟡 Service</option>
-          <option value="engrase">🔵 Engrase</option>
-          <option value="preventivo">🟢 Preventivo</option>
+        <select id="r-tip" onchange="togFalla()">
+          <option value="">Selecciona...</option>
+          <option value="falla">Falla</option>
+          <option value="service">Service</option>
+          <option value="engrase">Engrase</option>
+          <option value="preventivo">Preventivo</option>
         </select>
       </div>
       <div class="field"><label>Km actuales</label><input type="number" id="r-km" placeholder="ej: 187500"></div>
     </div>
-    <div class="field"><label>Descripción *</label><textarea id="r-des" placeholder="Describí el problema o trabajo..."></textarea></div>
-    <div id="falla-extra" class="hidden">
+    <div class="field"><label>Descripcion *</label><textarea id="r-des" placeholder="Describe el problema o trabajo..."></textarea></div>
+    <div id="falla-extra" class="hid">
       <div class="grid2">
         <div class="field"><label>Urgencia</label>
           <select id="r-urg">
-            <option value="alta">Alta – no circula</option>
-            <option value="media">Media – con cuidado</option>
-            <option value="baja">Baja – esta semana</option>
+            <option value="alta">Alta - no circula</option>
+            <option value="media">Media - con cuidado</option>
+            <option value="baja">Baja - esta semana</option>
           </select>
         </div>
         <div class="field"><label>Repuestos estimados</label><input type="text" id="r-rep" placeholder="ej: filtro, correa"></div>
@@ -135,536 +122,493 @@
       <div class="field"><label>Costo ($)</label><input type="number" id="r-cos" placeholder="0"></div>
       <div class="field"><label>Fecha</label><input type="date" id="r-fec"></div>
     </div>
-    <button class="btn-p no-print" onclick="guardar()">💾 Guardar reporte</button>
+    <button class="btnp noprint" onclick="guardar()">Guardar reporte</button>
   </div>
   <div id="ot-area"></div>
 </div>
 
-<!-- REPARACIONES -->
 <div class="pane" id="pane-reparaciones">
-  <div class="msg msg-ok" id="ok-rep-msg"></div>
-  <div class="msg msg-err" id="err-rep-msg"></div>
+  <div class="msg mok hid" id="ok-rep"></div>
+  <div class="msg merr hid" id="err-rep"></div>
   <div class="card" id="buscador-ot">
-    <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--azul)">🔧 Registrar reparación</p>
-    <div class="field"><label>Filtrar por camión</label>
-      <select id="fil-ot-cam" onchange="cargarOTsPendientes()">
-        <option value="">Todos los camiones</option>
-      </select>
+    <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--az)">Registrar reparacion</p>
+    <div class="field"><label>Filtrar por camion</label>
+      <select id="fil-ot-cam" onchange="loadOTs()"><option value="">Todos los camiones</option></select>
     </div>
-    <div id="lista-ots-pendientes"><div class="loader">Cargando OTs...</div></div>
+    <div id="lista-ots"><div class="loader">Cargando OTs...</div></div>
   </div>
-  <div id="form-reparacion" class="hidden">
-    <div class="card" id="falla-seleccionada"></div>
+  <div id="form-rep" class="hid">
+    <div class="card" id="falla-sel"></div>
     <div class="card">
-      <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--azul)">¿Qué hicieron los mecánicos?</p>
-      <div class="field"><label>Taller / Mecánico</label><input type="text" id="rep-taller" placeholder="ej: Taller Barone, Osvaldo"></div>
-      <div class="field"><label>Trabajos realizados *</label><textarea id="rep-trabajos" placeholder="Describí qué se hizo..."></textarea></div>
-      <div class="field"><label>Repuestos usados</label><textarea id="rep-repuestos" placeholder="ej: Filtro de aceite, correa poli V..." style="min-height:60px"></textarea></div>
+      <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Trabajos realizados por el mecanico</p>
+      <div class="field"><label>Taller / Mecanico</label><input type="text" id="rep-tal" placeholder="ej: Taller Barone"></div>
+      <div class="field"><label>Trabajos realizados *</label><textarea id="rep-tra" placeholder="Describe que se hizo..."></textarea></div>
+      <div class="field"><label>Repuestos usados</label><textarea id="rep-rep" placeholder="ej: Filtro de aceite, correa..." style="min-height:60px"></textarea></div>
       <div class="grid2">
-        <div class="field"><label>Costo final ($)</label><input type="number" id="rep-costo" placeholder="0"></div>
-        <div class="field"><label>Fecha de entrega</label><input type="date" id="rep-fecha"></div>
+        <div class="field"><label>Costo final ($)</label><input type="number" id="rep-cos" placeholder="0"></div>
+        <div class="field"><label>Fecha de entrega</label><input type="date" id="rep-fec"></div>
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-p" onclick="guardarReparacion()" style="flex:1">💾 Guardar reparación</button>
-        <button class="btn-o" onclick="cancelarReparacion()">Cancelar</button>
+        <button class="btnp" onclick="saveRep()" style="flex:1">Guardar reparacion</button>
+        <button class="btno" onclick="cancelRep()">Cancelar</button>
       </div>
     </div>
   </div>
   <div class="card">
-    <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--azul)">Reparaciones registradas</p>
-    <div id="lista-reparaciones"><div class="loader">Cargando...</div></div>
+    <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--az)">Reparaciones registradas</p>
+    <div id="lista-reps"><div class="loader">Cargando...</div></div>
   </div>
 </div>
 
-<!-- RESUMEN -->
 <div class="pane" id="pane-resumen">
-  <div class="card" style="padding:12px 16px;margin-bottom:10px;background:var(--azul);border:none">
-    <p style="font-size:13px;font-weight:700;color:#fff">📋 Resumen de flota</p>
-    <p style="font-size:12px;color:rgba(255,255,255,.8)">Datos técnicos y control preventivo</p>
+  <div class="card" style="padding:12px 16px;margin-bottom:10px;background:var(--az);border:none">
+    <p style="font-size:13px;font-weight:700;color:#fff">Resumen de flota</p>
+    <p style="font-size:12px;color:rgba(255,255,255,.8)">Datos tecnicos y control preventivo</p>
   </div>
-  <div id="resumen-contenido"><div class="loader">Cargando...</div></div>
+  <div id="res-cont"><div class="loader">Cargando...</div></div>
 </div>
 
-<!-- HISTORIAL -->
 <div class="pane" id="pane-historial">
   <div class="card" style="padding:10px">
-    <select id="fil-cam" onchange="renderHistorial()" style="font-size:14px;width:100%;padding:8px;border:1.5px solid #c5d0ef;border-radius:8px">
+    <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:8px;border:1.5px solid #c5d0ef;border-radius:8px">
       <option value="">Todos los camiones</option>
     </select>
   </div>
   <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
 </div>
 
-<!-- CONFIG -->
 <div class="pane" id="pane-config">
-  <div class="card">
-    <div class="card" style="margin-bottom:12px;background:var(--azul-light);border:1px solid var(--azul-mid)">
-    <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--azul)">📥 Exportar datos</p>
-    <p style="font-size:12px;color:#555;margin-bottom:10px">Descargá toda la base de datos en Excel para guardar como backup.</p>
-    <button class="btn-p" onclick="exportarExcel()" style="background:var(--azul)">📊 Descargar Excel completo</button>
+  <div class="card" style="background:var(--azl);border:1px solid var(--azm);margin-bottom:12px">
+    <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--az)">Exportar datos</p>
+    <p style="font-size:12px;color:#555;margin-bottom:10px">Descarga toda la base de datos en CSV para guardar como backup en Excel.</p>
+    <button class="btnp" onclick="exportCSV()">Descargar backup CSV</button>
   </div>
-  <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--azul)">Camiones</p>
+  <div class="card">
+    <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Camiones</p>
     <div id="lista-camiones" style="margin-bottom:12px"></div>
     <div class="grid2" style="margin-bottom:8px">
-      <input type="text" id="nc-id" placeholder="Código (ej: 115)" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px">
+      <input type="text" id="nc-id" placeholder="Codigo (ej: 115)" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px">
       <input type="text" id="nc-mod" placeholder="Modelo" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px">
     </div>
-    <button class="btn-o" onclick="agregarCamion()" style="width:100%">+ Agregar camión</button>
+    <button class="btno" onclick="addCamion()" style="width:100%">+ Agregar camion</button>
   </div>
   <div class="card">
-    <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--azul)">Choferes</p>
+    <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Choferes</p>
     <div id="lista-choferes" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
       <input type="text" id="nc-cho" placeholder="Nombre del chofer" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px;flex:1">
-      <button class="btn-o" onclick="agregarChofer()">+ Agregar</button>
+      <button class="btno" onclick="addChofer()">+ Agregar</button>
     </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL='https://gjxbyxpbuomyuqyrieuc.supabase.co';
-const SUPABASE_KEY='sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
-const ADMIN_KEY='monteverdi';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let camiones=[],choferes=[],otCounter=1,otSeleccionada=null,adminAutorizado=false;
+var SB_URL='https://gjxbyxpbuomyuqyrieuc.supabase.co';
+var SB_KEY='sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
+var ADMIN_KEY='monteverdi';
+var sb=supabase.createClient(SB_URL,SB_KEY);
+var camiones=[],choferes=[],otCounter=1,otSel=null,adminOk=false;
 
-// Resumen editable - se guarda en Supabase en tabla resumen_flota (key/value)
-// Por simplicidad usamos localStorage para el resumen ya que son datos estáticos editables
-const RESUMEN_DEFAULT = [
-  {id:'100',nombre:'IVECO TRAKKER 350',patente:'NBK032',chofer:'-',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'21/01/2026',ult_service:'05/04/2025',prox_service:'224.000 km',ult_engrase:'05/04/2025',prox_engrase:'214.900 km',ult_cubiertas:'05/04/2025',prox_cubiertas:'224.000 km',ult_bateria:'-',prox_bateria:'-'},
-  {id:'101',nombre:'IVECO TECTOR ATTACK',patente:'AG-160-NG',chofer:'David Maldonado',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'03/06/2027',ult_service:'12/05/2026',prox_service:'3.000 hs',ult_engrase:'12/05/2026',prox_engrase:'2.650 hs',ult_cubiertas:'12/05/2026',prox_cubiertas:'3.000 hs',ult_bateria:'-',prox_bateria:'-'},
-  {id:'102',nombre:'SCANIA P380',patente:'AD-774-EJ',chofer:'Victor Rosa',capacidad:'8m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'27/04/2026',prox_service:'315.580 km',ult_engrase:'27/04/2026',prox_engrase:'306.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'315.580 km',ult_bateria:'09/08/2024',prox_bateria:'-'},
-  {id:'104',nombre:'SCANIA P420',patente:'AD-774-ED',chofer:'Mauricio Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'05/01/2027',ult_service:'17/04/2026',prox_service:'260.000 km',ult_engrase:'05/05/2026',prox_engrase:'250.800 km',ult_cubiertas:'19/02/2026',prox_cubiertas:'258.133 km',ult_bateria:'-',prox_bateria:'-'},
-  {id:'105',nombre:'SCANIA 380',patente:'AD-774-EK',chofer:'Horacio Chacon',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'27/04/2026',prox_service:'228.620 km',ult_engrase:'27/04/2026',prox_engrase:'219.000 km',ult_cubiertas:'27/04/2026',prox_cubiertas:'228.620 km',ult_bateria:'-',prox_bateria:'-'},
-  {id:'108',nombre:'IVECO TRAKKER 380',patente:'AG-473-RK',chofer:'Diego Silva',capacidad:'9m3',estado:'REPARACION',seguro_hasta:'02/07/2026',rto_venc:'08/05/2026',ult_service:'17/04/2026',prox_service:'347.779 km',ult_engrase:'17/04/2026',prox_engrase:'338.000 km',ult_cubiertas:'17/04/2026',prox_cubiertas:'338.000 km',ult_bateria:'24/02/2025',prox_bateria:'-'},
-  {id:'110',nombre:'IVECO TRAKKER 410',patente:'AG-473-RJ',chofer:'Luis Mercau',capacidad:'9m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/08/2026',ult_service:'21/04/2026',prox_service:'308.900 km',ult_engrase:'21/04/2026',prox_engrase:'299.300 km',ult_cubiertas:'21/04/2026',prox_cubiertas:'308.900 km',ult_bateria:'30/01/2025',prox_bateria:'-'},
-  {id:'113',nombre:'FORD CARGO 2625',patente:'DMQ335',chofer:'-',capacidad:'7m3',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'07/11/2026',ult_service:'05/05/2026',prox_service:'130.665 km',ult_engrase:'05/05/2026',prox_engrase:'121.000 km',ult_cubiertas:'05/05/2026',prox_cubiertas:'130.665 km',ult_bateria:'08/11/2024',prox_bateria:'-'},
-  {id:'114',nombre:'IVECO TECTOR BOMBA',patente:'AE-378-JW',chofer:'Dario Guerra',capacidad:'32mts',estado:'DISPONIBLE',seguro_hasta:'02/07/2026',rto_venc:'18/05/2027',ult_service:'16/04/2026',prox_service:'5.000 km',ult_engrase:'16/04/2026',prox_engrase:'4.700 km',ult_cubiertas:'16/04/2026',prox_cubiertas:'5.000 km',ult_bateria:'15/07/2024',prox_bateria:'-'},
-  {id:'918',nombre:'CAT CARGADORA 918',patente:'-',chofer:'-',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'-',rto_venc:'-',ult_service:'23/04/2026',prox_service:'28.100 hs',ult_engrase:'23/04/2026',prox_engrase:'28.750 hs',ult_cubiertas:'23/04/2026',prox_cubiertas:'28.100 hs',ult_bateria:'23/04/2026',prox_bateria:'-'},
-  {id:'106',nombre:'DIMEX 74-310',patente:'CMS120',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'28/11/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
-  {id:'109',nombre:'IVECO CURSOR 330',patente:'PJD392',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'29/07/2025',rto_venc:'03/04/2024',ult_service:'13/08/2025',prox_service:'210.000 km',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'17/02/2025',prox_bateria:'-'},
-  {id:'007',nombre:'MERCEDES HIDRO',patente:'IVA173',chofer:'J. Moran',capacidad:'6.000 kg',estado:'DISPONIBLE',seguro_hasta:'07/12/2024',rto_venc:'-',ult_service:'20/10/2025',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
-  {id:'015',nombre:'MERCEDES ACCELO',patente:'AF-026-OS',chofer:'Marcos',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'29/10/2025',rto_venc:'-',ult_service:'18/12/2025',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'26/05/2025',prox_bateria:'-'},
-  {id:'116',nombre:'ISUZU NPR 75',patente:'AG664XK',chofer:'-',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'-',rto_venc:'-',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
-  {id:'CARR',nombre:'CARRETÓN ECOMEC',patente:'UPL348',chofer:'David',capacidad:'-',estado:'DISPONIBLE',seguro_hasta:'28/11/2024',rto_venc:'03/04/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
-  {id:'SEMI',nombre:'SEMIRREMOLQUE GOMATRO',patente:'UPL515',chofer:'-',capacidad:'25.000 kg',estado:'DISPONIBLE',seguro_hasta:'19/11/2025',rto_venc:'03/04/2024',ult_service:'-',prox_service:'-',ult_engrase:'-',prox_engrase:'-',ult_cubiertas:'-',prox_cubiertas:'-',ult_bateria:'-',prox_bateria:'-'},
+var RD=[
+  {id:'100',nom:'IVECO TRAKKER 350',pat:'NBK032',cho:'---',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'21/01/2026',us:'05/04/2025',ps:'224.000 km',ue:'05/04/2025',pe:'214.900 km',uc:'05/04/2025',pc:'224.000 km',ub:'---',pb:'---'},
+  {id:'101',nom:'IVECO TECTOR ATTACK',pat:'AG-160-NG',cho:'David Maldonado',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'03/06/2027',us:'12/05/2026',ps:'3.000 hs',ue:'12/05/2026',pe:'2.650 hs',uc:'12/05/2026',pc:'3.000 hs',ub:'---',pb:'---'},
+  {id:'102',nom:'SCANIA P380',pat:'AD-774-EJ',cho:'Victor Rosa',cap:'8m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'27/04/2026',ps:'315.580 km',ue:'27/04/2026',pe:'306.000 km',uc:'27/04/2026',pc:'315.580 km',ub:'09/08/2024',pb:'---'},
+  {id:'104',nom:'SCANIA P420',pat:'AD-774-ED',cho:'Mauricio Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'17/04/2026',ps:'260.000 km',ue:'05/05/2026',pe:'250.800 km',uc:'19/02/2026',pc:'258.133 km',ub:'---',pb:'---'},
+  {id:'105',nom:'SCANIA 380',pat:'AD-774-EK',cho:'Horacio Chacon',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'27/04/2026',ps:'228.620 km',ue:'27/04/2026',pe:'219.000 km',uc:'27/04/2026',pc:'228.620 km',ub:'---',pb:'---'},
+  {id:'108',nom:'IVECO TRAKKER 380',pat:'AG-473-RK',cho:'Diego Silva',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'08/05/2026',us:'17/04/2026',ps:'347.779 km',ue:'17/04/2026',pe:'338.000 km',uc:'17/04/2026',pc:'338.000 km',ub:'24/02/2025',pb:'---'},
+  {id:'110',nom:'IVECO TRAKKER 410',pat:'AG-473-RJ',cho:'Luis Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'21/04/2026',ps:'308.900 km',ue:'21/04/2026',pe:'299.300 km',uc:'21/04/2026',pc:'308.900 km',ub:'30/01/2025',pb:'---'},
+  {id:'113',nom:'FORD CARGO 2625',pat:'DMQ335',cho:'---',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/11/2026',us:'05/05/2026',ps:'130.665 km',ue:'05/05/2026',pe:'121.000 km',uc:'05/05/2026',pc:'130.665 km',ub:'08/11/2024',pb:'---'},
+  {id:'114',nom:'IVECO TECTOR BOMBA',pat:'AE-378-JW',cho:'Dario Guerra',cap:'32mts',est:'DISPONIBLE',seg:'02/07/2026',rto:'18/05/2027',us:'16/04/2026',ps:'5.000 km',ue:'16/04/2026',pe:'4.700 km',uc:'16/04/2026',pc:'5.000 km',ub:'15/07/2024',pb:'---'},
+  {id:'918',nom:'CAT CARGADORA 918',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'23/04/2026',ps:'28.100 hs',ue:'23/04/2026',pe:'28.750 hs',uc:'23/04/2026',pc:'28.100 hs',ub:'23/04/2026',pb:'---'},
+  {id:'106',nom:'DIMEX 74-310',pat:'CMS120',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'28/11/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'03/04/2024',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
+  {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'015',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
+  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'CARR',nom:'CARRETON ECOMEC',pat:'UPL348',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'SEMI',nom:'SEMIRREMOLQUE GOMATRO',pat:'UPL515',cho:'---',cap:'25.000 kg',est:'DISPONIBLE',seg:'19/11/2025',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
 ];
 
-function loadResumen() {
-  try { const r=localStorage.getItem('m3_resumen_v3'); if(r) return JSON.parse(r); } catch(e){}
-  return JSON.parse(JSON.stringify(RESUMEN_DEFAULT));
-}
-function saveResumen(data) { try { localStorage.setItem('m3_resumen_v3',JSON.stringify(data)); } catch(e){} }
-let resumenData = loadResumen();
+function loadRes(){try{var r=localStorage.getItem('m3v4');if(r)return JSON.parse(r);}catch(e){}return JSON.parse(JSON.stringify(RD));}
+function saveRes(d){try{localStorage.setItem('m3v4',JSON.stringify(d));}catch(e){}}
+var resData=loadRes();
 
-async function init() {
+async function init(){
   document.getElementById('r-fec').value=new Date().toISOString().split('T')[0];
-  document.getElementById('rep-fecha').value=new Date().toISOString().split('T')[0];
-  await cargarCamiones(); await cargarChoferes(); await cargarOTCounter();
+  document.getElementById('rep-fec').value=new Date().toISOString().split('T')[0];
+  await loadCamiones();
+  await loadChoferes();
+  await loadOTCounter();
 }
 
-async function cargarCamiones(){const{data}=await sb.from('camiones').select('*').order('id');camiones=data||[];populateCamiones();}
-async function cargarChoferes(){const{data}=await sb.from('choferes').select('*').order('nombre');choferes=data||[];populateChoferes();}
-async function cargarOTCounter(){const{data}=await sb.from('reportes').select('id').like('id','OT-%').order('created_at',{ascending:false}).limit(1);if(data&&data.length>0){const n=parseInt(data[0].id.replace('OT-',''))||0;otCounter=n+1;}}
-
-function populateCamiones(){
-  const opts='<option value="">Seleccioná...</option>'+camiones.map(c=>`<option value="${c.id}">${c.id} – ${c.modelo}</option>`).join('');
-  document.getElementById('r-cam').innerHTML=opts;
-  document.getElementById('fil-cam').innerHTML='<option value="">Todos los camiones</option>'+camiones.map(c=>`<option value="${c.id}">${c.id} – ${c.modelo}</option>`).join('');
-  document.getElementById('fil-ot-cam').innerHTML='<option value="">Todos los camiones</option>'+camiones.map(c=>`<option value="${c.id}">${c.id} – ${c.modelo}</option>`).join('');
+async function loadCamiones(){var r=await sb.from('camiones').select('*').order('id');camiones=r.data||[];fillCamiones();}
+async function loadChoferes(){var r=await sb.from('choferes').select('*').order('nombre');choferes=r.data||[];fillChoferes();}
+async function loadOTCounter(){
+  var r=await sb.from('reportes').select('id').like('id','OT-%').order('created_at',{ascending:false}).limit(1);
+  if(r.data&&r.data.length>0){var n=parseInt(r.data[0].id.replace('OT-',''))||0;otCounter=n+1;}
 }
-function populateChoferes(){document.getElementById('r-cho').innerHTML='<option value="">Seleccioná...</option>'+choferes.map(c=>`<option value="${c.nombre}">${c.nombre}</option>`).join('');}
 
-function switchTab(id,btn){
-  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+function fillCamiones(){
+  var o='<option value="">Selecciona...</option>'+camiones.map(function(c){return '<option value="'+c.id+'">'+c.id+' - '+c.modelo+'</option>';}).join('');
+  document.getElementById('r-cam').innerHTML=o;
+  var o2='<option value="">Todos los camiones</option>'+camiones.map(function(c){return '<option value="'+c.id+'">'+c.id+' - '+c.modelo+'</option>';}).join('');
+  document.getElementById('fil-cam').innerHTML=o2;
+  document.getElementById('fil-ot-cam').innerHTML=o2;
+}
+
+function fillChoferes(){
+  var o='<option value="">Selecciona...</option>'+choferes.map(function(c){return '<option value="'+c.nombre+'">'+c.nombre+'</option>';}).join('');
+  document.getElementById('r-cho').innerHTML=o;
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
   document.getElementById('pane-'+id).classList.add('on');
   btn.classList.add('on');
-  if(id==='historial') renderHistorial();
-  if(id==='config') renderConfig();
-  if(id==='resumen') renderResumen();
-  if(id==='reparaciones'){cargarOTsPendientes();cargarReparaciones();}
+  if(id==='historial') loadHist();
+  if(id==='config') loadConfig();
+  if(id==='resumen') showRes();
+  if(id==='reparaciones'){loadOTs();loadReps();}
 }
 
-function pedirClave(btn){
-  if(adminAutorizado){switchTab('config',btn);return;}
-  const c=prompt('Ingresá la clave de administrador:');
-  if(c===ADMIN_KEY){adminAutorizado=true;switchTab('config',btn);}
-  else if(c!==null) alert('Clave incorrecta.');
+function askKey(btn){
+  if(adminOk){showTab('config',btn);return;}
+  var c=prompt('Ingresa la clave de administrador:');
+  if(c===ADMIN_KEY){adminOk=true;showTab('config',btn);}
+  else if(c!==null){alert('Clave incorrecta.');}
 }
 
-function toggleFalla(){document.getElementById('falla-extra').classList.toggle('hidden',document.getElementById('r-tip').value!=='falla');}
-
-function showMsg(id,type,txt){const el=document.getElementById(id);el.textContent=txt;el.className='msg msg-'+(type==='ok'?'ok':'err');el.style.display='block';setTimeout(()=>{el.style.display='none';},5000);}
-
-function tipoBadge(t){
-  const m={falla:'b-red',service:'b-amb',reparacion:'b-pur',preventivo:'b-grn',engrase:'b-blu'};
-  const l={falla:'Falla',service:'Service',reparacion:'Reparación',preventivo:'Preventivo',engrase:'Engrase'};
-  return `<span class="badge ${m[t]||'b-gry'}">${l[t]||t}</span>`;
+function togFalla(){
+  var t=document.getElementById('r-tip').value;
+  document.getElementById('falla-extra').classList.toggle('hid',t!=='falla');
 }
-function formatPeso(n){if(!n||n===0)return '-';return '$'+Math.round(n).toLocaleString('es-AR');}
+
+function showMsg(id,type,txt){
+  var el=document.getElementById(id);
+  el.textContent=txt;
+  el.className='msg '+(type==='ok'?'mok':'merr');
+  el.style.display='block';
+  setTimeout(function(){el.style.display='none';},5000);
+}
+
+function tbadge(t){
+  var m={falla:'bred',service:'bamb',reparacion:'bpur',preventivo:'bgrn',engrase:'bblu'};
+  var l={falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase'};
+  return '<span class="badge '+(m[t]||'bgry')+'">'+(l[t]||t)+'</span>';
+}
+
+function fmtP(n){if(!n||n===0)return '-';return '$'+Math.round(n).toLocaleString('es-AR');}
 
 async function guardar(){
-  const cam=document.getElementById('r-cam').value,cho=document.getElementById('r-cho').value;
-  const tip=document.getElementById('r-tip').value,km=parseInt(document.getElementById('r-km').value)||0;
-  const des=document.getElementById('r-des').value.trim(),urg=document.getElementById('r-urg').value;
-  const rep=document.getElementById('r-rep').value.trim(),cos=parseInt(document.getElementById('r-cos').value)||0;
-  const fec=document.getElementById('r-fec').value;
-  if(!cam||!cho||!tip||!des){showMsg('err-msg','err','Completá camión, chofer, tipo y descripción.');return;}
-  const esOT=tip==='falla';
-  const id=esOT?'OT-'+String(otCounter).padStart(3,'0'):'REP-'+Date.now();
+  var cam=document.getElementById('r-cam').value;
+  var cho=document.getElementById('r-cho').value;
+  var tip=document.getElementById('r-tip').value;
+  var km=parseInt(document.getElementById('r-km').value)||0;
+  var des=document.getElementById('r-des').value.trim();
+  var urg=document.getElementById('r-urg').value;
+  var rep=document.getElementById('r-rep').value.trim();
+  var cos=parseInt(document.getElementById('r-cos').value)||0;
+  var fec=document.getElementById('r-fec').value;
+  if(!cam||!cho||!tip||!des){showMsg('err-msg','err','Completa camion, chofer, tipo y descripcion.');return;}
+  var esOT=(tip==='falla');
+  var id=esOT?'OT-'+String(otCounter).padStart(3,'0'):'REP-'+Date.now();
   if(esOT) otCounter++;
-  const reporte={id,fecha:fec,camion:cam,chofer:cho,tipo:tip,descripcion:des,km,urgencia:urg,repuestos:rep,costo:cos,es_ot:esOT};
-  const{error}=await sb.from('reportes').insert([reporte]);
-  if(error){showMsg('err-msg','err','Error: '+error.message);return;}
-
-  // Si es engrase, actualizar resumen automáticamente
-  if(tip==='engrase'){
-    const idx=resumenData.findIndex(r=>r.id===cam);
-    if(idx>=0){
-      resumenData[idx].ult_engrase=fec;
-      saveResumen(resumenData);
-    }
-  }
-  if(tip==='service'){
-    const idx=resumenData.findIndex(r=>r.id===cam);
-    if(idx>=0){
-      resumenData[idx].ult_service=fec;
-      saveResumen(resumenData);
-    }
-  }
-
-  showMsg('ok-msg','ok',esOT?`Reporte guardado. OT ${id} generada.`:'Reporte guardado correctamente.');
-  if(esOT) renderOT(reporte);
+  var rep2={id:id,fecha:fec,camion:cam,chofer:cho,tipo:tip,descripcion:des,km:km,urgencia:urg,repuestos:rep,costo:cos,es_ot:esOT};
+  var res=await sb.from('reportes').insert([rep2]);
+  if(res.error){showMsg('err-msg','err','Error: '+res.error.message);return;}
+  if(tip==='engrase'){var idx=resData.findIndex(function(r){return r.id===cam;});if(idx>=0){resData[idx].ue=fec;saveRes(resData);}}
+  if(tip==='service'){var idx=resData.findIndex(function(r){return r.id===cam;});if(idx>=0){resData[idx].us=fec;saveRes(resData);}}
+  showMsg('ok-msg','ok',esOT?'Reporte guardado. OT '+id+' generada.':'Reporte guardado correctamente.');
+  if(esOT) showOT(rep2);
   else document.getElementById('ot-area').innerHTML='';
-  ['r-des','r-rep','r-cos','r-km'].forEach(i=>{document.getElementById(i).value='';});
-  ['r-cam','r-cho','r-tip'].forEach(i=>{document.getElementById(i).selectedIndex=0;});
+  ['r-des','r-rep','r-cos','r-km'].forEach(function(i){document.getElementById(i).value='';});
+  ['r-cam','r-cho','r-tip'].forEach(function(i){document.getElementById(i).selectedIndex=0;});
   document.getElementById('r-fec').value=new Date().toISOString().split('T')[0];
-  document.getElementById('falla-extra').classList.add('hidden');
+  document.getElementById('falla-extra').classList.add('hid');
 }
 
-function renderOT(r){
-  const urgLabel={alta:'ALTA – no puede circular',media:'Media – circular con cuidado',baja:'Baja – programar'};
-  const modelo=camiones.find(c=>c.id===r.camion)?.modelo||'';
-  document.getElementById('ot-area').innerHTML=`
-    <div class="ot-card card">
-      <div class="ot-wrap">
-        <div class="ot-header">
-          <div>
-            <div class="ot-logo">M3 Monteverdi Cúbico</div>
-            <div class="ot-title">Orden de Trabajo ${r.id}</div>
-            <div class="ot-sub">Fecha: ${r.fecha}</div>
-          </div>
-          <div style="text-align:right"><div style="font-size:12px;color:#888">Urgencia</div><div class="urgbadge-${r.urgencia}">${urgLabel[r.urgencia]||'-'}</div></div>
-        </div>
-        <div class="ot-sec">Vehículo</div>
-        <div class="ot-kv"><span class="ot-k">Camión</span><span>${r.camion} – ${modelo}</span></div>
-        <div class="ot-kv"><span class="ot-k">Chofer</span><span>${r.chofer}</span></div>
-        <div class="ot-kv"><span class="ot-k">Km</span><span>${r.km?r.km.toLocaleString('es-AR')+' km':'-'}</span></div>
-        <div class="ot-sec">Descripción del problema</div>
-        <div class="ot-desc">${r.descripcion}</div>
-        <div class="ot-sec">Repuestos estimados</div>
-        <p style="font-size:13px">${r.repuestos||'A determinar por el taller'}</p>
-        <div class="ot-sec">Costo estimado</div>
-        <p style="font-size:13px">${r.costo>0?formatPeso(r.costo):'A presupuestar'}</p>
-        <div class="firma-row">
-          <div class="firma">Firma del chofer</div>
-          <div class="firma">Firma del mecánico</div>
-          <div class="firma">Autorizó</div>
-        </div>
-      </div>
-      <div class="print-btn no-print">
-        <button class="btn-p" onclick="window.print()" style="flex:1">🖨️ Imprimir OT</button>
-        <button class="btn-o" onclick="document.getElementById('ot-area').innerHTML=''">Cerrar</button>
-      </div>
-    </div>`;
+function showOT(r){
+  var ul={alta:'ALTA - no puede circular',media:'Media - circular con cuidado',baja:'Baja - programar'};
+  var mod=(camiones.find(function(c){return c.id===r.camion;})||{}).modelo||'';
+  document.getElementById('ot-area').innerHTML='<div class="ot-wrap">'
+    +'<div class="ot-hdr"><div>'
+    +'<div class="ot-logo">M3 Monteverdi Cubico</div>'
+    +'<div class="ot-tit">Orden de Trabajo '+r.id+'</div>'
+    +'<div class="ot-sub">Fecha: '+r.fecha+'</div>'
+    +'</div><div style="text-align:right"><div style="font-size:12px;color:#888">Urgencia</div>'
+    +'<div style="font-weight:700;color:#c0392b">'+(ul[r.urgencia]||'-')+'</div></div></div>'
+    +'<div class="ot-sec">Vehiculo</div>'
+    +'<div class="ot-kv"><span class="ot-k">Camion</span><span>'+r.camion+' - '+mod+'</span></div>'
+    +'<div class="ot-kv"><span class="ot-k">Chofer</span><span>'+r.chofer+'</span></div>'
+    +'<div class="ot-kv"><span class="ot-k">Km</span><span>'+(r.km?r.km.toLocaleString('es-AR')+' km':'-')+'</span></div>'
+    +'<div class="ot-sec">Descripcion del problema</div>'
+    +'<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:14px">'+r.descripcion+'</div>'
+    +'<div class="ot-sec">Repuestos estimados</div>'
+    +'<p style="font-size:13px">'+(r.repuestos||'A determinar por el taller')+'</p>'
+    +'<div class="ot-sec">Costo estimado</div>'
+    +'<p style="font-size:13px">'+(r.costo>0?fmtP(r.costo):'A presupuestar')+'</p>'
+    +'<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px" class="noprint">'
+    +'<button class="btnp" onclick="window.print()" style="flex:1">Imprimir OT</button>'
+    +'<button class="btno" onclick="document.getElementById('ot-area').innerHTML=''">Cerrar</button>'
+    +'</div>';
   document.getElementById('ot-area').scrollIntoView({behavior:'smooth'});
 }
 
-// REPARACIONES
-async function cargarOTsPendientes(){
-  const fil=document.getElementById('fil-ot-cam').value;
-  let query=sb.from('reportes').select('*').eq('es_ot',true).order('fecha',{ascending:false});
-  if(fil) query=query.eq('camion',fil);
-  const{data}=await query;
-  const el=document.getElementById('lista-ots-pendientes');
-  if(!data||!data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:8px 0">No hay OTs generadas.</p>';return;}
-  const urgLabel={alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'};
-  el.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:8px">Tocá una OT para registrar la reparación:</p>'+
-    data.map(r=>`<div class="rep-falla" onclick='seleccionarOT(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
-      <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">${r.id} - ${r.camion}</span><span style="font-size:12px;color:#856404">${urgLabel[r.urgencia]||''}</span></div>
-      <div style="font-size:12px;color:#666;margin-top:3px">${r.fecha} | ${r.descripcion.substring(0,60)}...</div>
-    </div>`).join('');
+async function loadOTs(){
+  var fil=document.getElementById('fil-ot-cam').value;
+  var q=sb.from('reportes').select('*').eq('es_ot',true).order('fecha',{ascending:false});
+  if(fil) q=q.eq('camion',fil);
+  var r=await q;
+  var el=document.getElementById('lista-ots');
+  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>';return;}
+  var ul={alta:'Alta',media:'Media',baja:'Baja'};
+  el.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:8px">Toca una OT para registrar la reparacion:</p>'
+    +r.data.map(function(x){
+      return '<div class="rfalla" onclick='selOT('+JSON.stringify(x)+')''+'>'
+        +'<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span>'
+        +'<span style="font-size:12px;color:#856404">'+(ul[x.urgencia]||'')+'</span></div>'
+        +'<div style="font-size:12px;color:#666;margin-top:3px">'+x.fecha+' | '+x.descripcion.substring(0,60)+'...</div>'
+        +'</div>';
+    }).join('');
 }
 
-function seleccionarOT(r){
-  otSeleccionada=r;
-  document.getElementById('buscador-ot').classList.add('hidden');
-  document.getElementById('form-reparacion').classList.remove('hidden');
-  const urgLabel={alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'};
-  document.getElementById('falla-seleccionada').innerHTML=`
-    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-      <span style="font-weight:700;font-size:14px">${r.id} - Camión ${r.camion}</span>
-      <span>${urgLabel[r.urgencia]||''}</span>
-    </div>
-    <div style="font-size:13px;color:#444;margin-bottom:6px">📅 ${r.fecha} | 👤 ${r.chofer}</div>
-    <div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:13px">${r.descripcion}</div>
-    ${r.repuestos?`<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: ${r.repuestos}</div>`:''}`;
+function selOT(r){
+  otSel=r;
+  document.getElementById('buscador-ot').classList.add('hid');
+  document.getElementById('form-rep').classList.remove('hid');
+  var ul={alta:'Alta',media:'Media',baja:'Baja'};
+  document.getElementById('falla-sel').innerHTML=
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'
+    +'<span style="font-weight:700;font-size:14px">'+r.id+' - Camion '+r.camion+'</span>'
+    +'<span style="font-size:12px">'+(ul[r.urgencia]||'')+'</span></div>'
+    +'<div style="font-size:13px;color:#444;margin-bottom:6px">Fecha: '+r.fecha+' | Chofer: '+r.chofer+'</div>'
+    +'<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:13px">'+r.descripcion+'</div>'
+    +(r.repuestos?'<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: '+r.repuestos+'</div>':'');
 }
 
-function cancelarReparacion(){
-  otSeleccionada=null;
-  document.getElementById('buscador-ot').classList.remove('hidden');
-  document.getElementById('form-reparacion').classList.add('hidden');
-  ['rep-taller','rep-trabajos','rep-repuestos','rep-costo'].forEach(i=>{document.getElementById(i).value='';});
+function cancelRep(){
+  otSel=null;
+  document.getElementById('buscador-ot').classList.remove('hid');
+  document.getElementById('form-rep').classList.add('hid');
+  ['rep-tal','rep-tra','rep-rep','rep-cos'].forEach(function(i){document.getElementById(i).value='';});
 }
 
-async function guardarReparacion(){
-  if(!otSeleccionada) return;
-  const trabajos=document.getElementById('rep-trabajos').value.trim();
-  if(!trabajos){showMsg('err-rep-msg','err','Describí los trabajos realizados.');return;}
-  const taller=document.getElementById('rep-taller').value.trim();
-  const repuestos=document.getElementById('rep-repuestos').value.trim();
-  const costo=parseInt(document.getElementById('rep-costo').value)||0;
-  const fecha=document.getElementById('rep-fecha').value;
-  const rep={id:'REP-'+Date.now(),fecha,camion:otSeleccionada.camion,chofer:otSeleccionada.chofer,tipo:'reparacion',
-    descripcion:`[OT:${otSeleccionada.id}] ${taller?'Taller: '+taller+' - ':''}${trabajos}`,
-    km:otSeleccionada.km,urgencia:'',repuestos,costo,es_ot:false};
-  const{error}=await sb.from('reportes').insert([rep]);
-  if(error){showMsg('err-rep-msg','err','Error: '+error.message);return;}
-  showMsg('ok-rep-msg','ok','Reparación guardada correctamente.');
-  cancelarReparacion(); cargarOTsPendientes(); cargarReparaciones();
+async function saveRep(){
+  if(!otSel) return;
+  var tra=document.getElementById('rep-tra').value.trim();
+  if(!tra){showMsg('err-rep','err','Describe los trabajos realizados.');return;}
+  var tal=document.getElementById('rep-tal').value.trim();
+  var rep=document.getElementById('rep-rep').value.trim();
+  var cos=parseInt(document.getElementById('rep-cos').value)||0;
+  var fec=document.getElementById('rep-fec').value;
+  var desc='[OT:'+otSel.id+'] '+(tal?'Taller: '+tal+' - ':'')+tra;
+  var r2={id:'REP-'+Date.now(),fecha:fec,camion:otSel.camion,chofer:otSel.chofer,tipo:'reparacion',descripcion:desc,km:otSel.km,urgencia:'',repuestos:rep,costo:cos,es_ot:false};
+  var res=await sb.from('reportes').insert([r2]);
+  if(res.error){showMsg('err-rep','err','Error: '+res.error.message);return;}
+  showMsg('ok-rep','ok','Reparacion guardada correctamente.');
+  cancelRep(); loadOTs(); loadReps();
 }
 
-async function cargarReparaciones(){
-  const{data}=await sb.from('reportes').select('*').eq('tipo','reparacion').order('fecha',{ascending:false}).limit(30);
-  const el=document.getElementById('lista-reparaciones');
-  if(!data||!data.length){el.innerHTML='<p style="color:#888;font-size:13px">Sin reparaciones registradas aún.</p>';return;}
-  el.innerHTML=data.map(r=>`
-    <div class="row-item">
-      <div class="row-top"><span><span class="chip">${r.camion}</span><span class="badge b-pur">Reparación</span></span><span style="font-size:12px;color:#888">${r.fecha}</span></div>
-      <div style="font-size:13px;margin:4px 0">${r.descripcion.substring(0,90)}${r.descripcion.length>90?'...':''}</div>
-      <div style="font-size:12px;color:#888">${r.repuestos?'🔩 '+r.repuestos.substring(0,50):''} ${r.costo?'· '+formatPeso(r.costo):''}</div>
-    </div>`).join('');
+async function loadReps(){
+  var r=await sb.from('reportes').select('*').eq('tipo','reparacion').order('fecha',{ascending:false}).limit(30);
+  var el=document.getElementById('lista-reps');
+  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;font-size:13px">Sin reparaciones registradas.</p>';return;}
+  el.innerHTML=r.data.map(function(x){
+    return '<div class="ri">'
+      +'<div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bpur">Reparacion</span></span>'
+      +'<span style="font-size:12px;color:#888">'+x.fecha+'</span></div>'
+      +'<div style="font-size:13px;margin:4px 0">'+x.descripcion.substring(0,90)+(x.descripcion.length>90?'...':'')+'</div>'
+      +'<div style="font-size:12px;color:#888">'+(x.repuestos?x.repuestos.substring(0,50)+' ':'')+' '+(x.costo?fmtP(x.costo):'')+'</div>'
+      +'</div>';
+  }).join('');
 }
 
-// RESUMEN EDITABLE
-function renderResumen(){
-  const hoy=new Date();
-  const campos=[
-    {key:'rto_venc',label:'RTO Venc.'},
-    {key:'seguro_hasta',label:'Seguro hasta'},
-    {key:'ult_cubiertas',label:'Último control cubiertas'},
-    {key:'prox_cubiertas',label:'Próximo cubiertas'},
-    {key:'ult_bateria',label:'Último cambio batería'},
-    {key:'prox_bateria',label:'Próximo batería'},
-    {key:'ult_engrase',label:'Último engrase'},
-    {key:'prox_engrase',label:'Próximo engrase'},
-    {key:'ult_service',label:'Último service'},
-    {key:'prox_service',label:'Próximo service'},
+function showRes(){
+  var hoy=new Date();
+  var campos=[
+    {k:'rto',l:'RTO Venc.'},{k:'seg',l:'Seguro hasta'},
+    {k:'uc',l:'Ult. cubiertas'},{k:'pc',l:'Prox. cubiertas'},
+    {k:'ub',l:'Ult. bateria'},{k:'pb',l:'Prox. bateria'},
+    {k:'ue',l:'Ult. engrase'},{k:'pe',l:'Prox. engrase'},
+    {k:'us',l:'Ult. service'},{k:'ps',l:'Prox. service'},
+    {k:'est',l:'Estado'},{k:'cho',l:'Chofer'}
   ];
-
-  document.getElementById('resumen-contenido').innerHTML=resumenData.map((c,idx)=>{
-    const estadoBadge=c.estado==='DISPONIBLE'?'<span class="badge b-grn">Operativo</span>':'<span class="badge b-red">En reparación</span>';
-    let alertas=[];
-    ['rto_venc','seguro_hasta'].forEach(k=>{
-      const v=c[k];
-      if(v&&v!=='-'){
-        const p=v.split('/');
+  document.getElementById('res-cont').innerHTML=resData.map(function(c,idx){
+    var estB=c.est==='DISPONIBLE'?'<span class="badge bgrn">Operativo</span>':'<span class="badge bred">En reparacion</span>';
+    var alertas=[];
+    ['rto','seg'].forEach(function(k){
+      var v=c[k];
+      if(v&&v!=='---'){
+        var p=v.split('/');
         if(p.length===3){
-          const d=Math.ceil((new Date(p[2],p[1]-1,p[0])-hoy)/864e5);
-          if(d<60&&d>=0) alertas.push(`⚠️ ${k==='rto_venc'?'RTO':'Seguro'} vence en ${d} días`);
-          if(d<0) alertas.push(`🔴 ${k==='rto_venc'?'RTO':'Seguro'} VENCIDO (${v})`);
+          var d=Math.ceil((new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))-hoy)/86400000);
+          if(d<60&&d>=0) alertas.push('ATENCION: '+(k==='rto'?'RTO':'Seguro')+' vence en '+d+' dias ('+v+')');
+          if(d<0) alertas.push('VENCIDO: '+(k==='rto'?'RTO':'Seguro')+' ('+v+')');
         }
       }
     });
-
-    const adminBtn=adminAutorizado?`<button class="edit-btn" onclick="toggleEdit(${idx})">✏️ Editar</button>`:'';
-
-    const editForm=`<div class="edit-form hidden" id="edit-${idx}">
-      <div class="grid2">${campos.map(f=>`<div class="field"><label>${f.label}</label><input type="text" id="ef-${idx}-${f.key}" value="${c[f.key]||'-'}" placeholder="-"></div>`).join('')}
-      <div class="field"><label>Estado</label><select id="ef-${idx}-estado"><option value="DISPONIBLE" ${c.estado==='DISPONIBLE'?'selected':''}>Operativo</option><option value="REPARACION" ${c.estado==='REPARACION'?'selected':''}>En reparación</option></select></div>
-      </div>
-      <button class="btn-p" onclick="guardarEdit(${idx})" style="margin-top:8px">💾 Guardar cambios</button>
-    </div>`;
-
-    return `<div class="res-camion">
-      <div class="res-header">
-        <div><div class="res-nombre">${c.id} - ${c.nombre}</div><div class="res-patente">📋 ${c.patente} &nbsp;|&nbsp; 👤 ${c.chofer} &nbsp;|&nbsp; 📦 ${c.capacidad}</div></div>
-        ${estadoBadge}
-      </div>
-      <div class="res-grid">
-        <div class="res-item"><div class="res-item-titulo">Último service</div><div class="res-item-val">${c.ult_service}</div><div class="res-item-sub">Próximo: ${c.prox_service}</div></div>
-        <div class="res-item"><div class="res-item-titulo">Último engrase</div><div class="res-item-val">${c.ult_engrase}</div><div class="res-item-sub">Próximo: ${c.prox_engrase}</div></div>
-        <div class="res-item"><div class="res-item-titulo">Cubiertas</div><div class="res-item-val">${c.ult_cubiertas}</div><div class="res-item-sub">Próximo: ${c.prox_cubiertas}</div></div>
-        <div class="res-item"><div class="res-item-titulo">Batería</div><div class="res-item-val">${c.ult_bateria}</div><div class="res-item-sub">Próximo: ${c.prox_bateria}</div></div>
-      </div>
-      <table class="datos-table"><tr><th>Seguro hasta</th><th>RTO venc.</th></tr>
-      <tr><td>${c.seguro_hasta}</td><td>${c.rto_venc}</td></tr></table>
-      ${alertas.map(a=>`<div class="res-alerta">${a}</div>`).join('')}
-      ${adminBtn}
-      ${editForm}
-    </div>`;
+    var eBtn=adminOk?'<button class="ebtn" onclick="togEdit('+idx+')">Editar</button>':'';
+    var eForm='<div class="eform hid" id="ef-'+idx+'">'
+      +'<div class="grid2">'+campos.map(function(f){
+        return '<div class="field"><label>'+f.l+'</label>'
+          +'<input type="text" id="efi-'+idx+'-'+f.k+'" value="'+(c[f.k]||'---')+'"></div>';
+      }).join('')+'</div>'
+      +'<button class="btnp" onclick="saveEdit('+idx+')" style="margin-top:8px">Guardar cambios</button>'
+      +'</div>';
+    return '<div class="rc">'
+      +'<div class="rc-hdr"><div><div class="rc-nom">'+c.id+' - '+c.nom+'</div>'
+      +'<div class="rc-pat">Pat: '+c.pat+' | Chofer: '+c.cho+' | '+c.cap+'</div></div>'+estB+'</div>'
+      +'<div class="rc-grid">'
+      +'<div class="rc-item"><div class="rc-itit">Ultimo service</div><div class="rc-ival">'+c.us+'</div><div class="rc-isub">Prox: '+c.ps+'</div></div>'
+      +'<div class="rc-item"><div class="rc-itit">Ultimo engrase</div><div class="rc-ival">'+c.ue+'</div><div class="rc-isub">Prox: '+c.pe+'</div></div>'
+      +'<div class="rc-item"><div class="rc-itit">Cubiertas</div><div class="rc-ival">'+c.uc+'</div><div class="rc-isub">Prox: '+c.pc+'</div></div>'
+      +'<div class="rc-item"><div class="rc-itit">Bateria</div><div class="rc-ival">'+c.ub+'</div><div class="rc-isub">Prox: '+c.pb+'</div></div>'
+      +'</div>'
+      +'<table class="dt"><tr><th>Seguro</th><th>RTO</th></tr><tr><td>'+c.seg+'</td><td>'+c.rto+'</td></tr></table>'
+      +alertas.map(function(a){return '<div class="rc-alerta">'+a+'</div>';}).join('')
+      +eBtn+eForm+'</div>';
   }).join('');
-
-  if(!adminAutorizado){
-    const note=document.createElement('p');
-    note.style.cssText='font-size:12px;color:#888;text-align:center;margin-bottom:12px';
-    note.textContent='Para editar los datos ingresá con la clave admin en ⚙️ Config';
-    document.getElementById('resumen-contenido').prepend(note);
+  if(!adminOk){
+    var n=document.createElement('p');
+    n.style.cssText='font-size:12px;color:#888;text-align:center;margin-bottom:12px';
+    n.textContent='Para editar: ingresa con clave admin en Config';
+    document.getElementById('res-cont').prepend(n);
   }
 }
 
-function toggleEdit(idx){
-  const el=document.getElementById('edit-'+idx);
-  el.classList.toggle('hidden');
-}
+function togEdit(idx){document.getElementById('ef-'+idx).classList.toggle('hid');}
 
-function guardarEdit(idx){
-  const campos=['rto_venc','seguro_hasta','ult_cubiertas','prox_cubiertas','ult_bateria','prox_bateria','ult_engrase','prox_engrase','ult_service','prox_service'];
-  campos.forEach(k=>{
-    const el=document.getElementById(`ef-${idx}-${k}`);
-    if(el) resumenData[idx][k]=el.value.trim()||'-';
+function saveEdit(idx){
+  var campos=['rto','seg','uc','pc','ub','pb','ue','pe','us','ps','est','cho'];
+  campos.forEach(function(k){
+    var el=document.getElementById('efi-'+idx+'-'+k);
+    if(el) resData[idx][k]=el.value.trim()||'---';
   });
-  const est=document.getElementById(`ef-${idx}-estado`);
-  if(est) resumenData[idx].estado=est.value;
-  saveResumen(resumenData);
-  renderResumen();
+  saveRes(resData);
+  showRes();
 }
 
-async function renderHistorial(){
-  const fil=document.getElementById('fil-cam').value;
-  let query=sb.from('reportes').select('*').order('fecha',{ascending:false});
-  if(fil) query=query.eq('camion',fil);
-  const{data}=await query;
-  const el=document.getElementById('tabla-hist');
-  if(!data||!data.length){el.innerHTML='<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>';return;}
-  el.innerHTML=data.map(r=>`
-    <div class="row-item">
-      <div class="row-top"><span><span class="chip">${r.camion}</span>${tipoBadge(r.tipo)}</span><span style="font-size:12px;color:#888">${r.fecha}</span></div>
-      <div style="font-size:14px;margin:4px 0">${r.descripcion.substring(0,80)}${r.descripcion.length>80?'...':''}</div>
-      <div class="row-top" style="margin-top:4px">
-        <span style="font-size:12px;color:#888">${r.km?r.km.toLocaleString('es-AR')+' km':''} ${r.costo?'· '+formatPeso(r.costo):''}</span>
-        ${r.es_ot?`<button class="btn-o" style="font-size:12px;padding:5px 10px" onclick="abrirOTHistorial('${r.id}')">🖨️ ${r.id}</button>`:''}
-      </div>
-    </div>`).join('');
+async function loadHist(){
+  var fil=document.getElementById('fil-cam').value;
+  var q=sb.from('reportes').select('*').order('fecha',{ascending:false});
+  if(fil) q=q.eq('camion',fil);
+  var r=await q;
+  var el=document.getElementById('tabla-hist');
+  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>';return;}
+  el.innerHTML=r.data.map(function(x){
+    return '<div class="ri">'
+      +'<div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span>'
+      +'<span style="font-size:12px;color:#888">'+x.fecha+'</span></div>'
+      +'<div style="font-size:14px;margin:4px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>'
+      +'<div class="rt" style="margin-top:4px">'
+      +'<span style="font-size:12px;color:#888">'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+' '+(x.costo?fmtP(x.costo):'')+'</span>'
+      +(x.es_ot?'<button class="btno" style="font-size:12px;padding:5px 10px" onclick="openOT(''+x.id+'')">Imprimir '+x.id+'</button>':'')
+      +'</div></div>';
+  }).join('');
 }
 
-async function abrirOTHistorial(id){
-  const{data}=await sb.from('reportes').select('*').eq('id',id).single();
-  if(!data) return;
-  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+async function openOT(id){
+  var r=await sb.from('reportes').select('*').eq('id',id).single();
+  if(!r.data) return;
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
   document.getElementById('pane-chofer').classList.add('on');
   document.querySelector('.tab').classList.add('on');
-  renderOT(data);
+  showOT(r.data);
 }
 
-async function renderConfig(){
-  await cargarCamiones(); await cargarChoferes();
-  document.getElementById('lista-camiones').innerHTML=camiones.map(c=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">
-      <span><strong>${c.id}</strong> – ${c.modelo}</span>
-      <button class="btn-danger" onclick="eliminarCamion('${c.id}')">🗑</button>
-    </div>`).join('');
-  document.getElementById('lista-choferes').innerHTML=choferes.map(c=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">
-      <span>${c.nombre}</span>
-      <button class="btn-danger" onclick="eliminarChofer(${c.id})">🗑</button>
-    </div>`).join('');
+async function loadConfig(){
+  await loadCamiones(); await loadChoferes();
+  document.getElementById('lista-camiones').innerHTML=camiones.map(function(c){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">'
+      +'<span><strong>'+c.id+'</strong> - '+c.modelo+'</span>'
+      +'<button class="btnd" onclick="delCamion(''+c.id+'')">Eliminar</button></div>';
+  }).join('');
+  document.getElementById('lista-choferes').innerHTML=choferes.map(function(c){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">'
+      +'<span>'+c.nombre+'</span>'
+      +'<button class="btnd" onclick="delChofer('+c.id+')">Eliminar</button></div>';
+  }).join('');
 }
 
-async function agregarCamion(){
-  const id=document.getElementById('nc-id').value.trim(),modelo=document.getElementById('nc-mod').value.trim();
-  if(!id||!modelo) return;
-  const{error}=await sb.from('camiones').insert([{id,modelo}]);
-  if(error){alert('Error: '+error.message);return;}
-  document.getElementById('nc-id').value='';document.getElementById('nc-mod').value='';
-  await cargarCamiones();renderConfig();
+async function addCamion(){
+  var id=document.getElementById('nc-id').value.trim();
+  var mod=document.getElementById('nc-mod').value.trim();
+  if(!id||!mod) return;
+  var r=await sb.from('camiones').insert([{id:id,modelo:mod}]);
+  if(r.error){alert('Error: '+r.error.message);return;}
+  document.getElementById('nc-id').value='';
+  document.getElementById('nc-mod').value='';
+  await loadCamiones(); loadConfig();
 }
 
-async function agregarChofer(){
-  const nombre=document.getElementById('nc-cho').value.trim();
-  if(!nombre) return;
-  await sb.from('choferes').insert([{nombre}]);
+async function addChofer(){
+  var nom=document.getElementById('nc-cho').value.trim();
+  if(!nom) return;
+  await sb.from('choferes').insert([{nombre:nom}]);
   document.getElementById('nc-cho').value='';
-  await cargarChoferes();renderConfig();
+  await loadChoferes(); loadConfig();
 }
 
-async function eliminarCamion(id){if(!confirm('¿Eliminar camión '+id+'?'))return;await sb.from('camiones').delete().eq('id',id);await cargarCamiones();renderConfig();}
-async function eliminarChofer(id){if(!confirm('¿Eliminar este chofer?'))return;await sb.from('choferes').delete().eq('id',id);await cargarChoferes();renderConfig();}
+async function delCamion(id){
+  if(!confirm('Eliminar camion '+id+'?')) return;
+  await sb.from('camiones').delete().eq('id',id);
+  await loadCamiones(); loadConfig();
+}
 
-async function exportarExcel() {
-  const btn = event.target;
-  btn.textContent = '⏳ Exportando...';
-  btn.disabled = true;
+async function delChofer(id){
+  if(!confirm('Eliminar este chofer?')) return;
+  await sb.from('choferes').delete().eq('id',id);
+  await loadChoferes(); loadConfig();
+}
 
-  try {
-    // Traer todos los datos
-    const [r1, r2, r3] = await Promise.all([
-      sb.from('reportes').select('*').order('fecha', {ascending:false}),
-      sb.from('camiones').select('*').order('id'),
-      sb.from('choferes').select('*').order('nombre')
-    ]);
-
-    const reportes = r1.data || [];
-    const camiones_data = r2.data || [];
-    const choferes_data = r3.data || [];
-
-    // Generar CSV para reportes
-    const headerReportes = ['ID','Fecha','Camion','Chofer','Tipo','Descripcion','Km','Urgencia','Repuestos','Costo','Es OT'];
-    const rowsReportes = reportes.map(r => [
-      r.id, r.fecha, r.camion, r.chofer||'', r.tipo,
-      (r.descripcion||'').replace(/,/g,' ').replace(/\n/g,' '),
-      r.km||'', r.urgencia||'', (r.repuestos||'').replace(/,/g,' '),
-      r.costo||0, r.es_ot?'SI':'NO'
-    ]);
-
-    const headerCamiones = ['ID','Modelo'];
-    const rowsCamiones = camiones_data.map(c=>[c.id, c.modelo]);
-
-    const headerChoferes = ['ID','Nombre'];
-    const rowsChoferes = choferes_data.map(c=>[c.id, c.nombre]);
-
-    // Armar contenido CSV con múltiples secciones
-    let csv = 'REPORTES
+async function exportCSV(){
+  var btn=event.target;
+  btn.textContent='Exportando...';
+  btn.disabled=true;
+  try{
+    var r1=await sb.from('reportes').select('*').order('fecha',{ascending:false});
+    var r2=await sb.from('camiones').select('*').order('id');
+    var r3=await sb.from('choferes').select('*').order('nombre');
+    var reps=r1.data||[];
+    var cams=r2.data||[];
+    var chos=r3.data||[];
+    var csv='REPORTES
+ID,Fecha,Camion,Chofer,Tipo,Descripcion,Km,Urgencia,Repuestos,Costo,Es OT
 ';
-    csv += headerReportes.join(',') + '
-';
-    csv += rowsReportes.map(r=>r.join(',')).join('
+    csv+=reps.map(function(r){
+      return [r.id,r.fecha,r.camion,r.chofer||'',r.tipo,
+        (r.descripcion||'').replace(/,/g,' ').replace(/?
+/g,' '),
+        r.km||'',r.urgencia||'',(r.repuestos||'').replace(/,/g,' '),r.costo||0,r.es_ot?'SI':'NO'].join(',');
+    }).join('
 ');
-    csv += '
+    csv+='
 
 CAMIONES
-';
-    csv += headerCamiones.join(',') + '
-';
-    csv += rowsCamiones.map(r=>r.join(',')).join('
+ID,Modelo
+'+cams.map(function(c){return c.id+','+c.modelo;}).join('
 ');
-    csv += '
+    csv+='
 
 CHOFERES
-';
-    csv += headerChoferes.join(',') + '
-';
-    csv += rowsChoferes.map(r=>r.join(',')).join('
+ID,Nombre
+'+chos.map(function(c){return c.id+','+c.nombre;}).join('
 ');
-
-    // Descargar
-    const fecha = new Date().toISOString().split('T')[0];
-    const blob = new Blob([''+csv], {type:'text/csv;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `M3_Flota_Backup_${fecha}.csv`;
-    a.click();
+    var fecha=new Date().toISOString().split('T')[0];
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='M3_Backup_'+fecha+'.csv'; a.click();
     URL.revokeObjectURL(url);
-
-    btn.textContent = '✅ Descargado!';
-    setTimeout(()=>{ btn.textContent='📊 Descargar Excel completo'; btn.disabled=false; }, 3000);
-  } catch(e) {
-    btn.textContent = '❌ Error al exportar';
-    btn.disabled = false;
+    btn.textContent='Descargado!';
+    setTimeout(function(){btn.textContent='Descargar backup CSV';btn.disabled=false;},3000);
+  }catch(e){
+    btn.textContent='Error al exportar';
+    btn.disabled=false;
   }
 }
 
