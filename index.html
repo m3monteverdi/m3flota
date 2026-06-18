@@ -8,8 +8,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--az:#1A56DB;--azd:#1341B0;--azl:#EEF4FF;--azm:#BFCFEF}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4ff;color:#111;min-height:100vh}
-.header{background:var(--az);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#f0f4ff;color:#111;min-height:100vh}
+.hdr{background:var(--az);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
 .logo{width:36px;height:36px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--az)}
 .htit{font-size:16px;font-weight:700;color:#fff}
 .hsub{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px}
@@ -23,32 +23,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .field label{font-size:12px;color:#555;font-weight:600}
 .field input,.field select,.field textarea{font-size:15px;padding:10px 12px;border:1.5px solid #c5d0ef;border-radius:8px;width:100%;background:#fff;color:#111;-webkit-appearance:none}
 .field textarea{min-height:80px;resize:vertical}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btnp{background:var(--az);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;width:100%;margin-top:4px}
-.btno{background:#fff;color:var(--az);border:1.5px solid var(--azm);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
-.btnd{background:#fff;color:#c0392b;border:1px solid #f5c6c6;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bp{background:var(--az);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;width:100%;margin-top:4px}
+.bo{background:#fff;color:var(--az);border:1.5px solid var(--azm);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.bd{background:#fff;color:#c0392b;border:1px solid #f5c6c6;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px}
 .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
-.bred{background:#FDECEA;color:#c0392b}
-.bamb{background:#FEF3CD;color:#856404}
-.bgrn{background:#D4EDDA;color:#155724}
-.bblu{background:#EEF4FF;color:var(--az)}
-.bgry{background:#f1f1ef;color:#666}
-.bpur{background:#EDE7F6;color:#4527A0}
-.ri{padding:12px 0;border-bottom:1px solid #eef0f8}
-.ri:last-child{border-bottom:none}
+.bred{background:#FDECEA;color:#c0392b}.bamb{background:#FEF3CD;color:#856404}
+.bgrn{background:#D4EDDA;color:#155724}.bblu{background:#EEF4FF;color:var(--az)}
+.bgry{background:#f1f1ef;color:#666}.bpur{background:#EDE7F6;color:#4527A0}
+.ri{padding:12px 0;border-bottom:1px solid #eef0f8}.ri:last-child{border-bottom:none}
 .rt{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.rs{color:#888;font-size:12px;margin-top:4px}
 .chip{background:var(--azl);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--az);font-weight:600;margin-right:4px}
 .msg{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px;display:none}
-.mok{background:#D4EDDA;color:#155724}
-.merr{background:#FDECEA;color:#c0392b}
+.mok{background:#D4EDDA;color:#155724}.merr{background:#FDECEA;color:#c0392b}
 .loader{text-align:center;padding:2rem;color:#888;font-size:13px}
 .hid{display:none}
 .ot-wrap{border:2px solid #111;border-radius:12px;padding:20px;margin-top:12px;background:#fff}
 .ot-hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:14px}
 .ot-logo{font-size:13px;font-weight:800;color:var(--az)}
 .ot-tit{font-size:18px;font-weight:800;margin-top:4px}
-.ot-sub{font-size:12px;color:#666;margin-top:2px}
 .ot-sec{font-size:11px;text-transform:uppercase;color:#888;margin:12px 0 5px;font-weight:700}
 .ot-kv{display:flex;gap:8px;font-size:13px;padding:3px 0}
 .ot-k{color:#666;min-width:90px}
@@ -58,24 +51,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rfalla:hover{background:#FEF3CD}
 .rc{background:#fff;border:1px solid #dde3f5;border-radius:8px;padding:10px 12px;margin-bottom:6px}
 .rc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.rc-nom{font-weight:700;font-size:13px}
-.rc-pat{font-size:11px;color:#888}
+.rc-nom{font-weight:700;font-size:13px}.rc-pat{font-size:11px;color:#888}
 .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
 .rc-item{background:var(--azl);border-radius:6px;padding:6px 8px}
 .rc-itit{font-size:10px;color:var(--az);font-weight:700;text-transform:uppercase;margin-bottom:2px}
-.rc-ival{font-size:12px;font-weight:600}
-.rc-isub{font-size:10px;color:#888;margin-top:1px}
+.rc-ival{font-size:12px;font-weight:600}.rc-isub{font-size:10px;color:#888;margin-top:1px}
 .rc-alerta{background:#FEF3CD;border-radius:8px;padding:8px 10px;font-size:12px;color:#856404;margin-top:8px}
 .dt{width:100%;font-size:11px;border-collapse:collapse;margin-top:6px}
 .dt th{text-align:left;color:#888;font-weight:600;padding:4px 6px;border-bottom:1px solid #eee}
 .dt td{padding:5px 6px;border-bottom:1px solid #f5f5f3}
 .ebtn{background:var(--azl);color:var(--az);border:1px solid var(--azm);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;margin-top:8px}
 .eform{background:#f8faff;border:1px solid var(--azm);border-radius:10px;padding:12px;margin-top:8px}
-@media print{.noprint{display:none!important}body{background:white}.header,.tabs{display:none}.pane{padding:0;display:block!important}}
+@media print{.noprint{display:none!important}body{background:white}.hdr,.tabs{display:none}.pane{padding:0;display:block!important}}
 </style>
 </head>
 <body>
-<div class="header noprint">
+<div class="hdr noprint">
   <div class="logo">M3</div>
   <div><div class="htit">M3 Monteverdi Cubico</div><div class="hsub">Sistema de gestion de flota</div></div>
 </div>
@@ -88,12 +79,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="pane on" id="pane-chofer">
-  <div class="msg mok hid" id="ok-msg"></div>
-  <div class="msg merr hid" id="err-msg"></div>
+  <div class="msg mok" id="ok-msg" style="display:none"></div>
+  <div class="msg merr" id="err-msg" style="display:none"></div>
   <div class="card">
-    <div class="field"><label>Camion *</label><select id="r-cam"><option value="">Selecciona...</option></select></div>
-    <div class="field"><label>Chofer *</label><select id="r-cho"><option value="">Selecciona...</option></select></div>
-    <div class="grid2">
+    <div class="field"><label>Camion *</label><select id="r-cam"></select></div>
+    <div class="field"><label>Chofer *</label><select id="r-cho"></select></div>
+    <div class="g2">
       <div class="field"><label>Tipo *</label>
         <select id="r-tip" onchange="togFalla()">
           <option value="">Selecciona...</option>
@@ -107,7 +98,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="field"><label>Descripcion *</label><textarea id="r-des" placeholder="Describe el problema o trabajo..."></textarea></div>
     <div id="falla-extra" class="hid">
-      <div class="grid2">
+      <div class="g2">
         <div class="field"><label>Urgencia</label>
           <select id="r-urg">
             <option value="alta">Alta - no circula</option>
@@ -118,39 +109,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="field"><label>Repuestos estimados</label><input type="text" id="r-rep" placeholder="ej: filtro, correa"></div>
       </div>
     </div>
-    <div class="grid2">
+    <div class="g2">
       <div class="field"><label>Costo ($)</label><input type="number" id="r-cos" placeholder="0"></div>
       <div class="field"><label>Fecha</label><input type="date" id="r-fec"></div>
     </div>
-    <button class="btnp noprint" onclick="guardar()">Guardar reporte</button>
+    <button class="bp noprint" onclick="guardar()">Guardar reporte</button>
   </div>
   <div id="ot-area"></div>
 </div>
 
 <div class="pane" id="pane-reparaciones">
-  <div class="msg mok hid" id="ok-rep"></div>
-  <div class="msg merr hid" id="err-rep"></div>
+  <div class="msg mok" id="ok-rep" style="display:none"></div>
+  <div class="msg merr" id="err-rep" style="display:none"></div>
   <div class="card" id="buscador-ot">
     <p style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--az)">Registrar reparacion</p>
     <div class="field"><label>Filtrar por camion</label>
-      <select id="fil-ot-cam" onchange="loadOTs()"><option value="">Todos los camiones</option></select>
+      <select id="fil-ot-cam" onchange="loadOTs()"></select>
     </div>
     <div id="lista-ots"><div class="loader">Cargando OTs...</div></div>
   </div>
   <div id="form-rep" class="hid">
     <div class="card" id="falla-sel"></div>
     <div class="card">
-      <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Trabajos realizados por el mecanico</p>
+      <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Trabajos del mecanico</p>
       <div class="field"><label>Taller / Mecanico</label><input type="text" id="rep-tal" placeholder="ej: Taller Barone"></div>
       <div class="field"><label>Trabajos realizados *</label><textarea id="rep-tra" placeholder="Describe que se hizo..."></textarea></div>
-      <div class="field"><label>Repuestos usados</label><textarea id="rep-rep" placeholder="ej: Filtro de aceite, correa..." style="min-height:60px"></textarea></div>
-      <div class="grid2">
+      <div class="field"><label>Repuestos usados</label><textarea id="rep-rep" placeholder="ej: Filtro de aceite..." style="min-height:60px"></textarea></div>
+      <div class="g2">
         <div class="field"><label>Costo final ($)</label><input type="number" id="rep-cos" placeholder="0"></div>
-        <div class="field"><label>Fecha de entrega</label><input type="date" id="rep-fec"></div>
+        <div class="field"><label>Fecha entrega</label><input type="date" id="rep-fec"></div>
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btnp" onclick="saveRep()" style="flex:1">Guardar reparacion</button>
-        <button class="btno" onclick="cancelRep()">Cancelar</button>
+        <button class="bp" onclick="saveRep()" style="flex:1">Guardar reparacion</button>
+        <button class="bo" onclick="cancelRep()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -170,9 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="pane" id="pane-historial">
   <div class="card" style="padding:10px">
-    <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:8px;border:1.5px solid #c5d0ef;border-radius:8px">
-      <option value="">Todos los camiones</option>
-    </select>
+    <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:8px;border:1.5px solid #c5d0ef;border-radius:8px"></select>
   </div>
   <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
 </div>
@@ -180,36 +169,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="pane" id="pane-config">
   <div class="card" style="background:var(--azl);border:1px solid var(--azm);margin-bottom:12px">
     <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--az)">Exportar datos</p>
-    <p style="font-size:12px;color:#555;margin-bottom:10px">Descarga toda la base de datos en CSV para guardar como backup en Excel.</p>
-    <button class="btnp" onclick="exportCSV()">Descargar backup CSV</button>
+    <p style="font-size:12px;color:#555;margin-bottom:10px">Descarga todos los reportes en CSV para guardar como backup en Excel o Google Sheets.</p>
+    <button class="bp" id="btn-export" onclick="exportCSV()">Descargar backup CSV</button>
   </div>
   <div class="card">
     <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Camiones</p>
     <div id="lista-camiones" style="margin-bottom:12px"></div>
-    <div class="grid2" style="margin-bottom:8px">
+    <div class="g2" style="margin-bottom:8px">
       <input type="text" id="nc-id" placeholder="Codigo (ej: 115)" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px">
       <input type="text" id="nc-mod" placeholder="Modelo" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px">
     </div>
-    <button class="btno" onclick="addCamion()" style="width:100%">+ Agregar camion</button>
+    <button class="bo" onclick="addCamion()" style="width:100%">+ Agregar camion</button>
   </div>
   <div class="card">
     <p style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--az)">Choferes</p>
     <div id="lista-choferes" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
       <input type="text" id="nc-cho" placeholder="Nombre del chofer" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:8px;flex:1">
-      <button class="btno" onclick="addChofer()">+ Agregar</button>
+      <button class="bo" onclick="addChofer()">+ Agregar</button>
     </div>
   </div>
 </div>
-
 <script>
-var SB_URL='https://gjxbyxpbuomyuqyrieuc.supabase.co';
-var SB_KEY='sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
-var ADMIN_KEY='monteverdi';
-var sb=supabase.createClient(SB_URL,SB_KEY);
-var camiones=[],choferes=[],otCounter=1,otSel=null,adminOk=false;
 
-var RD=[
+var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
+var ADMIN_KEY = 'monteverdi';
+var sb = supabase.createClient(SB_URL, SB_KEY);
+var camiones = [], choferes = [], otCounter = 1, otsCache = [], adminOk = false;
+
+var RD = [
   {id:'100',nom:'IVECO TRAKKER 350',pat:'NBK032',cho:'---',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'21/01/2026',us:'05/04/2025',ps:'224.000 km',ue:'05/04/2025',pe:'214.900 km',uc:'05/04/2025',pc:'224.000 km',ub:'---',pb:'---'},
   {id:'101',nom:'IVECO TECTOR ATTACK',pat:'AG-160-NG',cho:'David Maldonado',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'03/06/2027',us:'12/05/2026',ps:'3.000 hs',ue:'12/05/2026',pe:'2.650 hs',uc:'12/05/2026',pc:'3.000 hs',ub:'---',pb:'---'},
   {id:'102',nom:'SCANIA P380',pat:'AD-774-EJ',cho:'Victor Rosa',cap:'8m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'27/04/2026',ps:'315.580 km',ue:'27/04/2026',pe:'306.000 km',uc:'27/04/2026',pc:'315.580 km',ub:'09/08/2024',pb:'---'},
@@ -226,209 +215,268 @@ var RD=[
   {id:'015',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
   {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   {id:'CARR',nom:'CARRETON ECOMEC',pat:'UPL348',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-  {id:'SEMI',nom:'SEMIRREMOLQUE GOMATRO',pat:'UPL515',cho:'---',cap:'25.000 kg',est:'DISPONIBLE',seg:'19/11/2025',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'SEMI',nom:'SEMIRREMOLQUE GOMATRO',pat:'UPL515',cho:'---',cap:'25.000 kg',est:'DISPONIBLE',seg:'19/11/2025',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
 ];
 
-function loadRes(){try{var r=localStorage.getItem('m3v4');if(r)return JSON.parse(r);}catch(e){}return JSON.parse(JSON.stringify(RD));}
-function saveRes(d){try{localStorage.setItem('m3v4',JSON.stringify(d));}catch(e){}}
-var resData=loadRes();
+function loadRes() {
+  try { var r = localStorage.getItem('m3v5'); if (r) return JSON.parse(r); } catch(e) {}
+  return JSON.parse(JSON.stringify(RD));
+}
+function saveRes(d) { try { localStorage.setItem('m3v5', JSON.stringify(d)); } catch(e) {} }
+var resData = loadRes();
 
-async function init(){
-  document.getElementById('r-fec').value=new Date().toISOString().split('T')[0];
-  document.getElementById('rep-fec').value=new Date().toISOString().split('T')[0];
+async function init() {
+  document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
   await loadCamiones();
   await loadChoferes();
   await loadOTCounter();
 }
 
-async function loadCamiones(){var r=await sb.from('camiones').select('*').order('id');camiones=r.data||[];fillCamiones();}
-async function loadChoferes(){var r=await sb.from('choferes').select('*').order('nombre');choferes=r.data||[];fillChoferes();}
-async function loadOTCounter(){
-  var r=await sb.from('reportes').select('id').like('id','OT-%').order('created_at',{ascending:false}).limit(1);
-  if(r.data&&r.data.length>0){var n=parseInt(r.data[0].id.replace('OT-',''))||0;otCounter=n+1;}
+async function loadCamiones() {
+  var r = await sb.from('camiones').select('*').order('id');
+  camiones = r.data || [];
+  fillCamiones();
 }
 
-function fillCamiones(){
-  var o='<option value="">Selecciona...</option>'+camiones.map(function(c){return '<option value="'+c.id+'">'+c.id+' - '+c.modelo+'</option>';}).join('');
-  document.getElementById('r-cam').innerHTML=o;
-  var o2='<option value="">Todos los camiones</option>'+camiones.map(function(c){return '<option value="'+c.id+'">'+c.id+' - '+c.modelo+'</option>';}).join('');
-  document.getElementById('fil-cam').innerHTML=o2;
-  document.getElementById('fil-ot-cam').innerHTML=o2;
+async function loadChoferes() {
+  var r = await sb.from('choferes').select('*').order('nombre');
+  choferes = r.data || [];
+  fillChoferes();
 }
 
-function fillChoferes(){
-  var o='<option value="">Selecciona...</option>'+choferes.map(function(c){return '<option value="'+c.nombre+'">'+c.nombre+'</option>';}).join('');
-  document.getElementById('r-cho').innerHTML=o;
+async function loadOTCounter() {
+  var r = await sb.from('reportes').select('id').like('id', 'OT-%').order('created_at', {ascending: false}).limit(1);
+  if (r.data && r.data.length > 0) {
+    var n = parseInt(r.data[0].id.replace('OT-', '')) || 0;
+    otCounter = n + 1;
+  }
 }
 
-function showTab(id,btn){
-  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
-  document.getElementById('pane-'+id).classList.add('on');
+function fillCamiones() {
+  var o = '<option value="">Selecciona...</option>';
+  for (var i = 0; i < camiones.length; i++) {
+    o += '<option value="' + camiones[i].id + '">' + camiones[i].id + ' - ' + camiones[i].modelo + '</option>';
+  }
+  document.getElementById('r-cam').innerHTML = o;
+  var o2 = '<option value="">Todos los camiones</option>';
+  for (var i = 0; i < camiones.length; i++) {
+    o2 += '<option value="' + camiones[i].id + '">' + camiones[i].id + ' - ' + camiones[i].modelo + '</option>';
+  }
+  document.getElementById('fil-cam').innerHTML = o2;
+  document.getElementById('fil-ot-cam').innerHTML = o2;
+}
+
+function fillChoferes() {
+  var o = '<option value="">Selecciona...</option>';
+  for (var i = 0; i < choferes.length; i++) {
+    o += '<option value="' + choferes[i].nombre + '">' + choferes[i].nombre + '</option>';
+  }
+  document.getElementById('r-cho').innerHTML = o;
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
+  document.getElementById('pane-' + id).classList.add('on');
   btn.classList.add('on');
-  if(id==='historial') loadHist();
-  if(id==='config') loadConfig();
-  if(id==='resumen') showRes();
-  if(id==='reparaciones'){loadOTs();loadReps();}
+  if (id === 'historial') loadHist();
+  if (id === 'config') loadConfig();
+  if (id === 'resumen') showRes();
+  if (id === 'reparaciones') { loadOTs(); loadReps(); }
 }
 
-function askKey(btn){
-  if(adminOk){showTab('config',btn);return;}
-  var c=prompt('Ingresa la clave de administrador:');
-  if(c===ADMIN_KEY){adminOk=true;showTab('config',btn);}
-  else if(c!==null){alert('Clave incorrecta.');}
+function askKey(btn) {
+  if (adminOk) { showTab('config', btn); return; }
+  var c = prompt('Ingresa la clave de administrador:');
+  if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
+  else if (c !== null) { alert('Clave incorrecta.'); }
 }
 
-function togFalla(){
-  var t=document.getElementById('r-tip').value;
-  document.getElementById('falla-extra').classList.toggle('hid',t!=='falla');
+function togFalla() {
+  var t = document.getElementById('r-tip').value;
+  document.getElementById('falla-extra').classList.toggle('hid', t !== 'falla');
 }
 
-function showMsg(id,type,txt){
-  var el=document.getElementById(id);
-  el.textContent=txt;
-  el.className='msg '+(type==='ok'?'mok':'merr');
-  el.style.display='block';
-  setTimeout(function(){el.style.display='none';},5000);
+function showMsg(id, type, txt) {
+  var el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'msg ' + (type === 'ok' ? 'mok' : 'merr');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 5000);
 }
 
-function tbadge(t){
-  var m={falla:'bred',service:'bamb',reparacion:'bpur',preventivo:'bgrn',engrase:'bblu'};
-  var l={falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase'};
-  return '<span class="badge '+(m[t]||'bgry')+'">'+(l[t]||t)+'</span>';
+function tbadge(t) {
+  var m = {falla:'bred', service:'bamb', reparacion:'bpur', preventivo:'bgrn', engrase:'bblu'};
+  var l = {falla:'Falla', service:'Service', reparacion:'Reparacion', preventivo:'Preventivo', engrase:'Engrase'};
+  return '<span class="badge ' + (m[t] || 'bgry') + '">' + (l[t] || t) + '</span>';
 }
 
-function fmtP(n){if(!n||n===0)return '-';return '$'+Math.round(n).toLocaleString('es-AR');}
+function fmtP(n) { if (!n || n === 0) return '-'; return '$' + Math.round(n).toLocaleString('es-AR'); }
 
-async function guardar(){
-  var cam=document.getElementById('r-cam').value;
-  var cho=document.getElementById('r-cho').value;
-  var tip=document.getElementById('r-tip').value;
-  var km=parseInt(document.getElementById('r-km').value)||0;
-  var des=document.getElementById('r-des').value.trim();
-  var urg=document.getElementById('r-urg').value;
-  var rep=document.getElementById('r-rep').value.trim();
-  var cos=parseInt(document.getElementById('r-cos').value)||0;
-  var fec=document.getElementById('r-fec').value;
-  if(!cam||!cho||!tip||!des){showMsg('err-msg','err','Completa camion, chofer, tipo y descripcion.');return;}
-  var esOT=(tip==='falla');
-  var id=esOT?'OT-'+String(otCounter).padStart(3,'0'):'REP-'+Date.now();
-  if(esOT) otCounter++;
-  var rep2={id:id,fecha:fec,camion:cam,chofer:cho,tipo:tip,descripcion:des,km:km,urgencia:urg,repuestos:rep,costo:cos,es_ot:esOT};
-  var res=await sb.from('reportes').insert([rep2]);
-  if(res.error){showMsg('err-msg','err','Error: '+res.error.message);return;}
-  if(tip==='engrase'){var idx=resData.findIndex(function(r){return r.id===cam;});if(idx>=0){resData[idx].ue=fec;saveRes(resData);}}
-  if(tip==='service'){var idx=resData.findIndex(function(r){return r.id===cam;});if(idx>=0){resData[idx].us=fec;saveRes(resData);}}
-  showMsg('ok-msg','ok',esOT?'Reporte guardado. OT '+id+' generada.':'Reporte guardado correctamente.');
-  if(esOT) showOT(rep2);
-  else document.getElementById('ot-area').innerHTML='';
-  ['r-des','r-rep','r-cos','r-km'].forEach(function(i){document.getElementById(i).value='';});
-  ['r-cam','r-cho','r-tip'].forEach(function(i){document.getElementById(i).selectedIndex=0;});
-  document.getElementById('r-fec').value=new Date().toISOString().split('T')[0];
+async function guardar() {
+  var cam = document.getElementById('r-cam').value;
+  var cho = document.getElementById('r-cho').value;
+  var tip = document.getElementById('r-tip').value;
+  var km = parseInt(document.getElementById('r-km').value) || 0;
+  var des = document.getElementById('r-des').value.trim();
+  var urg = document.getElementById('r-urg').value;
+  var rep = document.getElementById('r-rep').value.trim();
+  var cos = parseInt(document.getElementById('r-cos').value) || 0;
+  var fec = document.getElementById('r-fec').value;
+  if (!cam || !cho || !tip || !des) { showMsg('err-msg', 'err', 'Completa camion, chofer, tipo y descripcion.'); return; }
+  var esOT = (tip === 'falla');
+  var id = esOT ? 'OT-' + String(otCounter).padStart(3, '0') : 'REP-' + Date.now();
+  if (esOT) otCounter++;
+  var rep2 = {id:id, fecha:fec, camion:cam, chofer:cho, tipo:tip, descripcion:des, km:km, urgencia:urg, repuestos:rep, costo:cos, es_ot:esOT};
+  var res = await sb.from('reportes').insert([rep2]);
+  if (res.error) { showMsg('err-msg', 'err', 'Error: ' + res.error.message); return; }
+  if (tip === 'engrase') { var idx = resData.findIndex(function(r) { return r.id === cam; }); if (idx >= 0) { resData[idx].ue = fec; saveRes(resData); } }
+  if (tip === 'service') { var idx = resData.findIndex(function(r) { return r.id === cam; }); if (idx >= 0) { resData[idx].us = fec; saveRes(resData); } }
+  showMsg('ok-msg', 'ok', esOT ? 'Reporte guardado. OT ' + id + ' generada.' : 'Reporte guardado correctamente.');
+  if (esOT) showOT(rep2);
+  else document.getElementById('ot-area').innerHTML = '';
+  document.getElementById('r-des').value = '';
+  document.getElementById('r-rep').value = '';
+  document.getElementById('r-cos').value = '';
+  document.getElementById('r-km').value = '';
+  document.getElementById('r-cam').selectedIndex = 0;
+  document.getElementById('r-cho').selectedIndex = 0;
+  document.getElementById('r-tip').selectedIndex = 0;
+  document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
   document.getElementById('falla-extra').classList.add('hid');
 }
 
-function showOT(r){
-  var ul={alta:'ALTA - no puede circular',media:'Media - circular con cuidado',baja:'Baja - programar'};
-  var mod=(camiones.find(function(c){return c.id===r.camion;})||{}).modelo||'';
-  document.getElementById('ot-area').innerHTML='<div class="ot-wrap">'
-    +'<div class="ot-hdr"><div>'
-    +'<div class="ot-logo">M3 Monteverdi Cubico</div>'
-    +'<div class="ot-tit">Orden de Trabajo '+r.id+'</div>'
-    +'<div class="ot-sub">Fecha: '+r.fecha+'</div>'
-    +'</div><div style="text-align:right"><div style="font-size:12px;color:#888">Urgencia</div>'
-    +'<div style="font-weight:700;color:#c0392b">'+(ul[r.urgencia]||'-')+'</div></div></div>'
-    +'<div class="ot-sec">Vehiculo</div>'
-    +'<div class="ot-kv"><span class="ot-k">Camion</span><span>'+r.camion+' - '+mod+'</span></div>'
-    +'<div class="ot-kv"><span class="ot-k">Chofer</span><span>'+r.chofer+'</span></div>'
-    +'<div class="ot-kv"><span class="ot-k">Km</span><span>'+(r.km?r.km.toLocaleString('es-AR')+' km':'-')+'</span></div>'
-    +'<div class="ot-sec">Descripcion del problema</div>'
-    +'<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:14px">'+r.descripcion+'</div>'
-    +'<div class="ot-sec">Repuestos estimados</div>'
-    +'<p style="font-size:13px">'+(r.repuestos||'A determinar por el taller')+'</p>'
-    +'<div class="ot-sec">Costo estimado</div>'
-    +'<p style="font-size:13px">'+(r.costo>0?fmtP(r.costo):'A presupuestar')+'</p>'
-    +'<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>'
-    +'</div>'
-    +'<div style="display:flex;gap:8px;margin-top:14px" class="noprint">'
-    +'<button class="btnp" onclick="window.print()" style="flex:1">Imprimir OT</button>'
-    +'<button class="btno" onclick="document.getElementById('ot-area').innerHTML=''">Cerrar</button>'
-    +'</div>';
+function showOT(r) {
+  var ul = {alta:'ALTA - no puede circular', media:'Media - circular con cuidado', baja:'Baja - programar'};
+  var mod = '';
+  for (var i = 0; i < camiones.length; i++) { if (camiones[i].id === r.camion) { mod = camiones[i].modelo; break; } }
+  var html = '<div class="ot-wrap">';
+  html += '<div class="ot-hdr"><div>';
+  html += '<div class="ot-logo">M3 Monteverdi Cubico</div>';
+  html += '<div class="ot-tit">Orden de Trabajo ' + r.id + '</div>';
+  html += '<div style="font-size:12px;color:#666">Fecha: ' + r.fecha + '</div>';
+  html += '</div><div style="text-align:right"><div style="font-size:12px;color:#888">Urgencia</div>';
+  html += '<div style="font-weight:700;color:#c0392b">' + (ul[r.urgencia] || '-') + '</div></div></div>';
+  html += '<div class="ot-sec">Vehiculo</div>';
+  html += '<div class="ot-kv"><span class="ot-k">Camion</span><span>' + r.camion + ' - ' + mod + '</span></div>';
+  html += '<div class="ot-kv"><span class="ot-k">Chofer</span><span>' + r.chofer + '</span></div>';
+  html += '<div class="ot-kv"><span class="ot-k">Km</span><span>' + (r.km ? r.km.toLocaleString('es-AR') + ' km' : '-') + '</span></div>';
+  html += '<div class="ot-sec">Descripcion del problema</div>';
+  html += '<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:14px">' + r.descripcion + '</div>';
+  html += '<div class="ot-sec">Repuestos estimados</div>';
+  html += '<p style="font-size:13px">' + (r.repuestos || 'A determinar por el taller') + '</p>';
+  html += '<div class="ot-sec">Costo estimado</div>';
+  html += '<p style="font-size:13px">' + (r.costo > 0 ? fmtP(r.costo) : 'A presupuestar') + '</p>';
+  html += '<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:8px;margin-top:14px" class="noprint">';
+  html += '<button class="bp" onclick="window.print()" style="flex:1">Imprimir OT</button>';
+  html += '<button class="bo" onclick="document.getElementById(\'ot-area\').innerHTML=\'\'">Cerrar</button>';
+  html += '</div>';
+  document.getElementById('ot-area').innerHTML = html;
   document.getElementById('ot-area').scrollIntoView({behavior:'smooth'});
 }
 
-async function loadOTs(){
-  var fil=document.getElementById('fil-ot-cam').value;
-  var q=sb.from('reportes').select('*').eq('es_ot',true).order('fecha',{ascending:false});
-  if(fil) q=q.eq('camion',fil);
-  var r=await q;
-  var el=document.getElementById('lista-ots');
-  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>';return;}
-  var ul={alta:'Alta',media:'Media',baja:'Baja'};
-  el.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:8px">Toca una OT para registrar la reparacion:</p>'
-    +r.data.map(function(x){
-      return '<div class="rfalla" onclick='selOT('+JSON.stringify(x)+')''+'>'
-        +'<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span>'
-        +'<span style="font-size:12px;color:#856404">'+(ul[x.urgencia]||'')+'</span></div>'
-        +'<div style="font-size:12px;color:#666;margin-top:3px">'+x.fecha+' | '+x.descripcion.substring(0,60)+'...</div>'
-        +'</div>';
-    }).join('');
+async function loadOTs() {
+  var fil = document.getElementById('fil-ot-cam').value;
+  var q = sb.from('reportes').select('*').eq('es_ot', true).order('fecha', {ascending: false});
+  if (fil) q = q.eq('camion', fil);
+  var r = await q;
+  var el = document.getElementById('lista-ots');
+  el.innerHTML = '';
+  if (!r.data || !r.data.length) {
+    el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>';
+    return;
+  }
+  otsCache = r.data;
+  var p = document.createElement('p');
+  p.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px';
+  p.textContent = 'Toca una OT para registrar la reparacion:';
+  el.appendChild(p);
+  var ul = {alta:'Alta', media:'Media', baja:'Baja'};
+  for (var i = 0; i < r.data.length; i++) {
+    (function(idx, x) {
+      var div = document.createElement('div');
+      div.className = 'rfalla';
+      div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">' + x.id + ' - ' + x.camion + '</span><span style="font-size:12px;color:#856404">' + (ul[x.urgencia] || '') + '</span></div><div style="font-size:12px;color:#666;margin-top:3px">' + x.fecha + ' | ' + x.descripcion.substring(0, 60) + '...</div>';
+      div.onclick = function() { selOT(otsCache[idx]); };
+      el.appendChild(div);
+    })(i, r.data[i]);
+  }
 }
 
-function selOT(r){
-  otSel=r;
+function selOT(r) {
   document.getElementById('buscador-ot').classList.add('hid');
   document.getElementById('form-rep').classList.remove('hid');
-  var ul={alta:'Alta',media:'Media',baja:'Baja'};
-  document.getElementById('falla-sel').innerHTML=
+  var ul = {alta:'Alta', media:'Media', baja:'Baja'};
+  document.getElementById('falla-sel').innerHTML =
     '<div style="display:flex;justify-content:space-between;margin-bottom:6px">'
-    +'<span style="font-weight:700;font-size:14px">'+r.id+' - Camion '+r.camion+'</span>'
-    +'<span style="font-size:12px">'+(ul[r.urgencia]||'')+'</span></div>'
-    +'<div style="font-size:13px;color:#444;margin-bottom:6px">Fecha: '+r.fecha+' | Chofer: '+r.chofer+'</div>'
-    +'<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:13px">'+r.descripcion+'</div>'
-    +(r.repuestos?'<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: '+r.repuestos+'</div>':'');
+    + '<span style="font-weight:700;font-size:14px">' + r.id + ' - Camion ' + r.camion + '</span>'
+    + '<span style="font-size:12px">' + (ul[r.urgencia] || '') + '</span></div>'
+    + '<div style="font-size:13px;color:#444;margin-bottom:6px">Fecha: ' + r.fecha + ' | Chofer: ' + r.chofer + '</div>'
+    + '<div style="background:#f8f8f6;border-radius:8px;padding:10px;font-size:13px">' + r.descripcion + '</div>'
+    + (r.repuestos ? '<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: ' + r.repuestos + '</div>' : '');
+  window._otSel = r;
 }
 
-function cancelRep(){
-  otSel=null;
+function cancelRep() {
+  window._otSel = null;
   document.getElementById('buscador-ot').classList.remove('hid');
   document.getElementById('form-rep').classList.add('hid');
-  ['rep-tal','rep-tra','rep-rep','rep-cos'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('rep-tal').value = '';
+  document.getElementById('rep-tra').value = '';
+  document.getElementById('rep-rep').value = '';
+  document.getElementById('rep-cos').value = '';
 }
 
-async function saveRep(){
-  if(!otSel) return;
-  var tra=document.getElementById('rep-tra').value.trim();
-  if(!tra){showMsg('err-rep','err','Describe los trabajos realizados.');return;}
-  var tal=document.getElementById('rep-tal').value.trim();
-  var rep=document.getElementById('rep-rep').value.trim();
-  var cos=parseInt(document.getElementById('rep-cos').value)||0;
-  var fec=document.getElementById('rep-fec').value;
-  var desc='[OT:'+otSel.id+'] '+(tal?'Taller: '+tal+' - ':'')+tra;
-  var r2={id:'REP-'+Date.now(),fecha:fec,camion:otSel.camion,chofer:otSel.chofer,tipo:'reparacion',descripcion:desc,km:otSel.km,urgencia:'',repuestos:rep,costo:cos,es_ot:false};
-  var res=await sb.from('reportes').insert([r2]);
-  if(res.error){showMsg('err-rep','err','Error: '+res.error.message);return;}
-  showMsg('ok-rep','ok','Reparacion guardada correctamente.');
-  cancelRep(); loadOTs(); loadReps();
+async function saveRep() {
+  var r = window._otSel;
+  if (!r) return;
+  var tra = document.getElementById('rep-tra').value.trim();
+  if (!tra) { showMsg('err-rep', 'err', 'Describe los trabajos realizados.'); return; }
+  var tal = document.getElementById('rep-tal').value.trim();
+  var rep = document.getElementById('rep-rep').value.trim();
+  var cos = parseInt(document.getElementById('rep-cos').value) || 0;
+  var fec = document.getElementById('rep-fec').value;
+  var desc = '[OT:' + r.id + '] ' + (tal ? 'Taller: ' + tal + ' - ' : '') + tra;
+  var r2 = {id:'REP-'+Date.now(), fecha:fec, camion:r.camion, chofer:r.chofer, tipo:'reparacion', descripcion:desc, km:r.km, urgencia:'', repuestos:rep, costo:cos, es_ot:false};
+  var res = await sb.from('reportes').insert([r2]);
+  if (res.error) { showMsg('err-rep', 'err', 'Error: ' + res.error.message); return; }
+  showMsg('ok-rep', 'ok', 'Reparacion guardada correctamente.');
+  cancelRep();
+  loadOTs();
+  loadReps();
 }
 
-async function loadReps(){
-  var r=await sb.from('reportes').select('*').eq('tipo','reparacion').order('fecha',{ascending:false}).limit(30);
-  var el=document.getElementById('lista-reps');
-  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;font-size:13px">Sin reparaciones registradas.</p>';return;}
-  el.innerHTML=r.data.map(function(x){
-    return '<div class="ri">'
-      +'<div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bpur">Reparacion</span></span>'
-      +'<span style="font-size:12px;color:#888">'+x.fecha+'</span></div>'
-      +'<div style="font-size:13px;margin:4px 0">'+x.descripcion.substring(0,90)+(x.descripcion.length>90?'...':'')+'</div>'
-      +'<div style="font-size:12px;color:#888">'+(x.repuestos?x.repuestos.substring(0,50)+' ':'')+' '+(x.costo?fmtP(x.costo):'')+'</div>'
-      +'</div>';
-  }).join('');
+async function loadReps() {
+  var r = await sb.from('reportes').select('*').eq('tipo', 'reparacion').order('fecha', {ascending: false}).limit(30);
+  var el = document.getElementById('lista-reps');
+  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;font-size:13px">Sin reparaciones registradas.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < r.data.length; i++) {
+    var x = r.data[i];
+    html += '<div class="ri">';
+    html += '<div class="rt"><span><span class="chip">' + x.camion + '</span><span class="badge bpur">Reparacion</span></span>';
+    html += '<span style="font-size:12px;color:#888">' + x.fecha + '</span></div>';
+    html += '<div style="font-size:13px;margin:4px 0">' + x.descripcion.substring(0, 90) + (x.descripcion.length > 90 ? '...' : '') + '</div>';
+    html += '<div style="font-size:12px;color:#888">' + (x.repuestos ? x.repuestos.substring(0, 50) : '') + ' ' + (x.costo ? fmtP(x.costo) : '') + '</div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
 }
 
-function showRes(){
-  var hoy=new Date();
-  var campos=[
+function showRes() {
+  var hoy = new Date();
+  var cont = document.getElementById('res-cont');
+  cont.innerHTML = '';
+  if (!adminOk) {
+    var note = document.createElement('p');
+    note.style.cssText = 'font-size:12px;color:#888;text-align:center;margin-bottom:12px';
+    note.textContent = 'Para editar: ingresa con clave admin en Config';
+    cont.appendChild(note);
+  }
+  var campos = [
     {k:'rto',l:'RTO Venc.'},{k:'seg',l:'Seguro hasta'},
     {k:'uc',l:'Ult. cubiertas'},{k:'pc',l:'Prox. cubiertas'},
     {k:'ub',l:'Ult. bateria'},{k:'pb',l:'Prox. bateria'},
@@ -436,183 +484,187 @@ function showRes(){
     {k:'us',l:'Ult. service'},{k:'ps',l:'Prox. service'},
     {k:'est',l:'Estado'},{k:'cho',l:'Chofer'}
   ];
-  document.getElementById('res-cont').innerHTML=resData.map(function(c,idx){
-    var estB=c.est==='DISPONIBLE'?'<span class="badge bgrn">Operativo</span>':'<span class="badge bred">En reparacion</span>';
-    var alertas=[];
-    ['rto','seg'].forEach(function(k){
-      var v=c[k];
-      if(v&&v!=='---'){
-        var p=v.split('/');
-        if(p.length===3){
-          var d=Math.ceil((new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))-hoy)/86400000);
-          if(d<60&&d>=0) alertas.push('ATENCION: '+(k==='rto'?'RTO':'Seguro')+' vence en '+d+' dias ('+v+')');
-          if(d<0) alertas.push('VENCIDO: '+(k==='rto'?'RTO':'Seguro')+' ('+v+')');
+  for (var i = 0; i < resData.length; i++) {
+    (function(idx, c) {
+      var estB = c.est === 'DISPONIBLE' ? '<span class="badge bgrn">Operativo</span>' : '<span class="badge bred">En reparacion</span>';
+      var alertas = [];
+      var vKeys = ['rto', 'seg'];
+      for (var vi = 0; vi < vKeys.length; vi++) {
+        var v = c[vKeys[vi]];
+        if (v && v !== '---') {
+          var p = v.split('/');
+          if (p.length === 3) {
+            var d = Math.ceil((new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])) - hoy) / 86400000);
+            if (d < 60 && d >= 0) alertas.push('ATENCION: ' + (vKeys[vi] === 'rto' ? 'RTO' : 'Seguro') + ' vence en ' + d + ' dias (' + v + ')');
+            if (d < 0) alertas.push('VENCIDO: ' + (vKeys[vi] === 'rto' ? 'RTO' : 'Seguro') + ' (' + v + ')');
+          }
         }
       }
-    });
-    var eBtn=adminOk?'<button class="ebtn" onclick="togEdit('+idx+')">Editar</button>':'';
-    var eForm='<div class="eform hid" id="ef-'+idx+'">'
-      +'<div class="grid2">'+campos.map(function(f){
-        return '<div class="field"><label>'+f.l+'</label>'
-          +'<input type="text" id="efi-'+idx+'-'+f.k+'" value="'+(c[f.k]||'---')+'"></div>';
-      }).join('')+'</div>'
-      +'<button class="btnp" onclick="saveEdit('+idx+')" style="margin-top:8px">Guardar cambios</button>'
-      +'</div>';
-    return '<div class="rc">'
-      +'<div class="rc-hdr"><div><div class="rc-nom">'+c.id+' - '+c.nom+'</div>'
-      +'<div class="rc-pat">Pat: '+c.pat+' | Chofer: '+c.cho+' | '+c.cap+'</div></div>'+estB+'</div>'
-      +'<div class="rc-grid">'
-      +'<div class="rc-item"><div class="rc-itit">Ultimo service</div><div class="rc-ival">'+c.us+'</div><div class="rc-isub">Prox: '+c.ps+'</div></div>'
-      +'<div class="rc-item"><div class="rc-itit">Ultimo engrase</div><div class="rc-ival">'+c.ue+'</div><div class="rc-isub">Prox: '+c.pe+'</div></div>'
-      +'<div class="rc-item"><div class="rc-itit">Cubiertas</div><div class="rc-ival">'+c.uc+'</div><div class="rc-isub">Prox: '+c.pc+'</div></div>'
-      +'<div class="rc-item"><div class="rc-itit">Bateria</div><div class="rc-ival">'+c.ub+'</div><div class="rc-isub">Prox: '+c.pb+'</div></div>'
-      +'</div>'
-      +'<table class="dt"><tr><th>Seguro</th><th>RTO</th></tr><tr><td>'+c.seg+'</td><td>'+c.rto+'</td></tr></table>'
-      +alertas.map(function(a){return '<div class="rc-alerta">'+a+'</div>';}).join('')
-      +eBtn+eForm+'</div>';
-  }).join('');
-  if(!adminOk){
-    var n=document.createElement('p');
-    n.style.cssText='font-size:12px;color:#888;text-align:center;margin-bottom:12px';
-    n.textContent='Para editar: ingresa con clave admin en Config';
-    document.getElementById('res-cont').prepend(n);
+      var div = document.createElement('div');
+      div.className = 'rc';
+      var html = '<div class="rc-hdr"><div><div class="rc-nom">' + c.id + ' - ' + c.nom + '</div>';
+      html += '<div class="rc-pat">Pat: ' + c.pat + ' | Chofer: ' + c.cho + ' | ' + c.cap + '</div></div>' + estB + '</div>';
+      html += '<div class="rc-grid">';
+      html += '<div class="rc-item"><div class="rc-itit">Ultimo service</div><div class="rc-ival">' + c.us + '</div><div class="rc-isub">Prox: ' + c.ps + '</div></div>';
+      html += '<div class="rc-item"><div class="rc-itit">Ultimo engrase</div><div class="rc-ival">' + c.ue + '</div><div class="rc-isub">Prox: ' + c.pe + '</div></div>';
+      html += '<div class="rc-item"><div class="rc-itit">Cubiertas</div><div class="rc-ival">' + c.uc + '</div><div class="rc-isub">Prox: ' + c.pc + '</div></div>';
+      html += '<div class="rc-item"><div class="rc-itit">Bateria</div><div class="rc-ival">' + c.ub + '</div><div class="rc-isub">Prox: ' + c.pb + '</div></div>';
+      html += '</div>';
+      html += '<table class="dt"><tr><th>Seguro</th><th>RTO</th></tr><tr><td>' + c.seg + '</td><td>' + c.rto + '</td></tr></table>';
+      for (var ai = 0; ai < alertas.length; ai++) {
+        html += '<div class="rc-alerta">' + alertas[ai] + '</div>';
+      }
+      if (adminOk) {
+        html += '<button class="ebtn" onclick="togEdit(' + idx + ')">Editar</button>';
+        html += '<div class="eform hid" id="ef-' + idx + '"><div class="g2">';
+        for (var ci = 0; ci < campos.length; ci++) {
+          html += '<div class="field"><label>' + campos[ci].l + '</label><input type="text" id="efi-' + idx + '-' + campos[ci].k + '" value="' + (c[campos[ci].k] || '---') + '"></div>';
+        }
+        html += '</div><button class="bp" onclick="saveEdit(' + idx + ')" style="margin-top:8px">Guardar cambios</button></div>';
+      }
+      div.innerHTML = html;
+      cont.appendChild(div);
+    })(i, resData[i]);
   }
 }
 
-function togEdit(idx){document.getElementById('ef-'+idx).classList.toggle('hid');}
+function togEdit(idx) { document.getElementById('ef-' + idx).classList.toggle('hid'); }
 
-function saveEdit(idx){
-  var campos=['rto','seg','uc','pc','ub','pb','ue','pe','us','ps','est','cho'];
-  campos.forEach(function(k){
-    var el=document.getElementById('efi-'+idx+'-'+k);
-    if(el) resData[idx][k]=el.value.trim()||'---';
-  });
+function saveEdit(idx) {
+  var campos = ['rto','seg','uc','pc','ub','pb','ue','pe','us','ps','est','cho'];
+  for (var i = 0; i < campos.length; i++) {
+    var el = document.getElementById('efi-' + idx + '-' + campos[i]);
+    if (el) resData[idx][campos[i]] = el.value.trim() || '---';
+  }
   saveRes(resData);
   showRes();
 }
 
-async function loadHist(){
-  var fil=document.getElementById('fil-cam').value;
-  var q=sb.from('reportes').select('*').order('fecha',{ascending:false});
-  if(fil) q=q.eq('camion',fil);
-  var r=await q;
-  var el=document.getElementById('tabla-hist');
-  if(!r.data||!r.data.length){el.innerHTML='<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>';return;}
-  el.innerHTML=r.data.map(function(x){
-    return '<div class="ri">'
-      +'<div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span>'
-      +'<span style="font-size:12px;color:#888">'+x.fecha+'</span></div>'
-      +'<div style="font-size:14px;margin:4px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>'
-      +'<div class="rt" style="margin-top:4px">'
-      +'<span style="font-size:12px;color:#888">'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+' '+(x.costo?fmtP(x.costo):'')+'</span>'
-      +(x.es_ot?'<button class="btno" style="font-size:12px;padding:5px 10px" onclick="openOT(''+x.id+'')">Imprimir '+x.id+'</button>':'')
-      +'</div></div>';
-  }).join('');
+async function loadHist() {
+  var fil = document.getElementById('fil-cam').value;
+  var q = sb.from('reportes').select('*').order('fecha', {ascending: false});
+  if (fil) q = q.eq('camion', fil);
+  var r = await q;
+  var el = document.getElementById('tabla-hist');
+  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < r.data.length; i++) {
+    var x = r.data[i];
+    html += '<div class="ri">';
+    html += '<div class="rt"><span><span class="chip">' + x.camion + '</span>' + tbadge(x.tipo) + '</span>';
+    html += '<span style="font-size:12px;color:#888">' + x.fecha + '</span></div>';
+    html += '<div style="font-size:14px;margin:4px 0">' + x.descripcion.substring(0, 80) + (x.descripcion.length > 80 ? '...' : '') + '</div>';
+    html += '<div class="rt" style="margin-top:4px"><span style="font-size:12px;color:#888">' + (x.km ? x.km.toLocaleString('es-AR') + ' km' : '') + ' ' + (x.costo ? fmtP(x.costo) : '') + '</span>';
+    if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\'' + x.id + '\')">Imprimir ' + x.id + '</button>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
 }
 
-async function openOT(id){
-  var r=await sb.from('reportes').select('*').eq('id',id).single();
-  if(!r.data) return;
-  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
+async function openOT(id) {
+  var r = await sb.from('reportes').select('*').eq('id', id).single();
+  if (!r.data) return;
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
   document.getElementById('pane-chofer').classList.add('on');
   document.querySelector('.tab').classList.add('on');
   showOT(r.data);
 }
 
-async function loadConfig(){
-  await loadCamiones(); await loadChoferes();
-  document.getElementById('lista-camiones').innerHTML=camiones.map(function(c){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">'
-      +'<span><strong>'+c.id+'</strong> - '+c.modelo+'</span>'
-      +'<button class="btnd" onclick="delCamion(''+c.id+'')">Eliminar</button></div>';
-  }).join('');
-  document.getElementById('lista-choferes').innerHTML=choferes.map(function(c){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">'
-      +'<span>'+c.nombre+'</span>'
-      +'<button class="btnd" onclick="delChofer('+c.id+')">Eliminar</button></div>';
-  }).join('');
+async function loadConfig() {
+  await loadCamiones();
+  await loadChoferes();
+  var html = '';
+  for (var i = 0; i < camiones.length; i++) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">';
+    html += '<span><strong>' + camiones[i].id + '</strong> - ' + camiones[i].modelo + '</span>';
+    html += '<button class="bd" onclick="delCamion(\'' + camiones[i].id + '\')">Eliminar</button></div>';
+  }
+  document.getElementById('lista-camiones').innerHTML = html;
+  var html2 = '';
+  for (var i = 0; i < choferes.length; i++) {
+    html2 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f8;font-size:14px">';
+    html2 += '<span>' + choferes[i].nombre + '</span>';
+    html2 += '<button class="bd" onclick="delChofer(' + choferes[i].id + ')">Eliminar</button></div>';
+  }
+  document.getElementById('lista-choferes').innerHTML = html2;
 }
 
-async function addCamion(){
-  var id=document.getElementById('nc-id').value.trim();
-  var mod=document.getElementById('nc-mod').value.trim();
-  if(!id||!mod) return;
-  var r=await sb.from('camiones').insert([{id:id,modelo:mod}]);
-  if(r.error){alert('Error: '+r.error.message);return;}
-  document.getElementById('nc-id').value='';
-  document.getElementById('nc-mod').value='';
-  await loadCamiones(); loadConfig();
+async function addCamion() {
+  var id = document.getElementById('nc-id').value.trim();
+  var mod = document.getElementById('nc-mod').value.trim();
+  if (!id || !mod) return;
+  var r = await sb.from('camiones').insert([{id:id, modelo:mod}]);
+  if (r.error) { alert('Error: ' + r.error.message); return; }
+  document.getElementById('nc-id').value = '';
+  document.getElementById('nc-mod').value = '';
+  await loadCamiones();
+  loadConfig();
 }
 
-async function addChofer(){
-  var nom=document.getElementById('nc-cho').value.trim();
-  if(!nom) return;
-  await sb.from('choferes').insert([{nombre:nom}]);
-  document.getElementById('nc-cho').value='';
-  await loadChoferes(); loadConfig();
+async function addChofer() {
+  var nom = document.getElementById('nc-cho').value.trim();
+  if (!nom) return;
+  await sb.from('choferes').insert([{nombre: nom}]);
+  document.getElementById('nc-cho').value = '';
+  await loadChoferes();
+  loadConfig();
 }
 
-async function delCamion(id){
-  if(!confirm('Eliminar camion '+id+'?')) return;
-  await sb.from('camiones').delete().eq('id',id);
-  await loadCamiones(); loadConfig();
+async function delCamion(id) {
+  if (!confirm('Eliminar camion ' + id + '?')) return;
+  await sb.from('camiones').delete().eq('id', id);
+  await loadCamiones();
+  loadConfig();
 }
 
-async function delChofer(id){
-  if(!confirm('Eliminar este chofer?')) return;
-  await sb.from('choferes').delete().eq('id',id);
-  await loadChoferes(); loadConfig();
+async function delChofer(id) {
+  if (!confirm('Eliminar este chofer?')) return;
+  await sb.from('choferes').delete().eq('id', id);
+  await loadChoferes();
+  loadConfig();
 }
 
-async function exportCSV(){
-  var btn=event.target;
-  btn.textContent='Exportando...';
-  btn.disabled=true;
-  try{
-    var r1=await sb.from('reportes').select('*').order('fecha',{ascending:false});
-    var r2=await sb.from('camiones').select('*').order('id');
-    var r3=await sb.from('choferes').select('*').order('nombre');
-    var reps=r1.data||[];
-    var cams=r2.data||[];
-    var chos=r3.data||[];
-    var csv='REPORTES
-ID,Fecha,Camion,Chofer,Tipo,Descripcion,Km,Urgencia,Repuestos,Costo,Es OT
-';
-    csv+=reps.map(function(r){
-      return [r.id,r.fecha,r.camion,r.chofer||'',r.tipo,
-        (r.descripcion||'').replace(/,/g,' ').replace(/?
-/g,' '),
-        r.km||'',r.urgencia||'',(r.repuestos||'').replace(/,/g,' '),r.costo||0,r.es_ot?'SI':'NO'].join(',');
-    }).join('
-');
-    csv+='
-
-CAMIONES
-ID,Modelo
-'+cams.map(function(c){return c.id+','+c.modelo;}).join('
-');
-    csv+='
-
-CHOFERES
-ID,Nombre
-'+chos.map(function(c){return c.id+','+c.nombre;}).join('
-');
-    var fecha=new Date().toISOString().split('T')[0];
-    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='M3_Backup_'+fecha+'.csv'; a.click();
+async function exportCSV() {
+  var btn = document.getElementById('btn-export');
+  btn.textContent = 'Exportando...';
+  btn.disabled = true;
+  try {
+    var r1 = await sb.from('reportes').select('*').order('fecha', {ascending: false});
+    var r2 = await sb.from('camiones').select('*').order('id');
+    var r3 = await sb.from('choferes').select('*').order('nombre');
+    var reps = r1.data || [];
+    var cams = r2.data || [];
+    var chos = r3.data || [];
+    var csv = 'REPORTES\nID,Fecha,Camion,Chofer,Tipo,Descripcion,Km,Urgencia,Repuestos,Costo,Es OT\n';
+    for (var i = 0; i < reps.length; i++) {
+      var x = reps[i];
+      var desc = (x.descripcion || '').replace(/,/g, ' ').replace(/[\r\n]/g, ' ');
+      var rep2 = (x.repuestos || '').replace(/,/g, ' ');
+      csv += [x.id, x.fecha, x.camion, x.chofer||'', x.tipo, desc, x.km||'', x.urgencia||'', rep2, x.costo||0, x.es_ot?'SI':'NO'].join(',') + '\n';
+    }
+    csv += '\nCAMIONES\nID,Modelo\n';
+    for (var i = 0; i < cams.length; i++) { csv += cams[i].id + ',' + cams[i].modelo + '\n'; }
+    csv += '\nCHOFERES\nID,Nombre\n';
+    for (var i = 0; i < chos.length; i++) { csv += chos[i].id + ',' + chos[i].nombre + '\n'; }
+    var fecha = new Date().toISOString().split('T')[0];
+    var blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'M3_Backup_' + fecha + '.csv';
+    a.click();
     URL.revokeObjectURL(url);
-    btn.textContent='Descargado!';
-    setTimeout(function(){btn.textContent='Descargar backup CSV';btn.disabled=false;},3000);
-  }catch(e){
-    btn.textContent='Error al exportar';
-    btn.disabled=false;
+    btn.textContent = 'Descargado!';
+    setTimeout(function() { btn.textContent = 'Descargar backup CSV'; btn.disabled = false; }, 3000);
+  } catch(e) {
+    btn.textContent = 'Error al exportar';
+    btn.disabled = false;
   }
 }
 
 init();
+
 </script>
 </body>
 </html>
