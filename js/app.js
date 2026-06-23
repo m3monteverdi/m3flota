@@ -1,0 +1,808 @@
+var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
+var ADMIN_KEY = 'monteverdi';
+var sb = supabase.createClient(SB_URL, SB_KEY);
+var camiones = [], choferes = [], otCounter = 1, otsCache = [], adminOk = false;
+var allReportes = [];
+var tipoActual = '';
+var detalleCamionId = null;
+
+var RD = [
+  {id:'100',nom:'IVECO TRAKKER 350',pat:'NBK032',cho:'---',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'21/01/2026',us:'05/04/2025',ps:'224.000 km',ue:'05/04/2025',pe:'214.900 km',uc:'05/04/2025',pc:'224.000 km',ub:'---',pb:'---'},
+  {id:'101',nom:'IVECO TECTOR ATTACK',pat:'AG-160-NG',cho:'David Maldonado',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'03/06/2027',us:'12/05/2026',ps:'3.000 hs',ue:'12/05/2026',pe:'2.650 hs',uc:'12/05/2026',pc:'3.000 hs',ub:'---',pb:'---'},
+  {id:'102',nom:'SCANIA P380',pat:'AD-774-EJ',cho:'Victor Rosa',cap:'8m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'27/04/2026',ps:'315.580 km',ue:'27/04/2026',pe:'306.000 km',uc:'27/04/2026',pc:'315.580 km',ub:'09/08/2024',pb:'---'},
+  {id:'104',nom:'SCANIA P420',pat:'AD-774-ED',cho:'Mauricio Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'17/04/2026',ps:'260.000 km',ue:'05/05/2026',pe:'250.800 km',uc:'19/02/2026',pc:'258.133 km',ub:'---',pb:'---'},
+  {id:'105',nom:'SCANIA 380',pat:'AD-774-EK',cho:'Horacio Chacon',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'27/04/2026',ps:'228.620 km',ue:'27/04/2026',pe:'219.000 km',uc:'27/04/2026',pc:'228.620 km',ub:'---',pb:'---'},
+  {id:'108',nom:'IVECO TRAKKER 380',pat:'AG-473-RK',cho:'Diego Silva',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'08/05/2026',us:'17/04/2026',ps:'347.779 km',ue:'17/04/2026',pe:'338.000 km',uc:'17/04/2026',pc:'338.000 km',ub:'24/02/2025',pb:'---'},
+  {id:'110',nom:'IVECO TRAKKER 410',pat:'AG-473-RJ',cho:'Luis Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'21/04/2026',ps:'308.900 km',ue:'21/04/2026',pe:'299.300 km',uc:'21/04/2026',pc:'308.900 km',ub:'30/01/2025',pb:'---'},
+  {id:'113',nom:'FORD CARGO 2625',pat:'DMQ335',cho:'---',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/11/2026',us:'05/05/2026',ps:'130.665 km',ue:'05/05/2026',pe:'121.000 km',uc:'05/05/2026',pc:'130.665 km',ub:'08/11/2024',pb:'---'},
+  {id:'114',nom:'IVECO TECTOR BOMBA',pat:'AE-378-JW',cho:'Dario Guerra',cap:'32mts',est:'DISPONIBLE',seg:'02/07/2026',rto:'18/05/2027',us:'16/04/2026',ps:'5.000 km',ue:'16/04/2026',pe:'4.700 km',uc:'16/04/2026',pc:'5.000 km',ub:'15/07/2024',pb:'---'},
+  {id:'918',nom:'CAT CARGADORA 918',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'23/04/2026',ps:'28.100 hs',ue:'23/04/2026',pe:'28.750 hs',uc:'23/04/2026',pc:'28.100 hs',ub:'23/04/2026',pb:'---'},
+  {id:'106',nom:'DIMEX 74-310',pat:'CMS120',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'28/11/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'03/04/2024',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
+  {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'015',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
+  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'CARR',nom:'CARRETON ECOMEC',pat:'UPL348',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'SEMI',nom:'SEMIRREMOLQUE GOMATRO',pat:'UPL515',cho:'---',cap:'25.000 kg',est:'DISPONIBLE',seg:'19/11/2025',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
+];
+
+function loadRes() {
+  try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
+  return JSON.parse(JSON.stringify(RD));
+}
+function saveRes(d) { try { localStorage.setItem('m3v7', JSON.stringify(d)); } catch(e) {} }
+var resData = loadRes();
+
+function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id) return resData[i]; return null; }
+function getCamModelo(id) { for (var i=0;i<camiones.length;i++) if (camiones[i].id===id) return camiones[i].modelo; return ''; }
+
+async function init() {
+  document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
+  
+  try {
+    await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
+  } catch(e) {
+    console.error('Error al borrar MIX-01/02:', e);
+  }
+
+  await loadCamiones();
+  await loadChoferes();
+  await loadOTCounter();
+  await loadAllReportes();
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var camionParam = urlParams.get('camion');
+  var tabParam = urlParams.get('tab');
+  if (camionParam) {
+    var exists = camiones.some(function(c) { return c.id === camionParam; });
+    if (exists) {
+      document.getElementById('r-cam').value = camionParam;
+      var tabBtn = document.querySelectorAll('.tab')[1];
+      showTab('nuevo', tabBtn);
+    }
+  }
+  if (tabParam === 'nuevo') {
+    var tabBtn2 = document.querySelectorAll('.tab')[1];
+    showTab('nuevo', tabBtn2);
+  }
+}
+
+async function loadCamiones() {
+  var r = await sb.from('camiones').select('*').order('id');
+  camiones = r.data || [];
+  fillCamiones();
+}
+async function loadChoferes() {
+  var r = await sb.from('choferes').select('*').order('nombre');
+  choferes = r.data || [];
+  fillChoferes();
+}
+async function loadOTCounter() {
+  var r = await sb.from('reportes').select('id').like('id','OT-%').order('created_at',{ascending:false}).limit(1);
+  if (r.data && r.data.length > 0) { var n = parseInt(r.data[0].id.replace('OT-','')) || 0; otCounter = n+1; }
+}
+async function loadAllReportes() {
+  var r = await sb.from('reportes').select('*').order('fecha',{ascending:false});
+  allReportes = r.data || [];
+}
+
+function fillCamiones() {
+  var o = '<option value="">Selecciona...</option>';
+  for (var i = 0; i < camiones.length; i++) o += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
+  document.getElementById('r-cam').innerHTML = o;
+  var o2 = '<option value="">Todos los camiones</option>';
+  for (var i = 0; i < camiones.length; i++) o2 += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
+  document.getElementById('fil-cam').innerHTML = o2;
+  document.getElementById('fil-ot-cam').innerHTML = o2;
+}
+function fillChoferes() {
+  var o = '<option value="">Selecciona...</option>';
+  for (var i = 0; i < choferes.length; i++) o += '<option value="'+choferes[i].nombre+'">'+choferes[i].nombre+'</option>';
+  document.getElementById('r-cho').innerHTML = o;
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
+  document.getElementById('pane-'+id).classList.add('on');
+  if (btn) btn.classList.add('on');
+  if (id === 'historial') loadHist();
+  if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
+  if (id === 'dash') renderDash();
+  if (id === 'flota') renderFlota();
+  if (id === 'reparaciones') { loadOTs(); loadReps(); }
+  if (id === 'nuevo') { qpReset(); }
+}
+
+function askKey(btn) {
+  if (adminOk) { showTab('config', btn); return; }
+  var c = prompt('Ingresa la clave de administrador:');
+  if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
+  else if (c !== null) alert('Clave incorrecta.');
+}
+
+function showMsg(id, type, txt) {
+  var el = document.getElementById(id);
+  el.querySelector('span').textContent = txt;
+  el.className = 'msg ' + (type === 'ok' ? 'mok' : 'merr');
+  el.style.display = 'flex';
+  setTimeout(function() { el.style.display = 'none'; }, 5000);
+}
+
+function tbadge(t) {
+  var m = {falla:'bred',service:'bamb',reparacion:'bpur',preventivo:'bgrn',engrase:'bblu'};
+  var l = {falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase'};
+  var icons = {falla:'ti-alert-triangle',service:'ti-tool',reparacion:'ti-hammer',preventivo:'ti-shield-check',engrase:'ti-droplet'};
+  return '<span class="badge '+(m[t]||'bgry')+'"><i class="ti '+(icons[t]||'ti-tag')+'"></i>'+(l[t]||t)+'</span>';
+}
+function fmtP(n) { if (!n || n === 0) return '-'; return '$'+Math.round(n).toLocaleString('es-AR'); }
+
+function parseDateDMY(v) {
+  if (!v || v === '---') return null;
+  var p = v.split('/');
+  if (p.length !== 3) return null;
+  return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+}
+
+function diasHasta(fechaStr) {
+  var d = parseDateDMY(fechaStr);
+  if (!d) return null;
+  return Math.ceil((d - new Date()) / 86400000);
+}
+
+function tiempoRelativo(fechaISO) {
+  var d = new Date(fechaISO);
+  var ahora = new Date();
+  var diffMs = ahora - d;
+  var mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'Ahora';
+  if (mins < 60) return 'Hace ' + mins + ' min';
+  var hs = Math.floor(mins / 60);
+  if (hs < 24) return 'Hace ' + hs + (hs===1?' hora':' horas');
+  var dias = Math.floor(hs / 24);
+  if (dias === 1) return 'Ayer';
+  if (dias < 7) return 'Hace ' + dias + ' dias';
+  return fechaISO;
+}
+
+function generarRecomendaciones(camId) {
+  return [];
+}
+
+/* ============ DASHBOARD ============ */
+async function renderDash() {
+  await loadAllReportes();
+  var totalCam = resData.length;
+  var op = resData.filter(function(c){return c.est==='DISPONIBLE';}).length;
+  var rep = totalCam - op;
+
+  var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
+  var mant = allReportes.filter(function(r){
+    var f = new Date(r.fecha);
+    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo');
+  }).length;
+
+  var vencs = [];
+  for (var i=0;i<resData.length;i++) {
+    var c = resData[i];
+    ['rto','seg'].forEach(function(k){
+      var d = diasHasta(c[k]);
+      if (d !== null && d < 60) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k]});
+    });
+  }
+  vencs.sort(function(a,b){return a.dias-b.dias;});
+
+  document.getElementById('d-op').textContent = op;
+  document.getElementById('d-rep').textContent = rep;
+  document.getElementById('d-mant').textContent = mant;
+  document.getElementById('d-venc').textContent = vencs.length;
+
+  var activEl = document.getElementById('d-activ');
+  var ultimos = allReportes.slice(0,6);
+  if (!ultimos.length) {
+    activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad registrada.</p>';
+  } else {
+    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB'};
+    var labels = {falla:'Falla reportada',service:'Service realizado',reparacion:'Reparacion completada',preventivo:'Mantenimiento preventivo',engrase:'Engrase realizado'};
+    var html = '';
+    for (var i=0;i<ultimos.length;i++) {
+      var x = ultimos[i];
+      var col = colores[x.tipo] || '#888';
+      html += '<div class="activ-item"><div class="activ-dot" style="background:'+col+'"></div><div style="flex:1">';
+      html += '<div class="activ-tit">Camion '+x.camion+' - '+(labels[x.tipo]||x.tipo)+'</div>';
+      html += '<div class="activ-sub">'+x.descripcion.substring(0,50)+(x.descripcion.length>50?'...':'')+'</div>';
+      html += '<div class="activ-time">'+x.fecha+'</div></div></div>';
+    }
+    activEl.innerHTML = html;
+  }
+
+  var vencEl = document.getElementById('d-vencs');
+  if (!vencs.length) {
+    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">No hay vencimientos proximos.</p>';
+  } else {
+    var html2 = '';
+    var top = vencs.slice(0,6);
+    for (var i=0;i<top.length;i++) {
+      var v = top[i];
+      var badgeClass = v.dias < 0 ? 'bred' : (v.dias < 15 ? 'bred' : 'bamb');
+      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' dias';
+      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - Camion '+v.cam+'</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
+    }
+    vencEl.innerHTML = html2;
+  }
+}
+
+/* ============ FLOTA (tarjetas) ============ */
+function getAlertPriority(c) {
+  var hasUrgent = false;
+  var hasVencimiento = false;
+  var dRto = diasHasta(c.rto);
+  var dSeg = diasHasta(c.seg);
+  if (c.est === 'REPARACION') hasUrgent = true;
+  if (dRto !== null && dRto < 30) { hasUrgent = true; hasVencimiento = true; }
+  else if (dSeg !== null && dSeg < 30) { hasUrgent = true; hasVencimiento = true; }
+  if (!hasUrgent && !hasVencimiento && c.ps && c.ps !== '---') hasVencimiento = true;
+  return { hasUrgent: hasUrgent, hasVencimiento: hasVencimiento };
+}
+
+function renderFlota() {
+  var q = (document.getElementById('search-flota').value || '').toLowerCase().trim();
+  var el = document.getElementById('flota-grid');
+  var filtrados = resData.filter(function(c) {
+    if (!q) return true;
+    return c.id.toLowerCase().indexOf(q) >= 0 || c.nom.toLowerCase().indexOf(q) >= 0 || c.cho.toLowerCase().indexOf(q) >= 0;
+  });
+  filtrados.sort(function(a,b) {
+    var pa = getAlertPriority(a);
+    var pb = getAlertPriority(b);
+    if (pa.hasUrgent && !pb.hasUrgent) return -1;
+    if (!pa.hasUrgent && pb.hasUrgent) return 1;
+    if (pa.hasVencimiento && !pb.hasVencimiento) return -1;
+    if (!pa.hasVencimiento && pb.hasVencimiento) return 1;
+    if (a.id.toLowerCase() < b.id.toLowerCase()) return -1;
+    if (a.id.toLowerCase() > b.id.toLowerCase()) return 1;
+    return 0;
+  });
+  if (!filtrados.length) { el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:2rem;grid-column:1/-1">Sin resultados.</p>'; return; }
+  var html = '';
+  for (var i=0;i<filtrados.length;i++) {
+    var c = filtrados[i];
+    var claseFondo = c.est === 'REPARACION' ? 'ftc-rep' : 'ftc-op';
+    var badgeTxt = c.est === 'REPARACION' ? 'EN REPARACION' : 'OPERATIVO';
+    var badgeClass = c.est === 'REPARACION' ? 'bred' : 'bgrn';
+
+    var alertaTxt = '';
+    var dRto = diasHasta(c.rto);
+    var dSeg = diasHasta(c.seg);
+    if (dRto !== null && dRto < 30) alertaTxt = 'RTO vence pronto';
+    else if (dSeg !== null && dSeg < 30) alertaTxt = 'Seguro vence pronto';
+
+    var ultRep = allReportes.filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
+    html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
+    html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
+    html += '<div class="ftc-id">'+c.id+'</div>';
+    html += '<div class="ftc-mod">'+c.nom+'</div>';
+    if (c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
+    if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
+    if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
+    if (alertaTxt) html += '<div class="ftc-alert" style="color:#D97706"><i class="ti ti-calendar-exclamation"></i> '+alertaTxt+'</div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ============ DETALLE CAMION (timeline) ============ */
+async function abrirDetalle(camId) {
+  detalleCamionId = camId;
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+  document.getElementById('pane-detalle').classList.add('on');
+  var c = getCam(camId);
+  var mod = getCamModelo(camId);
+  var cont = document.getElementById('detalle-cont');
+  cont.innerHTML = '<div class="loader">Cargando...</div>';
+
+  var r = await sb.from('reportes').select('*').eq('camion',camId).order('fecha',{ascending:false});
+  var reps = r.data || [];
+
+  var estB = c.est === 'DISPONIBLE' ? '<span class="badge bgrn"><i class="ti ti-circle-check"></i> Operativo</span>' : '<span class="badge bred"><i class="ti ti-tool"></i> En reparacion</span>';
+
+  var html = '<div class="card card-blue">';
+  html += '<div class="rt"><div><div style="font-size:20px;font-weight:800">'+c.id+'</div><div style="font-size:13px;opacity:.85">'+(mod||c.nom)+'</div></div>'+estB+'</div>';
+  html += '<div style="font-size:12px;opacity:.8;margin-top:10px"><i class="ti ti-user"></i> '+c.cho+' &nbsp; <i class="ti ti-license-plate"></i> '+c.pat+'</div>';
+  html += '</div>';
+
+  html += '<div class="card">';
+  html += '<div class="g2" style="margin-bottom:0">';
+  html += '<div class="rc-item"><div class="rc-itit"><i class="ti ti-tool"></i> Ultimo service</div><div class="rc-ival">'+c.us+'</div></div>';
+  html += '<div class="rc-item"><div class="rc-itit"><i class="ti ti-droplet"></i> Ultimo engrase</div><div class="rc-ival">'+c.ue+'</div></div>';
+  html += '<div class="rc-item"><div class="rc-itit"><i class="ti ti-calendar"></i> RTO</div><div class="rc-ival">'+c.rto+'</div></div>';
+  html += '<div class="rc-item"><div class="rc-itit"><i class="ti ti-shield"></i> Seguro</div><div class="rc-ival">'+c.seg+'</div></div>';
+  html += '</div>';
+  if (adminOk) {
+    html += '<button class="ebtn" onclick="togEditDetalle()" style="margin-top:10px"><i class="ti ti-pencil"></i> Editar datos</button>';
+    html += '<div class="eform hid" id="ef-detalle"></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="card"><p class="dash-sec-tit"><i class="ti ti-clock-history"></i> Linea de tiempo</p>';
+  if (!reps.length) {
+    html += '<p style="color:#888;font-size:13px;padding:1rem;text-align:center">Sin reportes registrados para este camion.</p>';
+  } else {
+    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB'};
+    html += '<div class="tl-wrap"><div class="tl-line"></div>';
+    for (var i=0;i<reps.length;i++) {
+      var x = reps[i];
+      var col = colores[x.tipo] || '#888';
+      html += '<div class="tl-item"><div class="tl-dot" style="color:'+col+'"></div>';
+      html += '<div class="tl-date">'+x.fecha+'</div>';
+      html += '<div class="tl-card">';
+      html += '<div class="rt">'+tbadge(x.tipo)+(x.es_ot?'<span class="chip">'+x.id+'</span>':'')+'</div>';
+      html += '<div style="font-size:13px;margin-top:6px">'+x.descripcion+'</div>';
+      if (x.km) html += '<div style="font-size:11px;color:#888;margin-top:4px">'+x.km.toLocaleString('es-AR')+' km</div>';
+      if (x.es_ot) html += '<button class="bo" style="font-size:11px;padding:4px 10px;margin-top:6px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> Imprimir OT</button>';
+      html += '</div></div>';
+    }
+    html += '</div>';
+  }
+   html += '</div>';
+   var recomendaciones = generarRecomendaciones(camId);
+   if (recomendaciones.length) {
+     var clasesTipo = {alert:'ds-red', urgent:'ds-red', warn:'ds-amb', info:'ds-azu'};
+     var iconosTipo = {alert:'ti-alert-triangle', urgent:'ti-alert-octagon', warn:'ti-alert-triangle', info:'ti-info-circle'};
+     html += '<div class="card card-blue" style="background:linear-gradient(135deg, hsl(220,80%,44%) 0%, hsl(220,80%,32%) 100%)">';
+     html += '<p class="dash-sec-tit" style="color:#fff"><i class="ti ti-lightbulb"></i> Recomendaciones</p>';
+     for (var i=0;i<recomendaciones.length;i++) {
+       var rec = recomendaciones[i];
+       var claseRec = clasesTipo[rec.tipo] || 'ds-azu';
+       var iconoRec = iconosTipo[rec.tipo] || 'ti-info-circle';
+       html += '<div class="rc-item" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;margin-bottom:6px">';
+       html += '<div style="display:flex;align-items:center;gap:8px"><i class="ti '+iconoRec+'" style="font-size:16px;flex-shrink:0"></i>';
+       html += '<span style="font-size:12.5px;font-weight:600;line-height:1.4">'+rec.texto+'</span></div></div>';
+     }
+     html += '</div>';
+   } else {
+     html += '<div class="card"><p class="dash-sec-tit"><i class="ti ti-check"></i> Estado general</p>';
+     html += '<div class="rc-item" style="background:var(--grnl);border-color:hsl(142,60%,80%)"><div style="font-size:13px;font-weight:700;color:var(--grn)">Sin recomendaciones por el momento</div>';
+     html += '<div style="font-size:11px;color:var(--muted);margin-top:2px">La unidad se encuentra en condiciones normales</div></div></div>';
+   }
+   cont.innerHTML = html;
+}
+
+function togEditDetalle() {
+  var el = document.getElementById('ef-detalle');
+  if (!el.classList.contains('hid')) { el.classList.add('hid'); return; }
+  el.classList.remove('hid');
+  var c = getCam(detalleCamionId);
+  var campos = [{k:'rto',l:'RTO Venc.'},{k:'seg',l:'Seguro hasta'},{k:'uc',l:'Ult. cubiertas'},{k:'pc',l:'Prox. cubiertas'},{k:'ub',l:'Ult. bateria'},{k:'pb',l:'Prox. bateria'},{k:'ue',l:'Ult. engrase'},{k:'pe',l:'Prox. engrase'},{k:'us',l:'Ult. service'},{k:'ps',l:'Prox. service'},{k:'cho',l:'Chofer'}];
+  var html = '<div class="g2">';
+  for (var i=0;i<campos.length;i++) html += '<div class="field"><label>'+campos[i].l+'</label><input type="text" id="efd-'+campos[i].k+'" value="'+(c[campos[i].k]||'---')+'"></div>';
+  html += '</div><div class="field"><label>Estado</label><select id="efd-est"><option value="DISPONIBLE" '+(c.est==='DISPONIBLE'?'selected':'')+'>Operativo</option><option value="REPARACION" '+(c.est==='REPARACION'?'selected':'')+'>En reparacion</option></select></div>';
+  html += '<button class="bp" onclick="saveEditDetalle()" style="margin-top:8px"><i class="ti ti-device-floppy"></i> Guardar cambios</button>';
+  el.innerHTML = html;
+}
+
+function saveEditDetalle() {
+  var c = getCam(detalleCamionId);
+  var campos = ['rto','seg','uc','pc','ub','pb','ue','pe','us','ps','cho'];
+  for (var i=0;i<campos.length;i++) {
+    var el = document.getElementById('efd-'+campos[i]);
+    if (el) c[campos[i]] = el.value.trim() || '---';
+  }
+  c.est = document.getElementById('efd-est').value;
+  saveRes(resData);
+  abrirDetalle(detalleCamionId);
+}
+
+/* ============ CARGA RAPIDA (Reportar) ============ */
+function qpReset() {
+  tipoActual = '';
+  document.getElementById('qp-step1').classList.remove('hid');
+  document.getElementById('qp-step2').classList.add('hid');
+  document.getElementById('ot-area').innerHTML = '';
+}
+
+function pickTipo(t) {
+  tipoActual = t;
+  var labels = {falla:'Reportar Falla',preventivo:'Reportar Preventivo',service:'Reportar Service',engrase:'Reportar Engrase'};
+  document.getElementById('qp-tipo-tit').textContent = labels[t];
+  document.getElementById('qp-step1').classList.add('hid');
+  document.getElementById('qp-step2').classList.remove('hid');
+  document.getElementById('falla-extra').classList.toggle('hid', t !== 'falla');
+}
+
+function qpBack() {
+  document.getElementById('qp-step1').classList.remove('hid');
+  document.getElementById('qp-step2').classList.add('hid');
+}
+
+async function guardar() {
+  var cam = document.getElementById('r-cam').value;
+  var cho = document.getElementById('r-cho').value;
+  var tip = tipoActual;
+  var km = parseInt(document.getElementById('r-km').value) || 0;
+  var des = document.getElementById('r-des').value.trim();
+  var urg = document.getElementById('r-urg').value;
+  var rep = document.getElementById('r-rep').value.trim();
+  var fec = document.getElementById('r-fec').value;
+  if (!cam || !cho || !tip || !des) { showMsg('err-msg','err','Completa camion, chofer y descripcion.'); return; }
+  var esOT = (tip === 'falla');
+  var id = esOT ? 'OT-'+String(otCounter).padStart(3,'0') : 'REP-'+Date.now();
+  if (esOT) otCounter++;
+  var rep2 = {id:id,fecha:fec,camion:cam,chofer:cho,tipo:tip,descripcion:des,km:km,urgencia:urg,repuestos:rep,es_ot:esOT};
+  var res = await sb.from('reportes').insert([rep2]);
+  if (res.error) { showMsg('err-msg','err','Error: '+res.error.message); return; }
+  if (tip === 'engrase') { var c = getCam(cam); if (c) { c.ue = formatDateToDMY(fec); saveRes(resData); } }
+  if (tip === 'service') { var c = getCam(cam); if (c) { c.us = formatDateToDMY(fec); saveRes(resData); } }
+  if (tip === 'falla') { var c = getCam(cam); if (c && urg === 'alta') { c.est = 'REPARACION'; saveRes(resData); } }
+  showMsg('ok-msg','ok', esOT ? 'Reporte guardado. OT '+id+' generada.' : 'Reporte guardado correctamente.');
+  await loadAllReportes();
+  if (esOT) showOT(rep2);
+  else document.getElementById('ot-area').innerHTML = '';
+  document.getElementById('r-des').value = '';
+  document.getElementById('r-rep').value = '';
+  document.getElementById('r-km').value = '';
+  document.getElementById('r-cam').selectedIndex = 0;
+  document.getElementById('r-cho').selectedIndex = 0;
+  document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
+}
+
+function formatDateToDMY(iso) {
+  var p = iso.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+function showOT(r) {
+  var ul = {alta:'ALTA - no puede circular',media:'Media - con cuidado',baja:'Baja - programar'};
+  var mod = getCamModelo(r.camion);
+  var h = '<div class="ot-wrap">';
+  h += '<div class="ot-hdr"><div>';
+  h += '<div class="ot-logo">M3 Monteverdi Cubico</div>';
+  h += '<div class="ot-tit">Orden de Trabajo '+r.id+'</div>';
+  h += '<div style="font-size:12px;color:#666;margin-top:2px">Fecha: '+r.fecha+'</div>';
+  h += '</div><div style="text-align:right"><div style="font-size:11px;color:#888;font-weight:600">URGENCIA</div>';
+  h += '<div style="font-weight:800;color:#DC2626;font-size:14px">'+(ul[r.urgencia]||'-')+'</div></div></div>';
+  h += '<div class="ot-sec">Vehiculo</div>';
+  h += '<div class="ot-kv"><span class="ot-k">Camion</span><span><strong>'+r.camion+'</strong> - '+mod+'</span></div>';
+  h += '<div class="ot-kv"><span class="ot-k">Chofer</span><span>'+r.chofer+'</span></div>';
+  h += '<div class="ot-kv"><span class="ot-k">Kilometraje</span><span>'+(r.km?r.km.toLocaleString('es-AR')+' km':'-')+'</span></div>';
+  h += '<div class="ot-sec">Descripcion del problema</div>';
+  h += '<div style="background:#EEF4FF;border-radius:10px;padding:12px;font-size:14px;border-left:4px solid var(--az)">'+r.descripcion+'</div>';
+  h += '<div class="ot-sec">Repuestos estimados</div>';
+  h += '<p style="font-size:13px">'+(r.repuestos||'A determinar por el taller')+'</p>';
+  h += '<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:8px;margin-top:14px" class="noprint">';
+  h += '<button class="bp" onclick="window.print()" style="flex:1"><i class="ti ti-printer"></i> Imprimir OT</button>';
+  h += '<button class="bo" onclick="document.getElementById(\'ot-area\').innerHTML=\'\'"><i class="ti ti-x"></i> Cerrar</button>';
+  h += '</div>';
+  document.getElementById('ot-area').innerHTML = h;
+  document.getElementById('ot-area').scrollIntoView({behavior:'smooth'});
+}
+
+/* ============ REPARACIONES ============ */
+async function loadOTs() {
+  var fil = document.getElementById('fil-ot-cam').value;
+  var q = sb.from('reportes').select('*').eq('es_ot',true).order('fecha',{ascending:false});
+  if (fil) q = q.eq('camion',fil);
+  var r = await q;
+  var el = document.getElementById('lista-ots');
+  el.innerHTML = '';
+  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>'; return; }
+  otsCache = r.data;
+  var p = document.createElement('p');
+  p.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px';
+  p.textContent = 'Toca una OT para registrar la reparacion:';
+  el.appendChild(p);
+  var ul = {alta:'Alta',media:'Media',baja:'Baja'};
+  for (var i = 0; i < r.data.length; i++) {
+    (function(idx, x) {
+      var div = document.createElement('div');
+      div.className = 'rfalla';
+      div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div><div style="font-size:12px;color:#666;margin-top:4px">'+x.fecha+' | '+x.descripcion.substring(0,60)+'...</div>';
+      div.onclick = function() { selOT(otsCache[idx]); };
+      el.appendChild(div);
+    })(i, r.data[i]);
+  }
+}
+
+function selOT(r) {
+  document.getElementById('buscador-ot').classList.add('hid');
+  document.getElementById('form-rep').classList.remove('hid');
+  var ul = {alta:'Alta',media:'Media',baja:'Baja'};
+  document.getElementById('falla-sel').innerHTML =
+    '<div style="display:flex;justify-content:space-between;margin-bottom:8px">'
+    +'<span style="font-weight:800;font-size:14px">'+r.id+' - Camion '+r.camion+'</span>'
+    +'<span class="badge bamb">'+(ul[r.urgencia]||'')+'</span></div>'
+    +'<div style="font-size:12px;color:#888;margin-bottom:8px">Fecha: '+r.fecha+' | Chofer: '+r.chofer+'</div>'
+    +'<div style="background:#EEF4FF;border-radius:10px;padding:10px;font-size:13px;border-left:4px solid var(--az)">'+r.descripcion+'</div>'
+    +(r.repuestos?'<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: '+r.repuestos+'</div>':'');
+  window._otSel = r;
+}
+
+function cancelRep() {
+  window._otSel = null;
+  document.getElementById('buscador-ot').classList.remove('hid');
+  document.getElementById('form-rep').classList.add('hid');
+  document.getElementById('rep-tal').value = '';
+  document.getElementById('rep-tra').value = '';
+  document.getElementById('rep-rep').value = '';
+}
+
+async function saveRep() {
+  var r = window._otSel;
+  if (!r) return;
+  var tra = document.getElementById('rep-tra').value.trim();
+  if (!tra) { showMsg('err-rep','err','Describe los trabajos realizados.'); return; }
+  var tal = document.getElementById('rep-tal').value.trim();
+  var rep = document.getElementById('rep-rep').value.trim();
+  var fec = document.getElementById('rep-fec').value;
+  var desc = '[OT:'+r.id+'] '+(tal?'Taller: '+tal+' - ':'')+tra;
+  var r2 = {id:'REP-'+Date.now(),fecha:fec,camion:r.camion,chofer:r.chofer,tipo:'reparacion',descripcion:desc,km:r.km,urgencia:'',repuestos:rep,es_ot:false};
+  var res = await sb.from('reportes').insert([r2]);
+  if (res.error) { showMsg('err-rep','err','Error: '+res.error.message); return; }
+  var c = getCam(r.camion); if (c) { c.est = 'DISPONIBLE'; saveRes(resData); }
+  showMsg('ok-rep','ok','Reparacion guardada. El camion vuelve a estar operativo.');
+  cancelRep(); loadOTs(); loadReps(); await loadAllReportes();
+}
+
+async function loadReps() {
+  var r = await sb.from('reportes').select('*').eq('tipo','reparacion').order('fecha',{ascending:false}).limit(30);
+  var el = document.getElementById('lista-reps');
+  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;font-size:13px">Sin reparaciones registradas.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < r.data.length; i++) {
+    var x = r.data[i];
+    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bpur"><i class="ti ti-hammer"></i> Reparacion</span></span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
+    html += '<div style="font-size:13px;margin:6px 0">'+x.descripcion.substring(0,90)+(x.descripcion.length>90?'...':'')+'</div>';
+    html += '<div style="font-size:12px;color:#888">'+(x.repuestos?x.repuestos.substring(0,50)+' ':'')+'</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ============ HISTORIAL ============ */
+async function loadHist() {
+  var fil = document.getElementById('fil-cam').value;
+  var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
+  if (fil) q = q.eq('camion',fil);
+  var r = await q;
+  var el = document.getElementById('tabla-hist');
+  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < r.data.length; i++) {
+    var x = r.data[i];
+    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
+    html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
+    html += '<div style="font-size:11px;color:#888">'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
+  if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
+  html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+async function openOT(id) {
+  var r = await sb.from('reportes').select('*').eq('id',id).single();
+  if (!r.data) return;
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
+  document.getElementById('pane-nuevo').classList.add('on');
+  document.querySelectorAll('.tab')[1].classList.add('on');
+  document.getElementById('qp-step1').classList.add('hid');
+  document.getElementById('qp-step2').classList.add('hid');
+  showOT(r.data);
+}
+
+/* ============ CONFIG ============ */
+async function loadConfig() {
+  await loadCamiones(); await loadChoferes();
+  var html = '';
+  for (var i = 0; i < camiones.length; i++) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #EEF4FF;font-size:14px">';
+    html += '<span><strong>'+camiones[i].id+'</strong> - '+camiones[i].modelo+'</span>';
+    html += '<button class="bd" onclick="delCamion(\''+camiones[i].id+'\')"><i class="ti ti-trash"></i></button></div>';
+  }
+  document.getElementById('lista-camiones').innerHTML = html;
+  var html2 = '';
+  for (var i = 0; i < choferes.length; i++) {
+    html2 += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #EEF4FF;font-size:14px">';
+    html2 += '<span>'+choferes[i].nombre+'</span>';
+    html2 += '<button class="bd" onclick="delChofer('+choferes[i].id+')"><i class="ti ti-trash"></i></button></div>';
+  }
+  document.getElementById('lista-choferes').innerHTML = html2;
+}
+
+async function addCamion() {
+  var id = document.getElementById('nc-id').value.trim();
+  var mod = document.getElementById('nc-mod').value.trim();
+  if (!id || !mod) return;
+  var r = await sb.from('camiones').insert([{id:id,modelo:mod}]);
+  if (r.error) { alert('Error: '+r.error.message); return; }
+  resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
+  saveRes(resData);
+  document.getElementById('nc-id').value = '';
+  document.getElementById('nc-mod').value = '';
+  await loadCamiones(); loadConfig();
+}
+async function addChofer() {
+  var nom = document.getElementById('nc-cho').value.trim();
+  if (!nom) return;
+  await sb.from('choferes').insert([{nombre:nom}]);
+  document.getElementById('nc-cho').value = '';
+  await loadChoferes(); loadConfig();
+}
+async function delCamion(id) {
+  if (!confirm('Eliminar camion '+id+'?')) return;
+  await sb.from('camiones').delete().eq('id',id);
+  resData = resData.filter(function(c){return c.id!==id;});
+  saveRes(resData);
+  await loadCamiones(); loadConfig();
+}
+async function delChofer(id) {
+  if (!confirm('Eliminar este chofer?')) return;
+  await sb.from('choferes').delete().eq('id',id);
+  await loadChoferes(); loadConfig();
+}
+
+/* ============ INFORME EXCEL COMPLETO ============ */
+async function exportExcel() {
+  var btn = document.getElementById('btn-export');
+  btn.innerHTML = '<i class="ti ti-loader"></i> Generando...';
+  btn.disabled = true;
+  try {
+    var r1 = await sb.from('reportes').select('*').order('fecha',{ascending:false});
+    var reps = r1.data || [];
+    var wb = XLSX.utils.book_new();
+    var fechaHoy = new Date().toLocaleDateString('es-AR');
+
+    /* HOJA 1: RESUMEN GENERAL */
+    var totalCam = resData.length;
+    var op = resData.filter(function(c){return c.est==='DISPONIBLE';}).length;
+    var rep = totalCam - op;
+    var totalReps = reps.length;
+    var totalFallas = reps.filter(function(r){return r.tipo==='falla';}).length;
+    var totalOTabiertas = reps.filter(function(r){return r.es_ot;}).length;
+
+    var resumenRows = [
+      ['INFORME DE FLOTA - M3 MONTEVERDI CUBICO'],
+      ['Generado el', fechaHoy],
+      [],
+      ['RESUMEN GENERAL'],
+      ['Total de unidades', totalCam],
+      ['Operativas', op],
+      ['En reparacion', rep],
+      ['Total de reportes', totalReps],
+      ['Total de fallas reportadas', totalFallas],
+      ['Ordenes de trabajo generadas', totalOTabiertas],
+      ['Camion','Modelo','Chofer','Estado','RTO Vence','Seguro Hasta','Ult. Service','Ult. Engrase']
+    ];
+    for (var i=0;i<resData.length;i++) {
+      var c = resData[i];
+      resumenRows.push([c.id, c.nom, c.cho, c.est==='DISPONIBLE'?'Operativo':'En reparacion', c.rto, c.seg, c.us, c.ue]);
+    }
+    var wsResumen = XLSX.utils.aoa_to_sheet(resumenRows);
+    wsResumen['!cols'] = [{wch:20},{wch:22},{wch:18},{wch:16},{wch:14},{wch:14},{wch:14},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen General');
+
+    /* HOJA 2: OT ABIERTAS */
+    var otAbiertas = reps.filter(function(r){return r.es_ot;});
+    var rowsOTA = [['OT','Fecha','Camion','Chofer','Urgencia','Descripcion','Km','Repuestos Estimados']];
+    for (var i=0;i<otAbiertas.length;i++) {
+      var x = otAbiertas[i];
+      rowsOTA.push([x.id, x.fecha, x.camion, x.chofer||'', x.urgencia||'', x.descripcion||'', x.km||'', x.repuestos||'']);
+    }
+    var wsOTA = XLSX.utils.aoa_to_sheet(rowsOTA);
+    wsOTA['!cols'] = [{wch:10},{wch:12},{wch:10},{wch:18},{wch:10},{wch:50},{wch:10},{wch:30},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsOTA, 'OT Abiertas');
+
+    /* HOJA 3: REPARACIONES (cierres de OT) */
+    var reparaciones = reps.filter(function(r){return r.tipo==='reparacion';});
+    var rowsRep = [['Fecha','Camion','OT relacionada','Chofer','Descripcion','Repuestos']];
+    for (var i=0;i<reparaciones.length;i++) {
+      var x = reparaciones[i];
+      var otMatch = (x.descripcion||'').match(/\[OT:([^\]]+)\]/);
+      var otRef = otMatch ? otMatch[1] : '';
+      rowsRep.push([x.fecha, x.camion, otRef, x.chofer||'', x.descripcion||'', x.repuestos||'']);
+    }
+    var wsRep = XLSX.utils.aoa_to_sheet(rowsRep);
+    wsRep['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:18},{wch:50},{wch:30},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsRep, 'Reparaciones');
+
+    /* HOJA 4: SERVICIOS Y PREVENTIVOS */
+    var servicios = reps.filter(function(r){return r.tipo==='service'||r.tipo==='preventivo'||r.tipo==='engrase';});
+    var rowsServ = [['Fecha','Camion','Tipo','Chofer','Descripcion','Km']];
+    for (var i=0;i<servicios.length;i++) {
+      var x = servicios[i];
+      rowsServ.push([x.fecha, x.camion, x.tipo, x.chofer||'', x.descripcion||'', x.km||'']);
+    }
+    var wsServ = XLSX.utils.aoa_to_sheet(rowsServ);
+    wsServ['!cols'] = [{wch:12},{wch:10},{wch:12},{wch:18},{wch:50},{wch:10},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsServ, 'Servicios y Preventivos');
+
+    /* HOJA 5: VENCIMIENTOS */
+    var rowsVenc = [['Camion','Tipo','Fecha','Dias restantes','Estado']];
+    for (var i=0;i<resData.length;i++) {
+      var c = resData[i];
+      ['rto','seg'].forEach(function(k){
+        var d = diasHasta(c[k]);
+        if (d !== null) {
+          var estadoTxt = d < 0 ? 'VENCIDO' : (d < 30 ? 'Urgente' : (d < 60 ? 'Proximo' : 'OK'));
+          rowsVenc.push([c.id, k==='rto'?'RTO':'Seguro', c[k], d, estadoTxt]);
+        }
+      });
+    }
+    var wsVenc = XLSX.utils.aoa_to_sheet(rowsVenc);
+    wsVenc['!cols'] = [{wch:10},{wch:10},{wch:14},{wch:14},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsVenc, 'Vencimientos');
+
+    /* HOJAS POR CAMION */
+    var todosIds = []; for (var i=0;i<camiones.length;i++) todosIds.push(camiones[i].id);
+    var sinCamion = [];
+    for (var i=0;i<reps.length;i++) { if (todosIds.indexOf(reps[i].camion)===-1 && sinCamion.indexOf(reps[i].camion)===-1) sinCamion.push(reps[i].camion); }
+    var allIds = todosIds.concat(sinCamion);
+    for (var ci=0;ci<allIds.length;ci++) {
+      var camId = allIds[ci];
+      var camReps = reps.filter(function(x){return x.camion===camId;});
+      if (!camReps.length) continue;
+      var camMod = getCamModelo(camId);
+      var rows = [['Fecha','Tipo','Descripcion','Km','Chofer','Urgencia','Repuestos','OT']];
+      for (var ri=0;ri<camReps.length;ri++) {
+        var x = camReps[ri];
+        rows.push([x.fecha,x.tipo,x.descripcion||'',x.km||'',x.chofer||'',x.urgencia||'',x.repuestos||'',x.es_ot?x.id:'']);
+      }
+      var ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{wch:12},{wch:12},{wch:50},{wch:10},{wch:18},{wch:10},{wch:30},{wch:10}];
+      var sheetName = (camId+' '+camMod).substring(0,31).replace(/[\/\\?*\[\]:]/g,'');
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+
+    var fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, 'M3_Informe_Flota_'+fecha+'.xlsx');
+    btn.innerHTML = '<i class="ti ti-check"></i> Informe descargado!';
+    setTimeout(function() { btn.innerHTML = '<i class="ti ti-file-spreadsheet"></i> Generar informe Excel'; btn.disabled = false; }, 3000);
+  } catch(e) {
+    btn.innerHTML = '<i class="ti ti-alert-circle"></i> Error al generar';
+    btn.disabled = false;
+    console.error(e);
+  }
+}
+
+function showQR() {
+  var modal = document.getElementById('qr-modal');
+  var canvas = document.getElementById('qr-canvas');
+  var camIdEl = document.getElementById('qr-cam-id');
+  var url = window.location.origin + window.location.pathname + '?tab=nuevo';
+  camIdEl.textContent = 'Escanear para reportar';
+  modal.style.display = 'flex';
+  document.getElementById('qr-print-area').innerHTML = '';
+  canvas.innerHTML = '';
+  if (typeof QRCode !== 'undefined') {
+    QRCode.toCanvas(canvas, url, { width: 256, margin: 2 }, function(error) {
+      if (error) console.error(error);
+    });
+  }
+}
+
+function initQRFlota() {
+  var cont = document.getElementById('qr-flota-canvas');
+  if (!cont) return;
+  var url = window.location.origin + window.location.pathname + '?tab=nuevo';
+  cont.innerHTML = '<img src="https://chart.googleapis.com/chart?chs=160x160&cht=qr&chl=' + encodeURIComponent(url) + '&choe=UTF-8" style="background:#fff;padding:8px;border-radius:8px" alt="QR">';
+}
+
+function closeQR() {
+  document.getElementById('qr-modal').style.display = 'none';
+}
+
+function printQR() {
+  window.print();
+}
+
+function goToFlota() {
+  document.getElementById('pane-detalle').classList.remove('on');
+  document.getElementById('pane-flota').classList.add('on');
+  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
+  document.querySelectorAll('.tab')[0].classList.add('on');
+}
+
+init();
