@@ -1,11 +1,82 @@
 var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
 var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
 var ADMIN_KEY = 'monteverdi';
+var EMAIL_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
+var EMAIL_SERVICE_ID = 'service_m3flota';
+var EMAIL_TEMPLATE_ID = 'template_vencimientos';
+var EMAIL_PUBLIC_KEY = 'user_xxx';
 var sb = supabase.createClient(SB_URL, SB_KEY);
 var camiones = [], choferes = [], otCounter = 1, otsCache = [], adminOk = false;
 var allReportes = [];
 var tipoActual = '';
 var detalleCamionId = null;
+var isOnline = navigator.onLine;
+var flotaExpandida = false;
+
+function getOfflineQueue() {
+  try { var r = localStorage.getItem('m3v7_offline_queue'); if (r) return JSON.parse(r); } catch(e) {}
+  return [];
+}
+function saveOfflineQueue(q) { try { localStorage.setItem('m3v7_offline_queue', JSON.stringify(q)); } catch(e) {} }
+function addOfflineOp(op) {
+  var q = getOfflineQueue();
+  q.push(op);
+  saveOfflineQueue(q);
+  updateOnlineStatus();
+}
+async function processOfflineQueue() {
+  if (!isOnline) return;
+  var q = getOfflineQueue();
+  if (!q.length) return;
+  var remaining = [];
+  for (var i=0;i<q.length;i++) {
+    var op = q[i];
+    try {
+      if (op.type === 'insert_reporte') {
+        await sb.from('reportes').insert([op.data]);
+      } else if (op.type === 'insert_camion') {
+        await sb.from('camiones').insert([op.data]);
+      } else if (op.type === 'insert_chofer') {
+        await sb.from('choferes').insert([op.data]);
+      } else if (op.type === 'delete_camion') {
+        await sb.from('camiones').delete().eq('id', op.data);
+      } else if (op.type === 'delete_chofer') {
+        await sb.from('choferes').delete().eq('id', op.data);
+      } else if (op.type === 'delete_reporte') {
+        await sb.from('reportes').delete().eq('id', op.data);
+      }
+    } catch(e) {
+      remaining.push(op);
+    }
+  }
+  saveOfflineQueue(remaining);
+  if (remaining.length === 0 && q.length > 0) {
+    await loadAllReportes();
+    await loadCamiones();
+    await loadChoferes();
+  }
+  updateOnlineStatus();
+}
+function updateOnlineStatus() {
+  var el = document.getElementById('online-badge');
+  if (!el) return;
+  if (isOnline) {
+    el.className = 'online-badge on';
+    el.innerHTML = '<i class="ti ti-wifi"></i> En línea';
+  } else {
+    el.className = 'online-badge off';
+    el.innerHTML = '<i class="ti ti-wifi-off"></i> Sin conexión';
+  }
+}
+window.addEventListener('online', function() {
+  isOnline = true;
+  updateOnlineStatus();
+  processOfflineQueue();
+});
+window.addEventListener('offline', function() {
+  isOnline = false;
+  updateOnlineStatus();
+});
 
 var RD = [
   {id:'100',nom:'IVECO TRAKKER 350',pat:'NBK032',cho:'---',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'21/01/2026',us:'05/04/2025',ps:'224.000 km',ue:'05/04/2025',pe:'214.900 km',uc:'05/04/2025',pc:'224.000 km',ub:'---',pb:'---'},
@@ -38,36 +109,45 @@ function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id)
 function getCamModelo(id) { for (var i=0;i<camiones.length;i++) if (camiones[i].id===id) return camiones[i].modelo; return ''; }
 
 async function init() {
-  document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
-  document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
-  
-  try {
-    await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
-  } catch(e) {
-    console.error('Error al borrar MIX-01/02:', e);
-  }
+   updateOnlineStatus();
+   processOfflineQueue();
+   document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
+   document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
+   
+   loadReportesLocal();
+   
+   try {
+     await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
+   } catch(e) {
+     console.error('Error al borrar MIX-01/02:', e);
+   }
 
-  await loadCamiones();
-  await loadChoferes();
-  await loadOTCounter();
-  await loadAllReportes();
+   await loadCamionesOffline();
+   await loadChoferes();
+   await loadOTCounter();
+   await loadAllReportes();
 
-  var urlParams = new URLSearchParams(window.location.search);
-  var camionParam = urlParams.get('camion');
-  var tabParam = urlParams.get('tab');
-  if (camionParam) {
-    var exists = camiones.some(function(c) { return c.id === camionParam; });
-    if (exists) {
-      document.getElementById('r-cam').value = camionParam;
-      var tabBtn = document.querySelectorAll('.tab')[1];
-      showTab('nuevo', tabBtn);
-    }
-  }
-  if (tabParam === 'nuevo') {
-    var tabBtn2 = document.querySelectorAll('.tab')[1];
-    showTab('nuevo', tabBtn2);
-  }
-}
+   var urlParams = new URLSearchParams(window.location.search);
+   var camionParam = urlParams.get('camion');
+   var tabParam = urlParams.get('tab');
+   if (camionParam) {
+     var exists = camiones.some(function(c) { return c.id === camionParam; });
+     if (exists) {
+       document.getElementById('r-cam').value = camionParam;
+       var tabBtn = document.querySelectorAll('.tab')[1];
+       showTab('nuevo', tabBtn);
+     }
+   }
+   if (tabParam === 'nuevo') {
+     var tabBtn2 = document.querySelectorAll('.tab')[1];
+     showTab('nuevo', tabBtn2);
+   }
+ }
+
+ function loadCamionesOffline() {
+   loadReportesLocal();
+   return loadCamiones();
+ }
 
 async function loadCamiones() {
   var r = await sb.from('camiones').select('*').order('id');
@@ -84,9 +164,23 @@ async function loadOTCounter() {
   if (r.data && r.data.length > 0) { var n = parseInt(r.data[0].id.replace('OT-','')) || 0; otCounter = n+1; }
 }
 async function loadAllReportes() {
-  var r = await sb.from('reportes').select('*').order('fecha',{ascending:false});
-  allReportes = r.data || [];
-}
+   try {
+     var r = await sb.from('reportes').select('*').order('fecha',{ascending:false});
+     allReportes = r.data || [];
+     saveReportesLocal();
+   } catch(e) {
+     console.error('Error cargando reportes, usando cache local:', e);
+     loadReportesLocal();
+   }
+ }
+
+function saveReportesLocal() {
+   try { localStorage.setItem('m3v7_reportes', JSON.stringify(allReportes)); } catch(e) {}
+ }
+
+function loadReportesLocal() {
+   try { var r = localStorage.getItem('m3v7_reportes'); if (r) allReportes = JSON.parse(r); } catch(e) {}
+ }
 
 function fillCamiones() {
   var o = '<option value="">Selecciona...</option>';
@@ -117,10 +211,11 @@ function showTab(id, btn) {
 }
 
 function askKey(btn) {
-  if (adminOk) { showTab('config', btn); return; }
-  var c = prompt('Ingresa la clave de administrador:');
-  if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
-  else if (c !== null) alert('Clave incorrecta.');
+   if (adminOk) { showTab('config', btn); return; }
+   var c = prompt('Ingresa la clave de administrador:');
+   if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
+   else if (c !== null) alert('Clave incorrecta.');
+   else return;
 }
 
 function showMsg(id, type, txt) {
@@ -168,7 +263,23 @@ function tiempoRelativo(fechaISO) {
 }
 
 function generarRecomendaciones(camId) {
-  return [];
+  var recs = [];
+  var c = getCam(camId);
+  if (!c) return recs;
+  var reps = allReportes.filter(function(r){ return r.camion === camId; });
+  var dRto = diasHasta(c.rto);
+  var dSeg = diasHasta(c.seg);
+  if (c.est === 'REPARACION') recs.push({tipo:'urgent', texto:'Unidad en reparación. Verificar cierre de OT al finalizar.'});
+  if (dRto !== null && dRto < 0) recs.push({tipo:'alert', texto:'RTO VENCIDO. Gestionar renovación urgente.'});
+  else if (dRto !== null && dRto < 10) recs.push({tipo:'warn', texto:'RTO vence en '+dRto+' días ('+c.rto+').'});
+  if (dSeg !== null && dSeg < 0) recs.push({tipo:'alert', texto:'Seguro VENCIDO. Contactar aseguradora.'});
+  else if (dSeg !== null && dSeg < 10) recs.push({tipo:'warn', texto:'Seguro vence en '+dSeg+' días ('+c.seg+').'});
+  var fallas = reps.filter(function(r){ return r.tipo === 'falla'; });
+  if (fallas.length >= 3) recs.push({tipo:'warn', texto:''+fallas.length+' fallas registradas. Revisar sistema eléctrico y motor.'});
+  var ultServ = reps.filter(function(r){ return r.tipo === 'service'; })[0];
+  if (!ultServ && c.us === '---' && c.ps !== '---') recs.push({tipo:'info', texto:'Sin registros de service. Programar próximo service ('+c.ps+').'});
+  if (c.cho === '---') recs.push({tipo:'warn', texto:'Sin chofer asignado. Asignar conductor.'});
+  return recs;
 }
 
 /* ============ DASHBOARD ============ */
@@ -189,15 +300,47 @@ async function renderDash() {
     var c = resData[i];
     ['rto','seg'].forEach(function(k){
       var d = diasHasta(c[k]);
-      if (d !== null && d < 60) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k]});
+      if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k]});
     });
   }
   vencs.sort(function(a,b){return a.dias-b.dias;});
+
+  var hace30dias = new Date(); hace30dias.setDate(hace30dias.getDate()-30);
+  var fallasMes = allReportes.filter(function(r){
+    var f = new Date(r.fecha);
+    return f >= hace30dias && r.tipo === 'falla';
+  }).length;
+
+  var kms = [];
+  for (var i=0;i<resData.length;i++) { var km = parseInt((resData[i].ps||'').replace(/[^\d]/g,'')); if (km) kms.push(km); }
+  var kmProm = kms.length ? Math.round(kms.reduce(function(a,b){return a+b;},0)/kms.length) : 0;
+
+  var sinChofer = resData.filter(function(c){return c.cho==='---';}).length;
+
+  var salud = 100;
+  salud -= vencs.length * 10;
+  salud -= rep * 5;
+  salud -= fallasMes * 5;
+  salud -= sinChofer * 3;
+  if (salud < 0) salud = 0;
+  if (salud > 100) salud = 100;
 
   document.getElementById('d-op').textContent = op;
   document.getElementById('d-rep').textContent = rep;
   document.getElementById('d-mant').textContent = mant;
   document.getElementById('d-venc').textContent = vencs.length;
+  document.getElementById('d-falla').textContent = fallasMes;
+  document.getElementById('d-km').textContent = kmProm.toLocaleString('es-AR');
+  document.getElementById('d-scho').textContent = sinChofer;
+  document.getElementById('d-salud').textContent = salud + '%';
+
+  var saludBar = document.getElementById('salud-bar');
+  if (saludBar) {
+    saludBar.style.width = salud + '%';
+    saludBar.style.background = salud > 70 ? 'var(--grn)' : (salud > 40 ? 'var(--amb)' : 'var(--red)');
+  }
+  var saludTxt = document.getElementById('salud-txt');
+  if (saludTxt) saludTxt.textContent = salud + '%';
 
   var activEl = document.getElementById('d-activ');
   var ultimos = allReportes.slice(0,6);
@@ -266,8 +409,10 @@ function renderFlota() {
     return 0;
   });
   if (!filtrados.length) { el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:2rem;grid-column:1/-1">Sin resultados.</p>'; return; }
+  var maxVisible = 18;
+  var limit = flotaExpandida ? filtrados.length : Math.min(maxVisible, filtrados.length);
   var html = '';
-  for (var i=0;i<filtrados.length;i++) {
+  for (var i=0;i<limit;i++) {
     var c = filtrados[i];
     var claseFondo = c.est === 'REPARACION' ? 'ftc-rep' : 'ftc-op';
     var badgeTxt = c.est === 'REPARACION' ? 'EN REPARACION' : 'OPERATIVO';
@@ -281,15 +426,32 @@ function renderFlota() {
 
     var ultRep = allReportes.filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
     html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
+    if (adminOk) {
+      html += '<button class="bo" onclick="event.stopPropagation();openEdit(\''+c.id+'\')" style="position:absolute;bottom:10px;right:10px;font-size:9px;padding:4px 8px;background:var(--az);color:#fff;border:none;border-radius:6px;cursor:pointer"><i class="ti ti-pencil"></i></button>';
+    }
     html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
     html += '<div class="ftc-id">'+c.id+'</div>';
     html += '<div class="ftc-mod">'+c.nom+'</div>';
     if (c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
     if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
     if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
-    if (alertaTxt) html += '<div class="ftc-alert" style="color:#D97706"><i class="ti ti-calendar-exclamation"></i> '+alertaTxt+'</div>';
+    if (alertaTxt) html += '<div class=\"ftc-alert\" style=\"color:#D97706\"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaTxt+'</div>';
     html += '</div>';
   }
+  if (!flotaExpandida && filtrados.length > maxVisible) {
+    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
+  } else if (flotaExpandida && filtrados.length > maxVisible) {
+    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-up\"></i> Ver menos</button>';
+  }
+  el.innerHTML = html;
+}
+  if (!flotaExpandida && filtrados.length > maxVisible) {
+    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
+  } else if (flotaExpandida && filtrados.length > maxVisible) {
+    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class="ti ti-chevron-up\"></i> Ver menos</button>';
+  }
+  el.innerHTML = html;
+}
   el.innerHTML = html;
 }
 
@@ -431,8 +593,26 @@ async function guardar() {
   var id = esOT ? 'OT-'+String(otCounter).padStart(3,'0') : 'REP-'+Date.now();
   if (esOT) otCounter++;
   var rep2 = {id:id,fecha:fec,camion:cam,chofer:cho,tipo:tip,descripcion:des,km:km,urgencia:urg,repuestos:rep,es_ot:esOT};
+  if (!isOnline) {
+    addOfflineOp({type:'insert_reporte', data:rep2, timestamp:Date.now()});
+    if (tip === 'engrase') { var c = getCam(cam); if (c) { c.ue = formatDateToDMY(fec); saveRes(resData); } }
+    if (tip === 'service') { var c = getCam(cam); if (c) { c.us = formatDateToDMY(fec); saveRes(resData); } }
+    if (tip === 'falla') { var c = getCam(cam); if (c && urg === 'alta') { c.est = 'REPARACION'; saveRes(resData); } }
+    showMsg('ok-msg','ok','Sin conexion. Reporte guardado localmente y se sincronizara al recuperar conexion.');
+    return;
+  }
   var res = await sb.from('reportes').insert([rep2]);
-  if (res.error) { showMsg('err-msg','err','Error: '+res.error.message); return; }
+  if (res.error) {
+    if (res.error.message && res.error.message.indexOf('Failed to fetch') >= 0) {
+      addOfflineOp({type:'insert_reporte', data:rep2, timestamp:Date.now()});
+      if (tip === 'engrase') { var c = getCam(cam); if (c) { c.ue = formatDateToDMY(fec); saveRes(resData); } }
+      if (tip === 'service') { var c = getCam(cam); if (c) { c.us = formatDateToDMY(fec); saveRes(resData); } }
+      if (tip === 'falla') { var c = getCam(cam); if (c && urg === 'alta') { c.est = 'REPARACION'; saveRes(resData); } }
+      showMsg('ok-msg','ok','Sin conexion. Reporte guardado localmente y se sincronizara al recuperar conexion.');
+      return;
+    }
+    showMsg('err-msg','err','Error: '+res.error.message); return;
+  }
   if (tip === 'engrase') { var c = getCam(cam); if (c) { c.ue = formatDateToDMY(fec); saveRes(resData); } }
   if (tip === 'service') { var c = getCam(cam); if (c) { c.us = formatDateToDMY(fec); saveRes(resData); } }
   if (tip === 'falla') { var c = getCam(cam); if (c && urg === 'alta') { c.est = 'REPARACION'; saveRes(resData); } }
@@ -531,6 +711,7 @@ function cancelRep() {
 }
 
 async function saveRep() {
+  if (!adminOk) { alert('Necesitas clave de administrador para guardar reparaciones.'); return; }
   var r = window._otSel;
   if (!r) return;
   var tra = document.getElementById('rep-tra').value.trim();
@@ -540,8 +721,24 @@ async function saveRep() {
   var fec = document.getElementById('rep-fec').value;
   var desc = '[OT:'+r.id+'] '+(tal?'Taller: '+tal+' - ':'')+tra;
   var r2 = {id:'REP-'+Date.now(),fecha:fec,camion:r.camion,chofer:r.chofer,tipo:'reparacion',descripcion:desc,km:r.km,urgencia:'',repuestos:rep,es_ot:false};
+  if (!isOnline) {
+    addOfflineOp({type:'insert_reporte', data:r2, timestamp:Date.now()});
+    var c = getCam(r.camion); if (c) { c.est = 'DISPONIBLE'; saveRes(resData); }
+    showMsg('ok-rep','ok','Sin conexion. Reparacion guardada localmente.');
+    cancelRep(); loadOTs(); loadReps(); await loadAllReportes();
+    return;
+  }
   var res = await sb.from('reportes').insert([r2]);
-  if (res.error) { showMsg('err-rep','err','Error: '+res.error.message); return; }
+  if (res.error) {
+    if (res.error.message && res.error.message.indexOf('Failed to fetch') >= 0) {
+      addOfflineOp({type:'insert_reporte', data:r2, timestamp:Date.now()});
+      var c = getCam(r.camion); if (c) { c.est = 'DISPONIBLE'; saveRes(resData); }
+      showMsg('ok-rep','ok','Sin conexion. Reparacion guardada localmente.');
+      cancelRep(); loadOTs(); loadReps(); await loadAllReportes();
+      return;
+    }
+    showMsg('err-rep','err','Error: '+res.error.message); return;
+  }
   var c = getCam(r.camion); if (c) { c.est = 'DISPONIBLE'; saveRes(resData); }
   showMsg('ok-rep','ok','Reparacion guardada. El camion vuelve a estar operativo.');
   cancelRep(); loadOTs(); loadReps(); await loadAllReportes();
@@ -562,36 +759,116 @@ async function loadReps() {
 }
 
 /* ============ HISTORIAL ============ */
-async function loadHist() {
-  var fil = document.getElementById('fil-cam').value;
-  var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
-  if (fil) q = q.eq('camion',fil);
-  var r = await q;
-  var el = document.getElementById('tabla-hist');
-  if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
-  var html = '';
-  for (var i = 0; i < r.data.length; i++) {
-    var x = r.data[i];
-    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
-    html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
-    html += '<div style="font-size:11px;color:#888">'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
-  if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
-  html += '</div>';
+ async function loadHist() {
+   var fil = document.getElementById('fil-cam').value;
+   var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
+   if (fil) q = q.eq('camion',fil);
+   var r = await q;
+   var el = document.getElementById('tabla-hist');
+   if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
+   var html = '';
+   for (var i = 0; i < r.data.length; i++) {
+     var x = r.data[i];
+     html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
+     html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
+     html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';
+     html += '<span>'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
+     html += '<span style="display:flex;gap:6px">';
+     if (adminOk) {
+       html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:12px;padding:4px 8px"><i class="ti ti-trash"></i></button>';
+     }
+     if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
+     html += '</span></div></div>';
+   }
+   el.innerHTML = html;
+ }
+
+async function delReporte(id) {
+    if (!confirm('¿Eliminar este reporte?')) return;
+    if (!isOnline) {
+      addOfflineOp({type:'delete_reporte', data:id, timestamp:Date.now()});
+      await loadAllReportes();
+      await loadHist();
+      if (document.getElementById('pane-reparaciones').classList.contains('on')) { loadOTs(); loadReps(); }
+      showMsg('ok-msg','ok','Sin conexion. Reporte eliminado localmente.');
+      return;
+    }
+    var r = await sb.from('reportes').delete().eq('id',id);
+    if (r.error) {
+      if (r.error.message && r.error.message.indexOf('Failed to fetch') >= 0) {
+        addOfflineOp({type:'delete_reporte', data:id, timestamp:Date.now()});
+        await loadAllReportes();
+        await loadHist();
+        if (document.getElementById('pane-reparaciones').classList.contains('on')) { loadOTs(); loadReps(); }
+        showMsg('ok-msg','ok','Sin conexion. Reporte eliminado localmente.');
+        return;
+      }
+      showMsg('err-msg','err','Error: '+r.error.message); return;
+    }
+    await loadAllReportes();
+    await loadHist();
+    if (document.getElementById('pane-reparaciones').classList.contains('on')) { loadOTs(); loadReps(); }
+    if (document.getElementById('pane-dashboard').classList.contains('on') || document.getElementById('pane-dash').classList.contains('on')) { renderDash(); }
   }
-  el.innerHTML = html;
-}
 
 async function openOT(id) {
-  var r = await sb.from('reportes').select('*').eq('id',id).single();
-  if (!r.data) return;
-  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
-  document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
-  document.getElementById('pane-nuevo').classList.add('on');
-  document.querySelectorAll('.tab')[1].classList.add('on');
-  document.getElementById('qp-step1').classList.add('hid');
-  document.getElementById('qp-step2').classList.add('hid');
-  showOT(r.data);
-}
+   var r = await sb.from('reportes').select('*').eq('id',id).single();
+   if (!r.data) return;
+   document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
+   document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
+   document.getElementById('pane-nuevo').classList.add('on');
+   document.querySelectorAll('.tab')[1].classList.add('on');
+   document.getElementById('qp-step1').classList.add('hid');
+   document.getElementById('qp-step2').classList.add('hid');
+   showOT(r.data);
+ }
+
+ /* ============ NOTIFICACIONES EMAIL ============ */
+ function obtenerVencimientos() {
+   var vencs = [];
+   for (var i=0;i<resData.length;i++) {
+     var c = resData[i];
+     ['rto','seg'].forEach(function(k){
+        var d = diasHasta(c[k]);
+        if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k], cho:c.cho, nom:c.nom});
+     });
+   }
+   return vencs.sort(function(a,b){return a.dias-b.dias;});
+ }
+
+ async function enviarAlertasEmail() {
+   var vencs = obtenerVencimientos();
+   if (!vencs.length) { showMsg('ok-msg','ok','No hay vencimientos próximos para alertar.'); return; }
+   var htmlBody = '<h2>Alertas de Vencimientos - M3 Flota</h2><ul>';
+   vencs.forEach(function(v){
+     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+v.fecha+' ('+v.dias+' días)</li>';
+   });
+   htmlBody += '</ul>';
+   try {
+     if (EMAIL_PUBLIC_KEY === 'user_xxx') {
+       alert('Configurar EmailJS: SERVICE_ID, TEMPLATE_ID y PUBLIC_KEY en app.js');
+       return;
+     }
+     var res = await fetch(EMAIL_ENDPOINT, {
+       method: 'POST',
+       headers: {'Content-Type': 'application/json'},
+       body: JSON.stringify({
+         service_id: EMAIL_SERVICE_ID,
+         template_id: EMAIL_TEMPLATE_ID,
+         user_id: EMAIL_PUBLIC_KEY,
+         template_params: {
+           to_email: 'm3.monteverdi@gmail.com',
+           subject: 'Alertas de Vencimientos - M3 Flota',
+           html_body: htmlBody
+         }
+       })
+     });
+     if (res.ok) showMsg('ok-msg','ok','Alertas enviadas a m3.monteverdi@gmail.com');
+     else showMsg('err-msg','err','Error enviando email');
+   } catch(e) {
+     showMsg('err-msg','err','Error: '+e.message);
+   }
+ }
 
 /* ============ CONFIG ============ */
 async function loadConfig() {
@@ -616,8 +893,31 @@ async function addCamion() {
   var id = document.getElementById('nc-id').value.trim();
   var mod = document.getElementById('nc-mod').value.trim();
   if (!id || !mod) return;
-  var r = await sb.from('camiones').insert([{id:id,modelo:mod}]);
-  if (r.error) { alert('Error: '+r.error.message); return; }
+  var data = {id:id,modelo:mod};
+  if (!isOnline) {
+    addOfflineOp({type:'insert_camion', data:data, timestamp:Date.now()});
+    resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
+    saveRes(resData);
+    document.getElementById('nc-id').value = '';
+    document.getElementById('nc-mod').value = '';
+    await loadCamiones(); loadConfig();
+    showMsg('ok-msg','ok','Sin conexion. Camion guardado localmente.');
+    return;
+  }
+  var r = await sb.from('camiones').insert([data]);
+  if (r.error) {
+    if (r.error.message && r.error.message.indexOf('Failed to fetch') >= 0) {
+      addOfflineOp({type:'insert_camion', data:data, timestamp:Date.now()});
+      resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
+      saveRes(resData);
+      document.getElementById('nc-id').value = '';
+      document.getElementById('nc-mod').value = '';
+      await loadCamiones(); loadConfig();
+      showMsg('ok-msg','ok','Sin conexion. Camion guardado localmente.');
+      return;
+    }
+    alert('Error: '+r.error.message); return;
+  }
   resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
   saveRes(resData);
   document.getElementById('nc-id').value = '';
@@ -627,31 +927,74 @@ async function addCamion() {
 async function addChofer() {
   var nom = document.getElementById('nc-cho').value.trim();
   if (!nom) return;
-  await sb.from('choferes').insert([{nombre:nom}]);
+  var data = {nombre:nom};
+  if (!isOnline) {
+    addOfflineOp({type:'insert_chofer', data:data, timestamp:Date.now()});
+    document.getElementById('nc-cho').value = '';
+    await loadChoferes(); loadConfig();
+    showMsg('ok-msg','ok','Sin conexion. Chofer guardado localmente.');
+    return;
+  }
+  var r = await sb.from('choferes').insert([data]);
+  if (r.error) {
+    if (r.error.message && r.error.message.indexOf('Failed to fetch') >= 0) {
+      addOfflineOp({type:'insert_chofer', data:data, timestamp:Date.now()});
+      document.getElementById('nc-cho').value = '';
+      await loadChoferes(); loadConfig();
+      showMsg('ok-msg','ok','Sin conexion. Chofer guardado localmente.');
+      return;
+    }
+    alert('Error: '+r.error.message); return;
+  }
   document.getElementById('nc-cho').value = '';
   await loadChoferes(); loadConfig();
 }
 async function delCamion(id) {
-  if (!confirm('Eliminar camion '+id+'?')) return;
-  await sb.from('camiones').delete().eq('id',id);
-  resData = resData.filter(function(c){return c.id!==id;});
-  saveRes(resData);
-  await loadCamiones(); loadConfig();
-}
+    if (id === 'MIX-01' || id === 'MIX-02') {
+      alert('Este camion esta protegido y no se puede eliminar.');
+      if (isOnline) {
+        await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
+        await loadCamiones(); loadConfig();
+      }
+      return;
+    }
+    if (!confirm('Eliminar camion '+id+'?')) return;
+    if (!isOnline) {
+      addOfflineOp({type:'delete_camion', data:id, timestamp:Date.now()});
+      resData = resData.filter(function(c){return c.id!==id;});
+      saveRes(resData);
+      await loadCamiones(); loadConfig();
+      showMsg('ok-msg','ok','Sin conexion. Camion eliminado localmente.');
+      return;
+    }
+    await sb.from('camiones').delete().eq('id',id);
+    resData = resData.filter(function(c){return c.id!==id;});
+    saveRes(resData);
+    await loadCamiones(); loadConfig();
+  }
 async function delChofer(id) {
   if (!confirm('Eliminar este chofer?')) return;
+  if (!isOnline) {
+    addOfflineOp({type:'delete_chofer', data:id, timestamp:Date.now()});
+    await loadChoferes(); loadConfig();
+    showMsg('ok-msg','ok','Sin conexion. Chofer eliminado localmente.');
+    return;
+  }
   await sb.from('choferes').delete().eq('id',id);
   await loadChoferes(); loadConfig();
 }
 
 /* ============ INFORME EXCEL COMPLETO ============ */
-async function exportExcel() {
-  var btn = document.getElementById('btn-export');
-  btn.innerHTML = '<i class="ti ti-loader"></i> Generando...';
-  btn.disabled = true;
-  try {
-    var r1 = await sb.from('reportes').select('*').order('fecha',{ascending:false});
-    var reps = r1.data || [];
+ async function exportExcel() {
+    if (!adminOk) { alert('Necesitas clave de administrador para generar informes.'); return; }
+    var btn = document.getElementById('btn-export');
+   btn.innerHTML = '<i class="ti ti-loader"></i> Generando...';
+   btn.disabled = true;
+   try {
+     var r1;
+     try { r1 = await sb.from('reportes').select('*').order('fecha',{ascending:false}); }
+     catch(e) { console.warn('Usando cache local para exportar:', e); r1 = {data: allReportes}; }
+     var reps = r1.data || [];
     var wb = XLSX.utils.book_new();
     var fechaHoy = new Date().toLocaleDateString('es-AR');
 
@@ -726,7 +1069,7 @@ async function exportExcel() {
       ['rto','seg'].forEach(function(k){
         var d = diasHasta(c[k]);
         if (d !== null) {
-          var estadoTxt = d < 0 ? 'VENCIDO' : (d < 30 ? 'Urgente' : (d < 60 ? 'Proximo' : 'OK'));
+          var estadoTxt = d < 0 ? 'VENCIDO' : (d < 10 ? 'Urgente (10d)' : (d < 30 ? 'Proximo' : 'OK'));
           rowsVenc.push([c.id, k==='rto'?'RTO':'Seguro', c[k], d, estadoTxt]);
         }
       });
@@ -803,6 +1146,64 @@ function goToFlota() {
   document.getElementById('pane-flota').classList.add('on');
   document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
   document.querySelectorAll('.tab')[0].classList.add('on');
+}
+
+var editCamionId = null;
+function openEdit(id) {
+  if (!adminOk) { alert('Necesitas clave de administrador.'); return; }
+  editCamionId = id;
+  var c = getCam(id);
+  var html = '<div class="g2"><div class="field"><label>Modelo</label><input type="text" id="ed-mod" value="'+(c.nom||'')+'"></div>';
+  html += '<div class="field"><label>Patente</label><input type="text" id="ed-pat" value="'+(c.pat||'')+'"></div>';
+  html += '<div class="field"><label>Chofer</label><input type="text" id="ed-cho" value="'+(c.cho||'')+'"></div>';
+  html += '<div class="field"><label>Capacidad</label><input type="text" id="ed-cap" value="'+(c.cap||'')+'"></div>';
+  html += '<div class="field"><label>Estado</label><select id="ed-est"><option value="DISPONIBLE">Operativo</option><option value="REPARACION">En reparacion</option></select></div>';
+  html += '<div class="field"><label>RTO</label><input type="text" id="ed-rto" value="'+(c.rto||'')+'"></div>';
+  html += '<div class="field"><label>Seguro</label><input type="text" id="ed-seg" value="'+(c.seg||'')+'"></div>';
+  html += '<div class="field"><label>Ultimo service</label><input type="text" id="ed-us" value="'+(c.us||'')+'"></div>';
+  html += '<div class="field"><label>Prox. service</label><input type="text" id="ed-ps" value="'+(c.ps||'')+'"></div>';
+  html += '<div class="field"><label>Ultimo engrase</label><input type="text" id="ed-ue" value="'+(c.ue||'')+'"></div>';
+  html += '<div class="field"><label>Prox. engrase</label><input type="text" id="ed-pe" value="'+(c.pe||'')+'"></div>';
+  html += '<div class="field"><label>Ult. cubiertas</label><input type="text" id="ed-uc" value="'+(c.uc||'')+'"></div>';
+  html += '<div class="field"><label>Prox. cubiertas</label><input type="text" id="ed-pc" value="'+(c.pc||'')+'"></div>';
+  html += '<div class="field"><label>Ult. bateria</label><input type="text" id="ed-ub" value="'+(c.ub||'')+'"></div>';
+  html += '<div class="field"><label>Prox. bateria</label><input type="text" id="ed-pb" value="'+(c.pb||'')+'"></div></div>';
+  document.getElementById('ed-est').value = c.est || 'DISPONIBLE';
+  document.getElementById('edit-form').innerHTML = html;
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+function closeEdit() {
+  document.getElementById('edit-modal').style.display = 'none';
+  editCamionId = null;
+}
+async function saveEditCamion() {
+  if (!editCamionId || !adminOk) return;
+  var c = getCam(editCamionId);
+  if (!c) return;
+  c.nom = document.getElementById('ed-mod').value.trim() || c.nom;
+  c.pat = document.getElementById('ed-pat').value.trim() || '---';
+  c.cho = document.getElementById('ed-cho').value.trim() || '---';
+  c.cap = document.getElementById('ed-cap').value.trim() || '---';
+  c.est = document.getElementById('ed-est').value;
+  c.rto = document.getElementById('ed-rto').value.trim() || '---';
+  c.seg = document.getElementById('ed-seg').value.trim() || '---';
+  c.us = document.getElementById('ed-us').value.trim() || '---';
+  c.ps = document.getElementById('ed-ps').value.trim() || '---';
+  c.ue = document.getElementById('ed-ue').value.trim() || '---';
+  c.pe = document.getElementById('ed-pe').value.trim() || '---';
+  c.uc = document.getElementById('ed-uc').value.trim() || '---';
+  c.pc = document.getElementById('ed-pc').value.trim() || '---';
+  c.ub = document.getElementById('ed-ub').value.trim() || '---';
+  c.pb = document.getElementById('ed-pb').value.trim() || '---';
+  saveRes(resData);
+  closeEdit();
+  renderFlota();
+  showMsg('ok-msg','ok','Datos del camion actualizados.');
+}
+
+function toggleFlota() {
+  flotaExpandida = !flotaExpandida;
+  renderFlota();
 }
 
 init();

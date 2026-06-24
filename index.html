@@ -16,14 +16,16 @@
 <div class="hdr noprint">
   <img src="metro cubico.png" class="hdr-logo" style="width:42px;height:42px;object-fit:contain">
   <div><div class="htit">M3 Monteverdi Cubico</div><div class="hsub" id="hdr-sub">Centro de control de flota</div></div>
+  <div id="online-badge" class="online-badge on" style="margin-left:auto"><i class="ti ti-wifi"></i> En línea</div>
 </div>
 <div class="tabs noprint">
-  <button class="tab on" onclick="showTab('flota',this)"><i class="ti ti-truck"></i>Flota</button>
-  <button class="tab" onclick="showTab('nuevo',this)"><i class="ti ti-circle-plus"></i>Reportar</button>
-  <button class="tab" onclick="showTab('reparaciones',this)"><i class="ti ti-tool"></i>Reparar</button>
-  <button class="tab" onclick="showTab('historial',this)"><i class="ti ti-history"></i>Historial</button>
-  <button class="tab" onclick="askKey(this)"><i class="ti ti-settings"></i>Config</button>
-</div>
+   <button class="tab on" onclick="showTab('flota',this)"><i class="ti ti-truck"></i>Flota</button>
+   <button class="tab" onclick="showTab('nuevo',this)"><i class="ti ti-circle-plus"></i>Reportar</button>
+   <button class="tab" onclick="showTab('reparaciones',this)"><i class="ti ti-tool"></i>Reparar</button>
+   <button class="tab" onclick="showTab('historial',this)"><i class="ti ti-history"></i>Historial</button>
+   <button class="tab" onclick="showTab('dash',this)"><i class="ti ti-dashboard"></i>Dashboard</button>
+   <button class="tab" onclick="askKey(this)"><i class="ti ti-settings"></i>Config</button>
+ </div>
 
 <div class="pane on" id="pane-flota">
   <div class="search-box">
@@ -116,18 +118,78 @@
 </div>
 
 <div class="pane" id="pane-historial">
-  <div class="card" style="padding:10px">
-    <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px"></select>
-  </div>
-  <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
-</div>
+   <div class="card" style="padding:10px">
+     <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px"></select>
+   </div>
+   <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
+ </div>
 
-<div class="pane" id="pane-config">
+  <div class="pane" id="pane-dash">
+    <div class="dash-stat-grid">
+      <div class="dash-stat ds-grn">
+        <div class="dash-stat-icon"><i class="ti ti-circle-check"></i></div>
+        <div><div class="dash-stat-num" id="d-op">0</div><div class="dash-stat-lbl">Operativas</div></div>
+      </div>
+      <div class="dash-stat ds-red">
+        <div class="dash-stat-icon"><i class="ti ti-tool"></i></div>
+        <div><div class="dash-stat-num" id="d-rep">0</div><div class="dash-stat-lbl">En Reparación</div></div>
+      </div>
+      <div class="dash-stat ds-azu">
+        <div class="dash-stat-icon"><i class="ti ti-clock"></i></div>
+        <div><div class="dash-stat-num" id="d-mant">0</div><div class="dash-stat-lbl">Mantenimientos (30d)</div></div>
+      </div>
+      <div class="dash-stat ds-amb">
+        <div class="dash-stat-icon"><i class="ti ti-calendar-exclamation"></i></div>
+        <div><div class="dash-stat-num" id="d-venc">0</div><div class="dash-stat-lbl">Vencimientos Próximos</div></div>
+      </div>
+    </div>
+    <div class="dash-stat-grid" style="margin-top:8px">
+      <div class="dash-stat ds-red">
+        <div class="dash-stat-icon"><i class="ti ti-alert-triangle"></i></div>
+        <div><div class="dash-stat-num" id="d-falla">0</div><div class="dash-stat-lbl">Fallas (mes)</div></div>
+      </div>
+      <div class="dash-stat ds-grn">
+        <div class="dash-stat-icon"><i class="ti ti-gauge"></i></div>
+        <div><div class="dash-stat-num" id="d-km">0</div><div class="dash-stat-lbl">Km Promedio</div></div>
+      </div>
+      <div class="dash-stat ds-azu">
+        <div class="dash-stat-icon"><i class="ti ti-user-x"></i></div>
+        <div><div class="dash-stat-num" id="d-scho">0</div><div class="dash-stat-lbl">Sin Chofer</div></div>
+      </div>
+      <div class="dash-stat ds-amb">
+        <div class="dash-stat-icon"><i class="ti ti-checklist"></i></div>
+        <div><div class="dash-stat-num" id="d-salud">0%</div><div class="dash-stat-lbl">Salud Flota</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:10px 14px;margin-top:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px">
+        <span>Nivel de salud</span><span id="salud-txt">Cargando...</span>
+      </div>
+      <div class="salud-bar-bg"><div class="salud-bar" id="salud-bar" style="width:0%"></div></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p class="dash-sec-tit"><i class="ti ti-chart-bar"></i> Actividad Reciente</p>
+      <div id="d-activ"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p class="dash-sec-tit"><i class="ti ti-alert-triangle"></i> Vencimientos a Vencer</p>
+      <div id="d-vencs"></div>
+    </div>
+    <div class="card card-blue" style="margin-top:12px">
+      <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-mail"></i> Notificaciones Email</p>
+      <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">Enviar alertas de vencimientos a m3.monteverdi@gmail.com</p>
+      <button class="bp" onclick="enviarAlertasEmail()" style="background:rgba(255,255,255,.2);box-shadow:none;border:2px solid rgba(255,255,255,.5)"><i class="ti ti-send"></i> Enviar Alertas</button>
+    </div>
+  </div>
+
+ <div class="pane" id="pane-config">
   <div class="card card-blue" style="margin-bottom:12px">
-    <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-qrcode"></i> Acceso directo QR</p>
+    <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-qrcode"></i> Acceso directo QR - Reportar</p>
     <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">Imprimir este codigo y colocar en oficina. Al escanear va a la pestaña Reportar.</p>
-    <div id="qr-flota-canvas" style="display:flex;justify-content:center;margin-bottom:12px;background:#fff;padding:14px;border-radius:14px;border:2px solid var(--border);min-height:190px;align-items:center"></div>
-    <button class="bp" onclick="printQR()" style="max-width:240px"><i class="ti ti-printer"></i> Imprimir QR</button>
+    <div id="qr-flota-canvas" style="display:flex;justify-content:center;margin-bottom:12px;background:#fff;padding:14px;border-radius:14px;border:2px solid var(--border);min-height:190px;align-items:center">
+      <img src="https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=https%3A%2F%2Fm3monteverdi.github.io%2Fm3flota%2F%3Ftab%3Dnuevo&choe=UTF-8" alt="QR Reportar" style="background:#fff;padding:8px;border-radius:8px">
+    </div>
+    <button class="bp" onclick="window.print()" style="max-width:240px"><i class="ti ti-printer"></i> Imprimir QR</button>
   </div>
   <div class="card card-blue" style="margin-bottom:12px">
     <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-file-report"></i> Generar informe</p>
@@ -170,18 +232,20 @@
 </div>
 <div id="qr-print-area" style="display:none"></div>
 
+<div id="edit-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center">
+  <div class="card" style="max-width:420px;width:92%;text-align:left;position:relative">
+    <button class="bo" onclick="closeEdit()" style="position:absolute;top:10px;right:10px;padding:4px 8px;font-size:11px"><i class="ti ti-x"></i></button>
+    <p style="font-size:16px;font-weight:800;margin-bottom:14px;color:var(--az)">Editar datos del camion</p>
+    <div id="edit-form"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="bp" onclick="saveEditCamion()" style="flex:1"><i class="ti ti-device-floppy"></i> Guardar</button>
+      <button class="bo" onclick="closeEdit()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/qrcode/build/qrcode.min.js"></script>
 <script>if(typeof QRCode==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>');}</script>
 <script src="js/app.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.location.search.includes('tab=nuevo')) {
-    setTimeout(function() {
-      var tabBtn = document.querySelectorAll('.tab')[1];
-      if (tabBtn) tabBtn.click();
-    }, 500);
-  }
-});
-</script>
 </body>
 </html>
