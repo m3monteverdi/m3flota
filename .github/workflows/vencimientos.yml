@@ -1,0 +1,68 @@
+name: Alerta Vencimientos M3 Flota
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-alert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check vencimientos y enviar alertas
+        run: |
+          python3 - << 'PYEOF'
+import urllib.request, json
+from datetime import datetime, timedelta
+
+hoy = datetime.now()
+url = 'https://gjxbyxpbuomyuqyrieuc.supabase.co/rest/v1/camiones?select=id,rto,seg,cho'
+req = urllib.request.Request(url, headers={
+    'apikey': 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4',
+    'Authorization': 'Bearer sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4'
+})
+with urllib.request.urlopen(req) as resp:
+    camiones = json.loads(resp.read())
+
+vencs = []
+for c in camiones:
+    for campo in ['rto', 'seg']:
+        val = c.get(campo)
+        if val and val != '---':
+            try:
+                f = datetime.strptime(val, '%d/%m/%Y')
+                dias = (f - hoy).days
+                if dias <= 10:
+                    vencs.append(f"{c['id']} - {campo.upper()}: {val} ({dias} días) - Chofer: {c.get('cho','---')}")
+            except:
+                pass
+
+if not vencs:
+    print('Sin vencimientos próximos.')
+    exit(0)
+
+html = '<h2>Alertas de Vencimientos - M3 Flota</h2><p>Los siguientes vencimientos están próximos (10 días o menos):</p><ul>'
+for v in vencs:
+    html += f'<li><strong>{v}</strong></li>'
+html += '</ul>'
+
+email_data = json.dumps({
+    'service_id': 'service_mbi0sr9',
+    'template_id': 'template_jqljo28',
+    'user_id': 'RZLZQ0ckeCPRV-dVw',
+    'template_params': {
+        'to_email': 'm3.monteverdi@gmail.com',
+        'subject': 'Alertas de Vencimientos - M3 Flota',
+        'html_body': html
+    }
+}).encode()
+
+req2 = urllib.request.Request(
+    'https://api.emailjs.com/api/v1.0/email/send',
+    data=email_data,
+    headers={'Content-Type': 'application/json'},
+    method='POST'
+)
+with urllib.request.urlopen(req2) as resp2:
+    print('Email enviado:', resp2.status)
+PYEOF
