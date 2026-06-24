@@ -135,45 +135,21 @@
         <div><div class="dash-stat-num" id="d-rep">0</div><div class="dash-stat-lbl">En Reparación</div></div>
       </div>
       <div class="dash-stat ds-azu">
-        <div class="dash-stat-icon"><i class="ti ti-clock"></i></div>
+        <div class="dash-stat-icon"><i class="ti ti-alert-triangle"></i></div>
+        <div><div class="dash-stat-num" id="d-alert">0</div><div class="dash-stat-lbl">Alertas (10d)</div></div>
+      </div>
+      <div class="dash-stat ds-amb">
+        <div class="dash-stat-icon"><i class="ti ti-calendar-check"></i></div>
         <div><div class="dash-stat-num" id="d-mant">0</div><div class="dash-stat-lbl">Mantenimientos (30d)</div></div>
       </div>
-      <div class="dash-stat ds-amb">
-        <div class="dash-stat-icon"><i class="ti ti-calendar-exclamation"></i></div>
-        <div><div class="dash-stat-num" id="d-venc">0</div><div class="dash-stat-lbl">Vencimientos Próximos</div></div>
-      </div>
-    </div>
-    <div class="dash-stat-grid" style="margin-top:8px">
-      <div class="dash-stat ds-red">
-        <div class="dash-stat-icon"><i class="ti ti-alert-triangle"></i></div>
-        <div><div class="dash-stat-num" id="d-falla">0</div><div class="dash-stat-lbl">Fallas (mes)</div></div>
-      </div>
-      <div class="dash-stat ds-grn">
-        <div class="dash-stat-icon"><i class="ti ti-gauge"></i></div>
-        <div><div class="dash-stat-num" id="d-km">0</div><div class="dash-stat-lbl">Km Promedio</div></div>
-      </div>
-      <div class="dash-stat ds-azu">
-        <div class="dash-stat-icon"><i class="ti ti-user-x"></i></div>
-        <div><div class="dash-stat-num" id="d-scho">0</div><div class="dash-stat-lbl">Sin Chofer</div></div>
-      </div>
-      <div class="dash-stat ds-amb">
-        <div class="dash-stat-icon"><i class="ti ti-checklist"></i></div>
-        <div><div class="dash-stat-num" id="d-salud">0%</div><div class="dash-stat-lbl">Salud Flota</div></div>
-      </div>
-    </div>
-    <div class="card" style="padding:10px 14px;margin-top:10px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px">
-        <span>Nivel de salud</span><span id="salud-txt">Cargando...</span>
-      </div>
-      <div class="salud-bar-bg"><div class="salud-bar" id="salud-bar" style="width:0%"></div></div>
     </div>
     <div class="card" style="margin-top:12px">
-      <p class="dash-sec-tit"><i class="ti ti-chart-bar"></i> Actividad Reciente</p>
-      <div id="d-activ"></div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <p class="dash-sec-tit"><i class="ti ti-alert-triangle"></i> Vencimientos a Vencer</p>
+      <p class="dash-sec-tit"><i class="ti ti-alert-triangle"></i> Vencimientos críticos</p>
       <div id="d-vencs"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p class="dash-sec-tit"><i class="ti ti-history"></i> Última actividad</p>
+      <div id="d-activ"></div>
     </div>
     <div class="card card-blue" style="margin-top:12px">
       <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-mail"></i> Notificaciones Email</p>

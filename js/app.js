@@ -116,12 +116,6 @@ async function init() {
    
    loadReportesLocal();
    
-   try {
-     await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
-   } catch(e) {
-     console.error('Error al borrar MIX-01/02:', e);
-   }
-
    await loadCamionesOffline();
    await loadChoferes();
    await loadOTCounter();
@@ -289,91 +283,56 @@ async function renderDash() {
   var op = resData.filter(function(c){return c.est==='DISPONIBLE';}).length;
   var rep = totalCam - op;
 
-  var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
-  var mant = allReportes.filter(function(r){
-    var f = new Date(r.fecha);
-    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo');
-  }).length;
-
   var vencs = [];
   for (var i=0;i<resData.length;i++) {
     var c = resData[i];
     ['rto','seg'].forEach(function(k){
       var d = diasHasta(c[k]);
-      if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k]});
+      if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k], cho:c.cho, nom:c.nom});
     });
   }
   vencs.sort(function(a,b){return a.dias-b.dias;});
 
-  var hace30dias = new Date(); hace30dias.setDate(hace30dias.getDate()-30);
-  var fallasMes = allReportes.filter(function(r){
-    var f = new Date(r.fecha);
-    return f >= hace30dias && r.tipo === 'falla';
-  }).length;
-
-  var kms = [];
-  for (var i=0;i<resData.length;i++) { var km = parseInt((resData[i].ps||'').replace(/[^\d]/g,'')); if (km) kms.push(km); }
-  var kmProm = kms.length ? Math.round(kms.reduce(function(a,b){return a+b;},0)/kms.length) : 0;
-
-  var sinChofer = resData.filter(function(c){return c.cho==='---';}).length;
-
-  var salud = 100;
-  salud -= vencs.length * 10;
-  salud -= rep * 5;
-  salud -= fallasMes * 5;
-  salud -= sinChofer * 3;
-  if (salud < 0) salud = 0;
-  if (salud > 100) salud = 100;
-
   document.getElementById('d-op').textContent = op;
   document.getElementById('d-rep').textContent = rep;
-  document.getElementById('d-mant').textContent = mant;
-  document.getElementById('d-venc').textContent = vencs.length;
-  document.getElementById('d-falla').textContent = fallasMes;
-  document.getElementById('d-km').textContent = kmProm.toLocaleString('es-AR');
-  document.getElementById('d-scho').textContent = sinChofer;
-  document.getElementById('d-salud').textContent = salud + '%';
+  document.getElementById('d-alert').textContent = vencs.length;
+  document.getElementById('d-mant').textContent = allReportes.filter(function(r){
+    var f = new Date(r.fecha);
+    var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
+    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo');
+  }).length;
 
-  var saludBar = document.getElementById('salud-bar');
-  if (saludBar) {
-    saludBar.style.width = salud + '%';
-    saludBar.style.background = salud > 70 ? 'var(--grn)' : (salud > 40 ? 'var(--amb)' : 'var(--red)');
+  var vencEl = document.getElementById('d-vencs');
+  if (!vencs.length) {
+    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin vencimientos próximos.</p>';
+  } else {
+    var html2 = '';
+    for (var i=0;i<Math.min(vencs.length,8);i++) {
+      var v = vencs[i];
+      var badgeClass = v.dias < 0 ? 'bred' : (v.dias < 10 ? 'bred' : 'bamb');
+      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' días';
+      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - Camión '+v.cam+' ('+v.cho+')</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
+    }
+    vencEl.innerHTML = html2;
   }
-  var saludTxt = document.getElementById('salud-txt');
-  if (saludTxt) saludTxt.textContent = salud + '%';
 
   var activEl = document.getElementById('d-activ');
   var ultimos = allReportes.slice(0,6);
   if (!ultimos.length) {
-    activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad registrada.</p>';
+    activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad.</p>';
   } else {
     var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB'};
-    var labels = {falla:'Falla reportada',service:'Service realizado',reparacion:'Reparacion completada',preventivo:'Mantenimiento preventivo',engrase:'Engrase realizado'};
+    var labels = {falla:'Falla',service:'Service',reparacion:'Reparación',preventivo:'Preventivo',engrase:'Engrase'};
     var html = '';
     for (var i=0;i<ultimos.length;i++) {
       var x = ultimos[i];
       var col = colores[x.tipo] || '#888';
       html += '<div class="activ-item"><div class="activ-dot" style="background:'+col+'"></div><div style="flex:1">';
-      html += '<div class="activ-tit">Camion '+x.camion+' - '+(labels[x.tipo]||x.tipo)+'</div>';
-      html += '<div class="activ-sub">'+x.descripcion.substring(0,50)+(x.descripcion.length>50?'...':'')+'</div>';
+      html += '<div class="activ-tit">'+labels[x.tipo]+' - '+x.camion+'</div>';
+      html += '<div class="activ-sub">'+x.descripcion.substring(0,45)+(x.descripcion.length>45?'...':'')+'</div>';
       html += '<div class="activ-time">'+x.fecha+'</div></div></div>';
     }
     activEl.innerHTML = html;
-  }
-
-  var vencEl = document.getElementById('d-vencs');
-  if (!vencs.length) {
-    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">No hay vencimientos proximos.</p>';
-  } else {
-    var html2 = '';
-    var top = vencs.slice(0,6);
-    for (var i=0;i<top.length;i++) {
-      var v = top[i];
-      var badgeClass = v.dias < 0 ? 'bred' : (v.dias < 15 ? 'bred' : 'bamb');
-      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' dias';
-      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - Camion '+v.cam+'</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
-    }
-    vencEl.innerHTML = html2;
   }
 }
 
@@ -941,14 +900,6 @@ async function addChofer() {
   await loadChoferes(); loadConfig();
 }
 async function delCamion(id) {
-    if (id === 'MIX-01' || id === 'MIX-02') {
-      alert('Este camion esta protegido y no se puede eliminar.');
-      if (isOnline) {
-        await sb.from('camiones').delete().in('id', ['MIX-01', 'MIX-02']);
-        await loadCamiones(); loadConfig();
-      }
-      return;
-    }
     if (!confirm('Eliminar camion '+id+'?')) return;
     if (!isOnline) {
       addOfflineOp({type:'delete_camion', data:id, timestamp:Date.now()});
