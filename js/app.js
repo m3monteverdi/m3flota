@@ -445,15 +445,6 @@ function renderFlota() {
   }
   el.innerHTML = html;
 }
-  if (!flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
-  } else if (flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class="ti ti-chevron-up\"></i> Ver menos</button>';
-  }
-  el.innerHTML = html;
-}
-  el.innerHTML = html;
-}
 
 /* ============ DETALLE CAMION (timeline) ============ */
 async function abrirDetalle(camId) {
