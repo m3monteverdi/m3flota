@@ -1199,6 +1199,7 @@ function normalizarNombrePestana(nombre) {
   if (n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0 || n.indexOf('109') >= 0) return '109';
   if (n.indexOf('accelo') >= 0 || n.indexOf('acelo') >= 0 || n.indexOf('115') >= 0) return '115';
   if (n.indexOf('hilux') >= 0 || n.indexOf('toyota') >= 0) return 'HILUX';
+  if (n.indexOf('isuzu') >= 0 || n.indexOf('npr') >= 0 || n.indexOf('npr75') >= 0 || n.indexOf('116') >= 0 || n.indexOf('isuzu npr') >= 0) return '116';
   if (n.indexOf('trakker 350') >= 0 || n.indexOf('100') >= 0) return '100';
   if (n.indexOf('tector attack') >= 0 || n.indexOf('101') >= 0 || n.indexOf('ag-160') >= 0) return '101';
   if (n.indexOf('scania p380') >= 0 || n.indexOf('p380') >= 0 || n.indexOf('102') >= 0) return '102';
@@ -1239,6 +1240,7 @@ async function importGPS(input) {
       var camionId = normalizarNombrePestana(sheetName);
       if (!camionId) {
         pestañasIgnoradas.push(sheetName);
+        if (sheetName.toLowerCase().indexOf('isuzu') >= 0) console.warn('ISUZU no detectada. Nombre exacto pestaña:', sheetName, '| n:', sheetName.toLowerCase().trim());
         continue;
       }
       pestañasEncontradas.push(sheetName+' → '+camionId);
