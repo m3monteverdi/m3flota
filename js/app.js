@@ -1193,8 +1193,8 @@ function normalizarNombrePestana(nombre) {
   if (!nombre) return null;
   var n = nombre.toLowerCase().trim();
   if (n.indexOf('hidro') >= 0 || n.indexOf('007') >= 0) return '007';
-  if (n.indexOf('99') >= 0 || n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0) return '109';
-  if (n.indexOf('isuzu') >= 0 || n.indexOf('116') >= 0 || n.indexOf('npr') >= 0) return '116';
+  if (n.indexOf('99') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('tector bomba') >= 0 || n.indexOf('114') >= 0) return '114';
+  if (n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0 || n.indexOf('109') >= 0) return '109';
   if (n.indexOf('accelo') >= 0 || n.indexOf('acelo') >= 0 || n.indexOf('115') >= 0) return '115';
   if (n.indexOf('hilux') >= 0 || n.indexOf('toyota') >= 0) return 'HILUX';
   if (n.indexOf('trakker 350') >= 0 || n.indexOf('100') >= 0) return '100';
