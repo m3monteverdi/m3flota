@@ -1251,23 +1251,21 @@ async function renderGPSDash() {
   try {
     var tabla = document.getElementById('d-km-table');
     if (!tabla) return;
+    tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem"><i class="ti ti-loader"></i> Cargando km...</p>';
     var viajes = [];
     try {
-      var r = await sb.from('gps_viajes').select('*').neq('camion','__none__').limit(5000);
-      viajes = r.data || [];
-    } catch(e) {
-      console.warn('Supabase GPS no disponible, usando localStorage');
-    }
-    if (!viajes.length) {
       var localRaw = localStorage.getItem('m3v7_gps_viajes');
       if (localRaw) {
-        try { viajes = JSON.parse(localRaw); } catch(e) {}
+        viajes = JSON.parse(localRaw);
       }
+    } catch(e) {
+      console.warn('Error leyendo localStorage GPS:', e);
     }
-    if (!viajes.length) {
-      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS cargados. Subí el Excel desde el botón azul.</p>';
+    if (!viajes || !viajes.length) {
+      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS. Subí el Excel desde el botón azul.</p>';
       return;
     }
+    viajes = viajes.slice(0, 500);
     var hoy = new Date();
     var fechasSemana = [];
     var lunes = new Date(hoy);
