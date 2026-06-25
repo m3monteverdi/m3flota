@@ -98,7 +98,6 @@ var RD = [
   {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
    {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
  ];
-];
 function loadRes() {
   try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
