@@ -1159,8 +1159,31 @@ var GPS_MAP = {
   '99': '109',
   'Isuzu': '116',
   'Mercedes Accelo': '115',
-  'Toyota Hilux': 'HILUX'
+  'Toyota Hilux': 'HILUX',
+  'Mercedes Hidro': '007',
+  'Iveco Cursor': '109',
+  'Iveco Trakker 350': '100',
+  'Iveco Tector Attack': '101',
+  'Scania P380': '102',
+  'Scania P420': '104',
+  'Scania 380': '105',
+  'Iveco Trakker 380': '108',
+  'Iveco Trakker 410': '110',
+  'Ford Cargo': '113',
+  'Iveco Tector Bomba': '114',
+  'Cat Cargadora': '918',
+  'Dimex': '106',
+  'Carreton': 'CARR',
+  'Semi': 'SEMI'
 };
+
+function normalizarNombrePestana(nombre) {
+  var n = nombre.toLowerCase().trim();
+  for (var key in GPS_MAP) {
+    if (n.indexOf(key.toLowerCase()) >= 0) return GPS_MAP[key];
+  }
+  return null;
+}
 
 async function importGPS(input) {
   var file = input.files[0];
@@ -1183,8 +1206,12 @@ async function importGPS(input) {
     var pestañasIgnoradas = [];
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
-      var camionId = GPS_MAP[sheetName];
-      if (!camionId) continue;
+      var camionId = normalizarNombrePestana(sheetName);
+      if (!camionId) {
+        pestañasIgnoradas.push(sheetName);
+        continue;
+      }
+      pestañasEncontradas.push(sheetName+' → '+camionId);
       var ws = wb.Sheets[sheetName];
       var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J500'});
       if (!rows || !rows.length) { errores++; continue; }
@@ -1301,6 +1328,18 @@ async function renderGPSDash() {
       var rowBg = cam.est==='REPARACION' ? 'km-reparacion' : '';
       html += '<tr class="'+rowBg+'" onclick="abrirDetalle(\''+cam.id+'\')">';
       html += '<td>'+cam.id+' <span style="font-weight:400;color:var(--muted);font-size:11px">'+(cam.nom||'')+'</span></td>';
+      for (var i=0;i<7;i++) {
+        html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
+      }
+      html += '<td class="km-mes-col">'+(d.mes ? d.mes.toLocaleString('es-AR') : '-')+'</td>';
+      html += '</tr>';
+    }
+    var idsPendientes = Object.keys(porCamion).filter(function(id) { return !resData.some(function(c){ return c.id===id && camionVisible(c); }); });
+    for (var p=0; p<idsPendientes.length; p++) {
+      var pid = idsPendientes[p];
+      var d = porCamion[pid];
+      html += '<tr class="km-pendiente" onclick="alert(\'Camión no configurado en la flota: '+pid+'\\nAgregalo en Config para ver detalles.\')">';
+      html += '<td>'+pid+' <span style="font-weight:400;color:var(--org);font-size:11px">(sin configurar)</span></td>';
       for (var i=0;i<7;i++) {
         html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
       }
