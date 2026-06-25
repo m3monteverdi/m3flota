@@ -180,9 +180,11 @@ function loadReportesLocal() {
 function fillCamiones() {
   var o = '<option value="">Selecciona...</option>';
   for (var i = 0; i < camiones.length; i++) o += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
+  if (o.indexOf('HILUX') < 0) o += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
   document.getElementById('r-cam').innerHTML = o;
   var o2 = '<option value="">Todos los camiones</option>';
   for (var i = 0; i < camiones.length; i++) o2 += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
+  if (o2.indexOf('HILUX') < 0) o2 += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
   document.getElementById('fil-cam').innerHTML = o2;
   document.getElementById('fil-ot-cam').innerHTML = o2;
 }
@@ -1250,29 +1252,63 @@ async function renderGPSDash() {
   try {
     var tabla = document.getElementById('d-km-table');
     if (!tabla) return;
-    var hoy = new Date().toISOString().split('T')[0];
-    var mesActual = hoy.substring(0,7);
-    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+    var hoy = new Date();
+    var diaSemana = hoy.getDay();
+    var lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((diaSemana + 6) % 7));
+    var fechasSemana = [];
+    for (var i=0; i<7; i++) {
+      var d = new Date(lunes);
+      d.setDate(lunes.getDate() + i);
+      fechasSemana.push(d.toISOString().split('T')[0]);
+    }
+    var mesActual = hoy.toISOString().substring(0,7);
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
     html += '<thead><tr style="background:var(--azl);color:var(--az);font-weight:700">';
-    html += '<th style="padding:8px;text-align:left">Camión</th>';
-    html += '<th style="padding:8px;text-align:right">Km Hoy</th>';
-    html += '<th style="padding:8px;text-align:right">Km Mes</th>';
-    html += '<th style="padding:8px;text-align:right">Total Histórico</th>';
-    html += '<th style="padding:8px;text-align:center">Viajes Mes</th>';
+    html += '<th style="padding:6px;text-align:left">Camión</th>';
+    html += '<th style="padding:6px;text-align:center">Lun</th>';
+    html += '<th style="padding:6px;text-align:center">Mar</th>';
+    html += '<th style="padding:6px;text-align:center">Mié</th>';
+    html += '<th style="padding:6px;text-align:center">Jue</th>';
+    html += '<th style="padding:6px;text-align:center">Vie</th>';
+    html += '<th style="padding:6px;text-align:center">Sáb</th>';
+    html += '<th style="padding:6px;text-align:center">Dom</th>';
+    html += '<th style="padding:6px;text-align:right;background:var(--grnl)">Mes</th>';
     html += '</tr></thead><tbody>';
     for (var c=0; c<resData.length; c++) {
       var cam = resData[c];
-      var rHoy = await sb.from('gps_viajes').select('km_recorridos,km_fin').eq('camion',cam.id).eq('fecha',hoy).maybeSingle();
-      var rMes = await sb.from('gps_viajes').select('km_recorridos,viajes').eq('camion',cam.id).like('fecha',mesActual+'%');
-      var rTodo = await sb.from('gps_viajes').select('km_fin').eq('camion',cam.id).order('fecha',{ascending:false}).limit(1);
-      var kmHoy = (rHoy.data && rHoy.data.km_recorridos) || 0;
-      var kmMes = 0;
-      var viajesMes = 0;
-      if (rMes.data) {
-        for (var m=0; m<rMes.data.length; m++) {
-          kmMes += (rMes.data[m].km_recorridos || 0);
-          viajesMes += (rMes.data[m].viajes || 0);
+      var rSemana = await sb.from('gps_viajes').select('fecha,km_recorridos').eq('camion',cam.id).gte('fecha',fechasSemana[0]).lte('fecha',fechasSemana[6]);
+      var rMes = await sb.from('gps_viajes').select('km_recorridos').eq('camion',cam.id).like('fecha',mesActual+'%');
+      var kmSemana = [0,0,0,0,0,0,0];
+      if (rSemana.data) {
+        for (var s=0; s<rSemana.data.length; s++) {
+          var idx = fechasSemana.indexOf(rSemana.data[s].fecha);
+          if (idx >= 0) kmSemana[idx] = rSemana.data[s].km_recorridos || 0;
         }
+      }
+      var kmMes = 0;
+      if (rMes.data) {
+        for (var m=0; m<rMes.data.length; m++) kmMes += (rMes.data[m].km_recorridos || 0);
+      }
+      var estilo = cam.est === 'REPARACION' ? 'background:var(--redl)' : '';
+      html += '<tr style="'+estilo+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
+      html += '<td style="padding:6px;font-weight:700">'+cam.id+' - '+(cam.nom||'')+'</td>';
+      for (var d=0; d<7; d++) {
+        var val = kmSemana[d];
+        html += '<td style="padding:6px;text-align:center;color:var(--az)">'+(val ? val.toLocaleString('es-AR') : '-')+'</td>';
+      }
+      html += '<td style="padding:6px;text-align:right;font-weight:700;color:var(--grn)">'+(kmMes ? kmMes.toLocaleString('es-AR') : '-')+'</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    html += '<p style="font-size:11px;color:var(--muted);margin-top:8px"><i class="ti ti-info-circle"></i> Semana del '+fechasSemana[0]+' al '+fechasSemana[6]+' | Mes: '+mesActual+'</p>';
+    tabla.innerHTML = html;
+  } catch(e) {
+    console.error('Error cargando dashboard GPS:', e);
+    var tabla = document.getElementById('d-km-table');
+    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar datos GPS. Verificá que la tabla gps_viajes exista en Supabase.</p>';
+  }
+}
       }
       var kmTotal = (rTodo.data && rTodo.data.km_fin) || 0;
       var estilo = cam.est === 'REPARACION' ? 'background:var(--redl)' : '';
