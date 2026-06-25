@@ -1245,9 +1245,17 @@ async function importGPS(input) {
       }
       pestañasEncontradas.push(sheetName+' → '+camionId);
       var ws = wb.Sheets[sheetName];
-      var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J500'});
-      if (!rows || !rows.length) { errores++; continue; }
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J1000', defval:null});
+      if (!rows || rows.length < 2) { errores++; pestañasIgnoradas.push(sheetName+' (vacía)'); continue; }
       var headers = rows[0] || [];
+      var filasConDatos = 0;
+      for (var i=1; i<rows.length; i++) {
+        var row = rows[i];
+        if (!row) continue;
+        if (!row[1] && !row[9]) continue;
+        filasConDatos++;
+      }
+      if (filasConDatos === 0) { errores++; pestañasIgnoradas.push(sheetName+' (sin datos km/fecha)'); continue; }
       for (var i=1; i<rows.length; i++) {
         var row = rows[i];
         if (!row || row.length < 10) continue;
