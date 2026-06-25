@@ -1293,24 +1293,24 @@ async function renderGPSDash() {
       if (idx >= 0) porCamion[x.camion].semana[idx] = x.km_recorridos || 0;
       if (x.fecha.substring(0,7) === mesActual) porCamion[x.camion].mes += (x.km_recorridos || 0);
     }
-    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
-    html += '<thead><tr style="background:var(--azl);color:var(--az);font-weight:700">';
-    html += '<th style="padding:6px;text-align:left">Camión</th>';
-    html += '<th style="padding:6px;text-align:center">Lun</th><th style="padding:6px;text-align:center">Mar</th><th style="padding:6px;text-align:center">Mié</th>';
-    html += '<th style="padding:6px;text-align:center">Jue</th><th style="padding:6px;text-align:center">Vie</th><th style="padding:6px;text-align:center">Sáb</th><th style="padding:6px;text-align:center">Dom</th>';
-    html += '<th style="padding:6px;text-align:right;background:var(--grnl)">Mes</th></tr></thead><tbody>';
+    var html = '<div class="km-table-wrap"><table class="km-table">';
+    html += '<thead><tr>';
+    html += '<th>Camion</th><th>Lun</th><th>Mar</th><th>Mie</th><th>Jue</th><th>Vie</th><th>Sab</th><th>Dom</th>';
+    html += '<th class="km-mes-col">Mes</th></tr></thead><tbody>';
     for (var c=0; c<resData.length; c++) {
       var cam = resData[c];
       var d = porCamion[cam.id] || {semana:[0,0,0,0,0,0,0],mes:0};
-      var bg = cam.est==='REPARACION' ? 'background:var(--redl)' : '';
-      html += '<tr style="'+bg+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
-      html += '<td style="padding:6px;font-weight:700">'+cam.id+' - '+(cam.nom||'')+'</td>';
-      for (var i=0;i<7;i++) html += '<td style="padding:6px;text-align:center;color:var(--az)">'+(d.semana[i]?d.semana[i].toLocaleString('es-AR'):'-')+'</td>';
-      html += '<td style="padding:6px;text-align:right;font-weight:700;color:var(--grn)">'+(d.mes?d.mes.toLocaleString('es-AR'):'-')+'</td>';
+      var rowBg = cam.est==='REPARACION' ? 'km-reparacion' : '';
+      html += '<tr class="'+rowBg+'" onclick="abrirDetalle(\''+cam.id+'\')">';
+      html += '<td>'+cam.id+' <span style="font-weight:400;color:var(--muted);font-size:11px">'+(cam.nom||'')+'</span></td>';
+      for (var i=0;i<7;i++) {
+        html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
+      }
+      html += '<td class="km-mes-col">'+(d.mes ? d.mes.toLocaleString('es-AR') : '-')+'</td>';
       html += '</tr>';
     }
     html += '</tbody></table></div>';
-    html += '<p style="font-size:11px;color:var(--muted);margin-top:8px"><i class="ti ti-info-circle"></i> Semana del '+fechasSemana[0]+' al '+fechasSemana[6]+' | Mes: '+mesActual+'</p>';
+    html += '<p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right"><i class="ti ti-info-circle"></i> Semana '+fechasSemana[0]+' al '+fechasSemana[6]+' | Mes: '+mesActual+'</p>';
     tabla.innerHTML = html;
   } catch(e) {
     console.error('Error dashboard GPS:', e);

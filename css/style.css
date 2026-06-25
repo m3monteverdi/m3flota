@@ -863,8 +863,22 @@ body {
 }
 
 /* =============================================
-    QR MODAL
-    ============================================= */
+   TABLA GPS DASHBOARD
+   ============================================= */
+.km-table-wrap { overflow-x: auto; border-radius: 10px; border: 1.5px solid var(--border); }
+.km-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.km-table thead tr { background: var(--azl); color: var(--az); }
+.km-table th { padding: 8px 6px; text-align: center; font-weight: 700; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+.km-table th:first-child { text-align: left; padding-left: 10px; }
+.km-table td { padding: 7px 6px; text-align: center; border-top: 1px solid var(--border); }
+.km-table td:first-child { text-align: left; font-weight: 700; padding-left: 10px; color: var(--text); }
+.km-table tbody tr:hover { background: hsl(220,30%,98%); }
+.km-table .km-mes-col { background: var(--grnl); font-weight: 800; color: var(--grn); }
+.km-table .km-reparacion { background: var(--redl); }
+
+/* =============================================
+   IMPRESION
+   ============================================= */
 #qr-modal .card { animation: fadeUp .2s ease both; }
 #qr-modal img { filter: drop-shadow(0 2px 4px rgba(0,0,0,.1)); }
 
