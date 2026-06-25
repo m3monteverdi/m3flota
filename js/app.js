@@ -85,16 +85,19 @@ var RD = [
   {id:'100',nom:'IVECO TRAKKER 350',pat:'NBK032',cho:'---',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'21/01/2026',us:'05/04/2025',ps:'224.000 km',ue:'05/04/2025',pe:'214.900 km',uc:'05/04/2025',pc:'224.000 km',ub:'---',pb:'---'},
   {id:'101',nom:'IVECO TECTOR ATTACK',pat:'AG-160-NG',cho:'David Maldonado',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'03/06/2027',us:'12/05/2026',ps:'3.000 hs',ue:'12/05/2026',pe:'2.650 hs',uc:'12/05/2026',pc:'3.000 hs',ub:'---',pb:'---'},
   {id:'102',nom:'SCANIA P380',pat:'AD-774-EJ',cho:'Victor Rosa',cap:'8m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'27/04/2026',ps:'315.580 km',ue:'27/04/2026',pe:'306.000 km',uc:'27/04/2026',pc:'315.580 km',ub:'09/08/2024',pb:'---'},
-  {id:'104',nom:'SCANIA P420',pat:'AD-774-ED',cho:'Mauricio Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'17/04/2026',ps:'260.000 km',ue:'05/05/2026',pe:'250.800 km',uc:'19/02/2026',pc:'258.133 km',ub:'---',pb:'---'},
+  {id:'104',nom:'SCANIA P420',pat:'AD-774-ED',cho:'Mauricio Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'05/01/2027',us:'16/04/2026',ps:'260.000 km',ue:'05/05/2026',pe:'250.800 km',uc:'19/02/2026',pc:'258.133 km',ub:'---',pb:'---'},
   {id:'105',nom:'SCANIA 380',pat:'AD-774-EK',cho:'Horacio Chacon',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'27/04/2026',ps:'228.620 km',ue:'27/04/2026',pe:'219.000 km',uc:'27/04/2026',pc:'228.620 km',ub:'---',pb:'---'},
   {id:'108',nom:'IVECO TRAKKER 380',pat:'AG-473-RK',cho:'Diego Silva',cap:'9m3',est:'REPARACION',seg:'02/07/2026',rto:'08/05/2026',us:'17/04/2026',ps:'347.779 km',ue:'17/04/2026',pe:'338.000 km',uc:'17/04/2026',pc:'338.000 km',ub:'24/02/2025',pb:'---'},
   {id:'110',nom:'IVECO TRAKKER 410',pat:'AG-473-RJ',cho:'Luis Mercau',cap:'9m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/08/2026',us:'21/04/2026',ps:'308.900 km',ue:'21/04/2026',pe:'299.300 km',uc:'21/04/2026',pc:'308.900 km',ub:'30/01/2025',pb:'---'},
   {id:'113',nom:'FORD CARGO 2625',pat:'DMQ335',cho:'---',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/11/2026',us:'05/05/2026',ps:'130.665 km',ue:'05/05/2026',pe:'121.000 km',uc:'05/05/2026',pc:'130.665 km',ub:'08/11/2024',pb:'---'},
   {id:'114',nom:'IVECO TECTOR BOMBA',pat:'AE-378-JW',cho:'Dario Guerra',cap:'32mts',est:'DISPONIBLE',seg:'02/07/2026',rto:'18/05/2027',us:'16/04/2026',ps:'5.000 km',ue:'16/04/2026',pe:'4.700 km',uc:'16/04/2026',pc:'5.000 km',ub:'15/07/2024',pb:'---'},
   {id:'918',nom:'CAT CARGADORA 918',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'23/04/2026',ps:'28.100 hs',ue:'23/04/2026',pe:'28.750 hs',uc:'23/04/2026',pc:'28.100 hs',ub:'23/04/2026',pb:'---'},
-   {id:'106',nom:'DIMEX 74-310',pat:'CMS120',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'28/11/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-
-function loadRes() {
+  {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'03/04/2024',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
+  {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'115',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
+  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
+];
   try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
@@ -105,32 +108,33 @@ function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id)
 function getCamModelo(id) { for (var i=0;i<camiones.length;i++) if (camiones[i].id===id) return camiones[i].modelo; return ''; }
 
 async function init() {
-   updateOnlineStatus();
-   processOfflineQueue();
-   document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
-   document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
-   
-   loadReportesLocal();
-   
-   await loadCamionesOffline();
-   await loadChoferes();
-   await loadOTCounter();
-   await loadAllReportes();
-
-   var urlParams = new URLSearchParams(window.location.search);
-   var camionParam = urlParams.get('camion');
-   var tabParam = urlParams.get('tab');
-   if (camionParam) {
-     var exists = camiones.some(function(c) { return c.id === camionParam; });
-     if (exists) {
-       document.getElementById('r-cam').value = camionParam;
-       var tabBtn = document.querySelectorAll('.tab')[1];
-       showTab('nuevo', tabBtn);
+   try {
+     updateOnlineStatus();
+     processOfflineQueue();
+     document.getElementById('r-fec').value = new Date().toISOString().split('T')[0];
+     document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
+     loadReportesLocal();
+     await loadCamionesOffline();
+     await loadChoferes();
+     await loadOTCounter();
+     await loadAllReportes();
+     var urlParams = new URLSearchParams(window.location.search);
+     var camionParam = urlParams.get('camion');
+     var tabParam = urlParams.get('tab');
+     if (camionParam) {
+       var exists = camiones.some(function(c) { return c.id === camionParam; });
+       if (exists) {
+         document.getElementById('r-cam').value = camionParam;
+         var tabBtn = document.querySelectorAll('.tab')[1];
+         showTab('nuevo', tabBtn);
+       }
      }
-   }
-   if (tabParam === 'nuevo') {
-     var tabBtn2 = document.querySelectorAll('.tab')[1];
-     showTab('nuevo', tabBtn2);
+     if (tabParam === 'nuevo') {
+       var tabBtn2 = document.querySelectorAll('.tab')[1];
+       showTab('nuevo', tabBtn2);
+     }
+   } catch(e) {
+     console.error('Error en init:', e);
    }
  }
 
@@ -1297,7 +1301,7 @@ async function renderGPSDash() {
       tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS. Subí el Excel desde el botón azul.</p>';
       return;
     }
-    viajes = viajes.slice(0, 500);
+    viajes = viajes.slice(0, 200);
     var hoy = new Date();
     var fechasSemana = [];
     var lunes = new Date(hoy);
