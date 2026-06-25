@@ -1220,7 +1220,7 @@ async function importGPS(input) {
   var file = input.files[0];
   if (!file) return;
   var statusEl = document.getElementById('gps-status');
-  statusEl.innerHTML = '<i class="ti ti-loader"></i> Leyendo archivo...';
+  statusEl.innerHTML = '<i class="ti ti-loader"></i> Procesando...';
   try {
     var data = await file.arrayBuffer();
     var wb = XLSX.read(data, {type:'array'});
@@ -1230,38 +1230,29 @@ async function importGPS(input) {
     var errores = 0;
     var localRaw = localStorage.getItem('m3v7_gps_viajes');
     var gpsExistentes = [];
-    if (localRaw) {
-      try { gpsExistentes = JSON.parse(localRaw); } catch(e) {}
-    }
+    if (localRaw) { try { gpsExistentes = JSON.parse(localRaw); } catch(e) {} }
     var pestañasEncontradas = [];
     var pestañasIgnoradas = [];
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
       var camionId = normalizarNombrePestana(sheetName);
-      if (!camionId) {
-        pestañasIgnoradas.push(sheetName);
-        if (sheetName.toLowerCase().indexOf('isuzu') >= 0) console.warn('ISUZU no detectada. Nombre exacto pestaña:', sheetName, '| n:', sheetName.toLowerCase().trim());
-        continue;
-      }
-      pestañasEncontradas.push(sheetName+' → '+camionId);
+      if (!camionId) { pestañasIgnoradas.push(sheetName); continue; }
+      pestañasEncontradas.push(sheetName);
       var ws = wb.Sheets[sheetName];
       var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
-      if (!allRows || allRows.length < 3) { errores++; pestañasIgnoradas.push(sheetName+' (datos insuficientes)'); continue; }
-      console.log('PESTAÑA:', sheetName, '| Filas totales:', allRows.length, '| Fila 14:', JSON.stringify(allRows[13]?.slice(0,10)).substring(0,300));
-      var rows = allRows.slice(14);
-      if (!rows || rows.length < 2) { errores++; pestañasIgnoradas.push(sheetName+' (vacía)'); continue; }
-      var filasConDatos = 0;
-      for (var i=0; i<rows.length; i++) {
-        var row = rows[i];
-        if (!row) continue;
-        var tieneKm = false;
-        for (var c=6; c<=9; c++) { if (row[c] && String(row[c]).trim() !== '') tieneKm = true; }
-        if (tieneKm) filasConDatos++;
+      if (!allRows || allRows.length < 3) { errores++; continue; }
+      var headerIdx = -1;
+      for (var h=0; h<allRows.length; h++) {
+        var hr = allRows[h];
+        if (hr && hr.length >= 10 && typeof hr[3] === 'string' && hr[3].toLowerCase().indexOf('comienzo') >= 0) {
+          headerIdx = h; break;
+        }
       }
-      if (filasConDatos === 0) { errores++; pestañasIgnoradas.push(sheetName+' (sin datos)'); continue; }
-      for (var i=1; i<rows.length; i++) {
-        var row = rows[i];
-        if (!row || row.length < 10) continue;
+      if (headerIdx < 0) { errores++; continue; }
+      var dataRows = allRows.slice(headerIdx + 1);
+      for (var i=0; i<dataRows.length; i++) {
+        var row = dataRows[i];
+        if (!row) continue;
         var viajesVal = parseFloat(row[1]) || 0;
         var kmFinRaw = row[9];
         var kmFin = parseFloat(String(kmFinRaw).replace(/[^\d.]/g,'')) || 0;
@@ -1273,10 +1264,7 @@ async function importGPS(input) {
         var fecha = null;
         if (fechaRaw) {
           if (typeof fechaRaw === 'number') {
-            try {
-              var d = XLSX.SSF.parse_date_code(fechaRaw);
-              fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
-            } catch(e) { fecha = null; }
+            try { var d = XLSX.SSF.parse_date_code(fechaRaw); fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0'); } catch(e) {}
           } else {
             var fStr = String(fechaRaw).trim().split(' ')[0];
             var m = fStr.match(/(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})/);
@@ -1291,31 +1279,22 @@ async function importGPS(input) {
         var key = camionId+'|'+fecha;
         var yaExiste = gpsExistentes.some(function(g){ return g.camion===camionId && g.fecha===fecha; });
         if (yaExiste) { duplicados++; continue; }
-        var obj = { camion: camionId, fecha: fecha, viajes: viajesVal, km_inicio: kmInicio, km_fin: kmFin, km_recorridos: kmRec };
-        viajesNuevos.push(obj);
-        gpsExistentes.push(obj);
+        viajesNuevos.push({ camion: camionId, fecha: fecha, viajes: viajesVal, km_inicio: kmInicio, km_fin: kmFin, km_recorridos: kmRec });
+        gpsExistentes.push(viajesNuevos[viajesNuevos.length-1]);
         insertados++;
       }
     }
-    var resumen = 'Pestañas: '+wb.SheetNames.length+' | Procesadas: '+pestañasEncontradas.length;
-    if (pestañasIgnoradas.length) resumen += ' | IGNORADAS: '+pestañasIgnoradas.join(', ');
-    console.log('GPS Import:', resumen);
-    statusEl.innerHTML = resumen + '<br><i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
     if (viajesNuevos.length > 0) {
-      console.log('Guardados en localStorage:', viajesNuevos.length);
+      var local = JSON.parse(localStorage.getItem('m3v7_gps_viajes') || '[]');
+      var localMap = {};
+      for (var l=0; l<local.length; l++) localMap[local[l].camion+'|'+local[l].fecha] = local[l];
+      for (var vn=0; vn<viajesNuevos.length; vn++) localMap[viajesNuevos[vn].camion+'|'+viajesNuevos[vn].fecha] = viajesNuevos[vn];
+      localStorage.setItem('m3v7_gps_viajes', JSON.stringify(Object.keys(localMap).map(function(k){ return localMap[k]; })));
     }
-    var local = JSON.parse(localStorage.getItem('m3v7_gps_viajes') || '[]');
-    var localMap = {};
-    for (var l=0; l<local.length; l++) localMap[local[l].camion+'|'+local[l].fecha] = local[l];
-    for (var vn=0; vn<viajesNuevos.length; vn++) {
-      localMap[viajesNuevos[vn].camion+'|'+viajesNuevos[vn].fecha] = viajesNuevos[vn];
-    }
-    localStorage.setItem('m3v7_gps_viajes', JSON.stringify(Object.keys(localMap).map(function(k){ return localMap[k]; })));
     statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
     setTimeout(function(){ statusEl.innerHTML = ''; }, 6000);
   } catch(e) {
-    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error general: '+e.message;
-    console.error(e);
+    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error al procesar archivo.';
   }
   input.value = '';
 }
@@ -1379,7 +1358,10 @@ async function renderGPSDash() {
       html += '<td class="km-mes-col">'+(d.mes ? d.mes.toLocaleString('es-AR') : '-')+'</td>';
       html += '</tr>';
     }
-    var idsPendientes = Object.keys(porCamion).filter(function(id) { return !resData.some(function(c){ return c.id===id && camionVisible(c); }); });
+    var idsPendientes = [];
+    if (porCamion && typeof porCamion === 'object') {
+      idsPendientes = Object.keys(porCamion).filter(function(id) { return !resData.some(function(c){ return c.id===id && camionVisible(c); }); });
+    }
     for (var p=0; p<idsPendientes.length; p++) {
       var pid = idsPendientes[p];
       var d = porCamion[pid];
