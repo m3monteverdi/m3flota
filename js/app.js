@@ -360,6 +360,7 @@ function getAlertPriority(c) {
 }
 
 function renderFlota() {
+  try {
   var q = (document.getElementById('search-flota').value || '').toLowerCase().trim();
   var el = document.getElementById('flota-grid');
   var filtrados = resData.filter(function(c) {
@@ -414,6 +415,11 @@ function renderFlota() {
     html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-up\"></i> Ver menos</button>';
   }
   el.innerHTML = html;
+  } catch(e) {
+    console.error('Error en renderFlota:', e);
+    var flotaGrid = document.getElementById('flota-grid');
+    if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la página.</p>';
+  }
 }
 
 /* ============ DETALLE CAMION (timeline) ============ */
@@ -1183,10 +1189,26 @@ var GPS_MAP = {
 };
 
 function normalizarNombrePestana(nombre) {
+  if (!nombre) return null;
   var n = nombre.toLowerCase().trim();
-  for (var key in GPS_MAP) {
-    if (n.indexOf(key.toLowerCase()) >= 0) return GPS_MAP[key];
-  }
+  if (n.indexOf('hidro') >= 0 || n.indexOf('007') >= 0) return '007';
+  if (n.indexOf('99') >= 0 || n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0) return '109';
+  if (n.indexOf('isuzu') >= 0 || n.indexOf('116') >= 0 || n.indexOf('npr') >= 0) return '116';
+  if (n.indexOf('accelo') >= 0 || n.indexOf('115') >= 0) return '115';
+  if (n.indexOf('hilux') >= 0 || n.indexOf('toyota') >= 0) return 'HILUX';
+  if (n.indexOf('trakker 350') >= 0 || n.indexOf('100') >= 0) return '100';
+  if (n.indexOf('tector attack') >= 0 || n.indexOf('101') >= 0 || n.indexOf('ag-160') >= 0) return '101';
+  if (n.indexOf('scania p380') >= 0 || n.indexOf('p380') >= 0 || n.indexOf('102') >= 0) return '102';
+  if (n.indexOf('scania p420') >= 0 || n.indexOf('p420') >= 0 || n.indexOf('104') >= 0) return '104';
+  if (n.indexOf('scania 380') >= 0 || n.indexOf('105') >= 0) return '105';
+  if (n.indexOf('trakker 380') >= 0 || n.indexOf('108') >= 0) return '108';
+  if (n.indexOf('trakker 410') >= 0 || n.indexOf('110') >= 0) return '110';
+  if (n.indexOf('ford') >= 0 || n.indexOf('cargo') >= 0 || n.indexOf('113') >= 0) return '113';
+  if (n.indexOf('tector bomba') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('114') >= 0) return '114';
+  if (n.indexOf('cat') >= 0 || n.indexOf('cargadora') >= 0 || n.indexOf('918') >= 0) return '918';
+  if (n.indexOf('dimex') >= 0 || n.indexOf('106') >= 0 || n.indexOf('cms120') >= 0) return '106';
+  if (n.indexOf('carreton') >= 0 || n.indexOf('carretón') >= 0 || n.indexOf('ecomec') >= 0) return 'CARR';
+  if (n.indexOf('semi') >= 0 || n.indexOf('semirremolque') >= 0 || n.indexOf('gomatro') >= 0) return 'SEMI';
   return null;
 }
 
