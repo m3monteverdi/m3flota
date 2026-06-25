@@ -1320,8 +1320,6 @@ async function renderGPSDash() {
       return;
     }
     viajes = viajes.slice(0, 200);
-    console.log('GPS Dashboard: total viajes en storage =', viajes.length, '| IDs encontrados:', Object.keys(porCamion).join(', '));
-    console.log('GPS Dashboard: resData IDs visibles:', resData.filter(camionVisible).map(c=>c.id).join(', '));
     var hoy = new Date();
     var fechasSemana = [];
     var lunes = new Date(hoy);
