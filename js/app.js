@@ -160,7 +160,7 @@ async function loadOTCounter() {
 }
 async function loadAllReportes() {
    try {
-     var r = await sb.from('reportes').select('*').order('fecha',{ascending:false});
+     var r = await sb.from('reportes').select('*').order('fecha',{ascending:false}).limit(500);
      allReportes = r.data || [];
      saveReportesLocal();
    } catch(e) {
@@ -201,7 +201,7 @@ function showTab(id, btn) {
   if (btn) btn.classList.add('on');
   if (id === 'historial') loadHist();
   if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
-  if (id === 'dash') renderDash();
+  if (id === 'dash') { renderDash(); setTimeout(renderGPSDash, 300); }
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
   if (id === 'nuevo') { qpReset(); }
