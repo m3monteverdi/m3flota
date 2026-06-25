@@ -12,6 +12,7 @@ var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
 var camionesOcultos = ['CARR', 'SEMI', '106'];
+var flotaExpandida = false;
 function camionVisible(c) {
   return camionesOcultos.indexOf(c.id) < 0;
 }
@@ -1194,7 +1195,7 @@ function normalizarNombrePestana(nombre) {
   if (n.indexOf('hidro') >= 0 || n.indexOf('007') >= 0) return '007';
   if (n.indexOf('99') >= 0 || n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0) return '109';
   if (n.indexOf('isuzu') >= 0 || n.indexOf('116') >= 0 || n.indexOf('npr') >= 0) return '116';
-  if (n.indexOf('accelo') >= 0 || n.indexOf('115') >= 0) return '115';
+  if (n.indexOf('accelo') >= 0 || n.indexOf('acelo') >= 0 || n.indexOf('115') >= 0) return '115';
   if (n.indexOf('hilux') >= 0 || n.indexOf('toyota') >= 0) return 'HILUX';
   if (n.indexOf('trakker 350') >= 0 || n.indexOf('100') >= 0) return '100';
   if (n.indexOf('tector attack') >= 0 || n.indexOf('101') >= 0 || n.indexOf('ag-160') >= 0) return '101';
