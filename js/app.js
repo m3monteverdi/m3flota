@@ -96,8 +96,10 @@ var RD = [
   {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   {id:'115',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
   {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-  {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
+   {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
+ ];
 ];
+function loadRes() {
   try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
