@@ -1247,7 +1247,7 @@ async function importGPS(input) {
       var ws = wb.Sheets[sheetName];
       var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
       if (!allRows || allRows.length < 3) { errores++; pestañasIgnoradas.push(sheetName+' (datos insuficientes)'); continue; }
-      console.log('PESTAÑA:', sheetName, '| Filas totales:', allRows.length, '| Fila 14 (idx13):', JSON.stringify(allRows[13]?.slice(0,10)).substring(0,200));
+      console.log('PESTAÑA:', sheetName, '| Filas totales:', allRows.length, '| Fila 14:', JSON.stringify(allRows[13]?.slice(0,10)).substring(0,300));
       var rows = allRows.slice(14);
       if (!rows || rows.length < 2) { errores++; pestañasIgnoradas.push(sheetName+' (vacía)'); continue; }
       var filasConDatos = 0;
@@ -1341,6 +1341,8 @@ async function renderGPSDash() {
       return;
     }
     viajes = viajes.slice(0, 200);
+    console.log('GPS Dashboard: total viajes en storage =', viajes.length, '| IDs encontrados:', Object.keys(porCamion).join(', '));
+    console.log('GPS Dashboard: resData IDs visibles:', resData.filter(camionVisible).map(c=>c.id).join(', '));
     var hoy = new Date();
     var fechasSemana = [];
     var lunes = new Date(hoy);
