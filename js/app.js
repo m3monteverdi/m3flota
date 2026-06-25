@@ -91,9 +91,10 @@ var RD = [
   {id:'918',nom:'CAT CARGADORA 918',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'23/04/2026',ps:'28.100 hs',ue:'23/04/2026',pe:'28.750 hs',uc:'23/04/2026',pc:'28.100 hs',ub:'23/04/2026',pb:'---'},
   {id:'106',nom:'DIMEX 74-310',pat:'CMS120',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'28/11/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'03/04/2024',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
-  {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-  {id:'015',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
-  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+   {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+   {id:'115',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
+   {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+   {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   {id:'CARR',nom:'CARRETON ECOMEC',pat:'UPL348',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   {id:'SEMI',nom:'SEMIRREMOLQUE GOMATRO',pat:'UPL515',cho:'---',cap:'25.000 kg',est:'DISPONIBLE',seg:'19/11/2025',rto:'03/04/2024',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
 ];
@@ -334,6 +335,7 @@ async function renderDash() {
     }
     activEl.innerHTML = html;
   }
+  renderGPSDash();
 }
 
 /* ============ FLOTA (tarjetas) ============ */
@@ -1146,6 +1148,106 @@ async function saveEditCamion() {
 function toggleFlota() {
   flotaExpandida = !flotaExpandida;
   renderFlota();
+}
+
+var GPS_MAP = {
+  'Hidrogrua': '007',
+  '99': '109',
+  'Isuzu': '116',
+  'Mercedes Accelo': '115',
+  'Toyota Hilux': 'HILUX'
+};
+
+async function importGPS(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var statusEl = document.getElementById('gps-status');
+  statusEl.innerHTML = '<i class="ti ti-loader"></i> Procesando...';
+  try {
+    var data = await file.arrayBuffer();
+    var wb = XLSX.read(data, {type:'array'});
+    var viajes = [];
+    var insertados = 0;
+    var duplicados = 0;
+    for (var s=0; s<wb.SheetNames.length; s++) {
+      var sheetName = wb.SheetNames[s];
+      var camionId = GPS_MAP[sheetName];
+      if (!camionId) continue;
+      var ws = wb.Sheets[sheetName];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J500'});
+      var headers = rows[0] || [];
+      for (var i=1; i<rows.length; i++) {
+        var row = rows[i];
+        var viajesVal = parseFloat(row[1]) || 0;
+        var kmFinRaw = row[9];
+        var kmFin = parseFloat(kmFinRaw) || 0;
+        var kmInicioRaw = row[6];
+        var kmInicio = parseFloat(kmInicioRaw) || 0;
+        var kmRec = kmFin - kmInicio;
+        if (kmRec < 0) kmRec = kmFin;
+        var fechaRaw = row[3] || row[4];
+        var fecha = null;
+        if (fechaRaw) {
+          if (typeof fechaRaw === 'number') {
+            var d = XLSX.SSF.parse_date_code(fechaRaw);
+            fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
+          } else {
+            fecha = String(fechaRaw).split(' ')[0];
+          }
+        }
+        if (!fecha || !kmFin) continue;
+        try {
+          await sb.from('gps_viajes').insert([{
+            camion: camionId,
+            fecha: fecha,
+            viajes: viajesVal,
+            km_inicio: kmInicio,
+            km_fin: kmFin,
+            km_recorridos: kmRec
+          }], {count:'exact'});
+          insertados++;
+        } catch(e) {
+          if (e.message && e.message.indexOf('23505') >= 0) {
+            duplicados++;
+          } else {
+            console.error('Error insertando viaje:', e);
+          }
+        }
+      }
+    }
+    statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados;
+    setTimeout(function(){ statusEl.innerHTML = ''; }, 4000);
+  } catch(e) {
+    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error: '+e.message;
+  }
+  input.value = '';
+}
+
+renderFlota();
+
+async function renderGPSDash() {
+  try {
+    var r = await sb.from('gps_viajes').select('*').order('fecha',{ascending:false}).limit(12);
+    var viajes = r.data || [];
+    var el = document.getElementById('d-gps');
+    if (!el) return;
+    if (!viajes.length) {
+      el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS cargados.</p>';
+      return;
+    }
+    var html = '';
+    for (var i=0;i<viajes.length;i++) {
+      var v = viajes[i];
+      var mod = getCamModelo(v.camion) || v.camion;
+      html += '<div class="ri"><div class="rt"><span><span class="chip">'+v.camion+' '+mod+'</span></span><span style="font-size:12px;color:#888">'+v.fecha+'</span></div>';
+      html += '<div style="font-size:13px;margin:4px 0">Viajes: <strong>'+v.viajes+'</strong> | Km recorridos: <strong>'+(v.km_recorridos||0).toLocaleString('es-AR')+' km</strong></div>';
+      if (v.km_fin) html += '<div style="font-size:11px;color:#888">Km fin: '+v.km_fin.toLocaleString('es-AR')+'</div>';
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    console.error('Error cargando GPS:', e);
+  }
 }
 
 init();
