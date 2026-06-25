@@ -1309,24 +1309,5 @@ async function renderGPSDash() {
     if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar datos GPS. Verificá que la tabla gps_viajes exista en Supabase.</p>';
   }
 }
-      }
-      var kmTotal = (rTodo.data && rTodo.data.km_fin) || 0;
-      var estilo = cam.est === 'REPARACION' ? 'background:var(--redl)' : '';
-      html += '<tr style="'+estado+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
-      html += '<td style="padding:8px;font-weight:700">'+cam.id+' - '+(cam.nom||'')+'</td>';
-      html += '<td style="padding:8px;text-align:right;color:var(--az)">'+(kmHoy?kmHoy.toLocaleString('es-AR'):'-')+'</td>';
-      html += '<td style="padding:8px;text-align:right;color:var(--grn)">'+(kmMes?kmMes.toLocaleString('es-AR'):'-')+'</td>';
-      html += '<td style="padding:8px;text-align:right">'+(kmTotal?kmTotal.toLocaleString('es-AR'):'-')+'</td>';
-      html += '<td style="padding:8px;text-align:center">'+(viajesMes||'-')+'</td>';
-      html += '</tr>';
-    }
-    html += '</tbody></table></div>';
-    tabla.innerHTML = html;
-  } catch(e) {
-    console.error('Error cargando dashboard GPS:', e);
-    var tabla = document.getElementById('d-km-table');
-    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar datos GPS.</p>';
-  }
-}
 
 init();
