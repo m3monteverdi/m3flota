@@ -51,6 +51,7 @@
         <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo</div></div>
         <div class="qpick qp-serv" onclick="pickTipo('service')"><i class="ti ti-tool"></i><div class="qpick-lbl">Service</div></div>
         <div class="qpick qp-engr" onclick="pickTipo('engrase')"><i class="ti ti-droplet"></i><div class="qpick-lbl">Engrase</div></div>
+        <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">Neumáticos</div></div>
       </div>
     </div>
   </div>
@@ -144,27 +145,18 @@
       </div>
     </div>
     <div class="card" style="margin-top:12px">
-      <p class="dash-sec-tit"><i class="ti ti-alert-triangle"></i> Vencimientos críticos</p>
-      <div id="d-vencs"></div>
+      <p class="dash-sec-tit"><i class="ti ti-gauge"></i> Kilómetros por camión</p>
+      <div id="d-km-table"></div>
     </div>
     <div class="card" style="margin-top:12px">
       <p class="dash-sec-tit"><i class="ti ti-history"></i> Última actividad</p>
       <div id="d-activ"></div>
     </div>
     <div class="card" style="margin-top:12px">
-      <p class="dash-sec-tit"><i class="ti ti-map"></i> Últimos viajes GPS</p>
-      <div id="d-gps"></div>
+      <p class="dash-sec-tit"><i class="ti ti-alert-triangle"></i> Vencimientos a vencer</p>
+      <div id="d-vencs"></div>
     </div>
-    <div class="card card-blue" style="margin-top:12px">
-      <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-map"></i> Cargar viajes GPS (PowerFleet)</p>
-      <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">Subí el Excel de TripsInformationSummary para ver los km por camión.</p>
-      <input type="file" id="gps-file" accept=".xlsx,.xls" style="display:none" onchange="importGPS(this)">
-      <button class="bp" onclick="document.getElementById('gps-file').click()" style="background:rgba(255,255,255,.2);box-shadow:none;border:2px solid rgba(255,255,255,.5)"><i class="ti ti-upload"></i> Subir Excel GPS</button>
-      <div id="gps-status" style="margin-top:8px;font-size:12px"></div>
-    </div>
-    <div class="card card-blue" style="margin-top:12px">
-      <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-mail"></i> Notificaciones Email</p>
-      <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">Enviar alertas de vencimientos a m3.monteverdi@gmail.com</p>
+  </div>
       <button class="bp" onclick="enviarAlertasEmail()" style="background:rgba(255,255,255,.2);box-shadow:none;border:2px solid rgba(255,255,255,.5)"><i class="ti ti-send"></i> Enviar Alertas</button>
     </div>
   </div>

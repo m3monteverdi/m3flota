@@ -832,6 +832,7 @@ body {
 .qp-prev  { background: var(--ambl); border-color: hsl(38,90%,80%); color: var(--amb); }
 .qp-serv  { background: var(--azl);  border-color: var(--azm); color: var(--az); }
 .qp-engr  { background: hsl(250,70%,96%); border-color: hsl(250,70%,84%); color: var(--az2); }
+.qp-neum  { background: hsl(280,40%,96%); border-color: hsl(280,40%,82%); color: hsl(280,40%,42%); }
 
 /* =============================================
    DETALLE CARD - rc-item mini stats

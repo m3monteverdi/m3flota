@@ -222,9 +222,9 @@ function showMsg(id, type, txt) {
 }
 
 function tbadge(t) {
-  var m = {falla:'bred',service:'bamb',reparacion:'bpur',preventivo:'bgrn',engrase:'bblu'};
-  var l = {falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase'};
-  var icons = {falla:'ti-alert-triangle',service:'ti-tool',reparacion:'ti-hammer',preventivo:'ti-shield-check',engrase:'ti-droplet'};
+  var m = {falla:'bred',service:'bamb',reparacion:'bpur',preventivo:'bgrn',engrase:'bblu',neumatico:'borg'};
+  var l = {falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase',neumatico:'Neumatico'};
+  var icons = {falla:'ti-alert-triangle',service:'ti-tool',reparacion:'ti-hammer',preventivo:'ti-shield-check',engrase:'ti-droplet',neumatico:'ti-circle-dot'};
   return '<span class="badge '+(m[t]||'bgry')+'"><i class="ti '+(icons[t]||'ti-tag')+'"></i>'+(l[t]||t)+'</span>';
 }
 function fmtP(n) { if (!n || n === 0) return '-'; return '$'+Math.round(n).toLocaleString('es-AR'); }
@@ -300,7 +300,7 @@ async function renderDash() {
   document.getElementById('d-mant').textContent = allReportes.filter(function(r){
     var f = new Date(r.fecha);
     var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
-    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo');
+    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo'||r.tipo==='neumatico');
   }).length;
 
   var vencEl = document.getElementById('d-vencs');
@@ -322,7 +322,7 @@ async function renderDash() {
   if (!ultimos.length) {
     activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad.</p>';
   } else {
-    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB'};
+    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB',neumatico:'#9333EA'};
     var labels = {falla:'Falla',service:'Service',reparacion:'Reparación',preventivo:'Preventivo',engrase:'Engrase'};
     var html = '';
     for (var i=0;i<ultimos.length;i++) {
@@ -444,7 +444,7 @@ async function abrirDetalle(camId) {
   if (!reps.length) {
     html += '<p style="color:#888;font-size:13px;padding:1rem;text-align:center">Sin reportes registrados para este camion.</p>';
   } else {
-    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB'};
+    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB',neumatico:'#9333EA'};
     html += '<div class="tl-wrap"><div class="tl-line"></div>';
     for (var i=0;i<reps.length;i++) {
       var x = reps[i];
@@ -996,7 +996,7 @@ async function delChofer(id) {
     XLSX.utils.book_append_sheet(wb, wsRep, 'Reparaciones');
 
     /* HOJA 4: SERVICIOS Y PREVENTIVOS */
-    var servicios = reps.filter(function(r){return r.tipo==='service'||r.tipo==='preventivo'||r.tipo==='engrase';});
+    var servicios = reps.filter(function(r){return r.tipo==='service'||r.tipo==='preventivo'||r.tipo==='engrase'||r.tipo==='neumatico';});
     var rowsServ = [['Fecha','Camion','Tipo','Chofer','Descripcion','Km']];
     for (var i=0;i<servicios.length;i++) {
       var x = servicios[i];
@@ -1162,42 +1162,61 @@ async function importGPS(input) {
   var file = input.files[0];
   if (!file) return;
   var statusEl = document.getElementById('gps-status');
-  statusEl.innerHTML = '<i class="ti ti-loader"></i> Procesando...';
+  statusEl.innerHTML = '<i class="ti ti-loader"></i> Leyendo archivo...';
   try {
     var data = await file.arrayBuffer();
     var wb = XLSX.read(data, {type:'array'});
     var viajes = [];
     var insertados = 0;
     var duplicados = 0;
+    var errores = 0;
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
       var camionId = GPS_MAP[sheetName];
+      statusEl.innerHTML = '<i class="ti ti-loader"></i> Procesando pestaña: '+sheetName+(camionId ? ' (camión '+camionId+')' : ' (IGNORADA)');
+      await new Promise(function(r){setTimeout(r,50);});
       if (!camionId) continue;
       var ws = wb.Sheets[sheetName];
       var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J500'});
+      if (!rows || !rows.length) {
+        errores++;
+        continue;
+      }
       var headers = rows[0] || [];
       for (var i=1; i<rows.length; i++) {
         var row = rows[i];
+        if (!row || row.length < 10) continue;
         var viajesVal = parseFloat(row[1]) || 0;
         var kmFinRaw = row[9];
-        var kmFin = parseFloat(kmFinRaw) || 0;
+        var kmFin = parseFloat(String(kmFinRaw).replace(/[^\d.]/g,'')) || 0;
         var kmInicioRaw = row[6];
-        var kmInicio = parseFloat(kmInicioRaw) || 0;
+        var kmInicio = parseFloat(String(kmInicioRaw).replace(/[^\d.]/g,'')) || 0;
         var kmRec = kmFin - kmInicio;
         if (kmRec < 0) kmRec = kmFin;
-        var fechaRaw = row[3] || row[4];
+        var fechaRaw = row[3] || row[4] || row[5];
         var fecha = null;
         if (fechaRaw) {
           if (typeof fechaRaw === 'number') {
-            var d = XLSX.SSF.parse_date_code(fechaRaw);
-            fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
+            try {
+              var d = XLSX.SSF.parse_date_code(fechaRaw);
+              fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
+            } catch(e) {
+              fecha = null;
+            }
           } else {
-            fecha = String(fechaRaw).split(' ')[0];
+            var fStr = String(fechaRaw).trim();
+            fStr = fStr.split(' ')[0];
+            var m = fStr.match(/(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})/);
+            if (m) {
+              var parts = m[0].split(/[\/\-]/);
+              if (parts[0].length === 4) fecha = parts[0]+'-'+parts[1].padStart(2,'0')+'-'+parts[2].padStart(2,'0');
+              else fecha = parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0');
+            }
           }
         }
         if (!fecha || !kmFin) continue;
         try {
-          await sb.from('gps_viajes').insert([{
+          var res = await sb.from('gps_viajes').upsert([{
             camion: camionId,
             fecha: fecha,
             viajes: viajesVal,
@@ -1210,15 +1229,17 @@ async function importGPS(input) {
           if (e.message && e.message.indexOf('23505') >= 0) {
             duplicados++;
           } else {
-            console.error('Error insertando viaje:', e);
+            console.error('Error insertando viaje:', e, 'camion:', camionId, 'fecha:', fecha);
+            errores++;
           }
         }
       }
     }
-    statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados;
-    setTimeout(function(){ statusEl.innerHTML = ''; }, 4000);
+    statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
+    setTimeout(function(){ statusEl.innerHTML = ''; }, 6000);
   } catch(e) {
-    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error: '+e.message;
+    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error general: '+e.message;
+    console.error(e);
   }
   input.value = '';
 }
@@ -1227,26 +1248,48 @@ renderFlota();
 
 async function renderGPSDash() {
   try {
-    var r = await sb.from('gps_viajes').select('*').order('fecha',{ascending:false}).limit(12);
-    var viajes = r.data || [];
-    var el = document.getElementById('d-gps');
-    if (!el) return;
-    if (!viajes.length) {
-      el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS cargados.</p>';
-      return;
+    var tabla = document.getElementById('d-km-table');
+    if (!tabla) return;
+    var hoy = new Date().toISOString().split('T')[0];
+    var mesActual = hoy.substring(0,7);
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html += '<thead><tr style="background:var(--azl);color:var(--az);font-weight:700">';
+    html += '<th style="padding:8px;text-align:left">Camión</th>';
+    html += '<th style="padding:8px;text-align:right">Km Hoy</th>';
+    html += '<th style="padding:8px;text-align:right">Km Mes</th>';
+    html += '<th style="padding:8px;text-align:right">Total Histórico</th>';
+    html += '<th style="padding:8px;text-align:center">Viajes Mes</th>';
+    html += '</tr></thead><tbody>';
+    for (var c=0; c<resData.length; c++) {
+      var cam = resData[c];
+      var rHoy = await sb.from('gps_viajes').select('km_recorridos,km_fin').eq('camion',cam.id).eq('fecha',hoy).maybeSingle();
+      var rMes = await sb.from('gps_viajes').select('km_recorridos,viajes').eq('camion',cam.id).like('fecha',mesActual+'%');
+      var rTodo = await sb.from('gps_viajes').select('km_fin').eq('camion',cam.id).order('fecha',{ascending:false}).limit(1);
+      var kmHoy = (rHoy.data && rHoy.data.km_recorridos) || 0;
+      var kmMes = 0;
+      var viajesMes = 0;
+      if (rMes.data) {
+        for (var m=0; m<rMes.data.length; m++) {
+          kmMes += (rMes.data[m].km_recorridos || 0);
+          viajesMes += (rMes.data[m].viajes || 0);
+        }
+      }
+      var kmTotal = (rTodo.data && rTodo.data.km_fin) || 0;
+      var estilo = cam.est === 'REPARACION' ? 'background:var(--redl)' : '';
+      html += '<tr style="'+estado+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
+      html += '<td style="padding:8px;font-weight:700">'+cam.id+' - '+(cam.nom||'')+'</td>';
+      html += '<td style="padding:8px;text-align:right;color:var(--az)">'+(kmHoy?kmHoy.toLocaleString('es-AR'):'-')+'</td>';
+      html += '<td style="padding:8px;text-align:right;color:var(--grn)">'+(kmMes?kmMes.toLocaleString('es-AR'):'-')+'</td>';
+      html += '<td style="padding:8px;text-align:right">'+(kmTotal?kmTotal.toLocaleString('es-AR'):'-')+'</td>';
+      html += '<td style="padding:8px;text-align:center">'+(viajesMes||'-')+'</td>';
+      html += '</tr>';
     }
-    var html = '';
-    for (var i=0;i<viajes.length;i++) {
-      var v = viajes[i];
-      var mod = getCamModelo(v.camion) || v.camion;
-      html += '<div class="ri"><div class="rt"><span><span class="chip">'+v.camion+' '+mod+'</span></span><span style="font-size:12px;color:#888">'+v.fecha+'</span></div>';
-      html += '<div style="font-size:13px;margin:4px 0">Viajes: <strong>'+v.viajes+'</strong> | Km recorridos: <strong>'+(v.km_recorridos||0).toLocaleString('es-AR')+' km</strong></div>';
-      if (v.km_fin) html += '<div style="font-size:11px;color:#888">Km fin: '+v.km_fin.toLocaleString('es-AR')+'</div>';
-      html += '</div>';
-    }
-    el.innerHTML = html;
+    html += '</tbody></table></div>';
+    tabla.innerHTML = html;
   } catch(e) {
-    console.error('Error cargando GPS:', e);
+    console.error('Error cargando dashboard GPS:', e);
+    var tabla = document.getElementById('d-km-table');
+    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar datos GPS.</p>';
   }
 }
 
