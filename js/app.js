@@ -1245,17 +1245,20 @@ async function importGPS(input) {
       }
       pestañasEncontradas.push(sheetName+' → '+camionId);
       var ws = wb.Sheets[sheetName];
-      var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J1000', defval:null});
+      var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      if (!allRows || allRows.length < 3) { errores++; pestañasIgnoradas.push(sheetName+' (datos insuficientes)'); continue; }
+      console.log('PESTAÑA:', sheetName, '| Filas totales:', allRows.length, '| Fila 14 (idx13):', JSON.stringify(allRows[13]?.slice(0,10)).substring(0,200));
+      var rows = allRows.slice(14);
       if (!rows || rows.length < 2) { errores++; pestañasIgnoradas.push(sheetName+' (vacía)'); continue; }
-      var headers = rows[0] || [];
       var filasConDatos = 0;
-      for (var i=1; i<rows.length; i++) {
+      for (var i=0; i<rows.length; i++) {
         var row = rows[i];
         if (!row) continue;
-        if (!row[1] && !row[9]) continue;
-        filasConDatos++;
+        var tieneKm = false;
+        for (var c=6; c<=9; c++) { if (row[c] && String(row[c]).trim() !== '') tieneKm = true; }
+        if (tieneKm) filasConDatos++;
       }
-      if (filasConDatos === 0) { errores++; pestañasIgnoradas.push(sheetName+' (sin datos km/fecha)'); continue; }
+      if (filasConDatos === 0) { errores++; pestañasIgnoradas.push(sheetName+' (sin datos)'); continue; }
       for (var i=1; i<rows.length; i++) {
         var row = rows[i];
         if (!row || row.length < 10) continue;
