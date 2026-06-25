@@ -205,7 +205,7 @@ function showTab(id, btn) {
   if (btn) btn.classList.add('on');
   if (id === 'historial') loadHist();
   if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
-  if (id === 'dash') { renderDash(); setTimeout(renderGPSDash, 300); }
+  if (id === 'dash') return;
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
   if (id === 'nuevo') { qpReset(); }
