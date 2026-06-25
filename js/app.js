@@ -11,7 +11,10 @@ var allReportes = [];
 var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
-var flotaExpandida = false;
+var camionesOcultos = ['CARR', 'SEMI', '106'];
+function camionVisible(c) {
+  return camionesOcultos.indexOf(c.id) < 0;
+}
 
 function getOfflineQueue() {
   try { var r = localStorage.getItem('m3v7_offline_queue'); if (r) return JSON.parse(r); } catch(e) {}
@@ -170,15 +173,16 @@ function loadReportesLocal() {
  }
 
 function fillCamiones() {
-  var o = '<option value="">Selecciona...</option>';
-  for (var i = 0; i < camiones.length; i++) o += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
-  if (o.indexOf('HILUX') < 0) o += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
-  document.getElementById('r-cam').innerHTML = o;
-  var o2 = '<option value="">Todos los camiones</option>';
-  for (var i = 0; i < camiones.length; i++) o2 += '<option value="'+camiones[i].id+'">'+camiones[i].id+' - '+camiones[i].modelo+'</option>';
-  if (o2.indexOf('HILUX') < 0) o2 += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
-  document.getElementById('fil-cam').innerHTML = o2;
-  document.getElementById('fil-ot-cam').innerHTML = o2;
+  var q = '<option value="">Selecciona...</option>';
+  var visibles = camiones.filter(camionVisible);
+  for (var i = 0; i < visibles.length; i++) q += '<option value="'+visibles[i].id+'">'+visibles[i].id+' - '+visibles[i].modelo+'</option>';
+  if (q.indexOf('HILUX') < 0) q += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
+  document.getElementById('r-cam').innerHTML = q;
+  var q2 = '<option value="">Todos los camiones</option>';
+  for (var i = 0; i < visibles.length; i++) q2 += '<option value="'+visibles[i].id+'">'+visibles[i].id+' - '+visibles[i].modelo+'</option>';
+  if (q2.indexOf('HILUX') < 0) q2 += '<option value="HILUX">HILUX - TOYOTA HILUX</option>';
+  document.getElementById('fil-cam').innerHTML = q2;
+  document.getElementById('fil-ot-cam').innerHTML = q2;
 }
 function fillChoferes() {
   var o = '<option value="">Selecciona...</option>';
@@ -354,6 +358,7 @@ function renderFlota() {
   var q = (document.getElementById('search-flota').value || '').toLowerCase().trim();
   var el = document.getElementById('flota-grid');
   var filtrados = resData.filter(function(c) {
+    if (!camionVisible(c)) return false;
     if (!q) return true;
     return c.id.toLowerCase().indexOf(q) >= 0 || c.nom.toLowerCase().indexOf(q) >= 0 || c.cho.toLowerCase().indexOf(q) >= 0;
   });
@@ -1291,6 +1296,7 @@ async function renderGPSDash() {
     html += '<th class="km-mes-col">Mes</th></tr></thead><tbody>';
     for (var c=0; c<resData.length; c++) {
       var cam = resData[c];
+      if (!camionVisible(cam)) continue;
       var d = porCamion[cam.id] || {semana:[0,0,0,0,0,0,0],mes:0};
       var rowBg = cam.est==='REPARACION' ? 'km-reparacion' : '';
       html += '<tr class="'+rowBg+'" onclick="abrirDetalle(\''+cam.id+'\')">';
