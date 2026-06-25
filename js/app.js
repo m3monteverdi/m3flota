@@ -1168,10 +1168,17 @@ async function importGPS(input) {
   try {
     var data = await file.arrayBuffer();
     var wb = XLSX.read(data, {type:'array'});
-    var viajes = [];
+    var viajesNuevos = [];
     var insertados = 0;
     var duplicados = 0;
     var errores = 0;
+    var gpsExistentes = [];
+    try {
+      var r = await sb.from('gps_viajes').select('*').neq('camion','__none__');
+      gpsExistentes = r.data || [];
+    } catch(e) {
+      console.warn('No se pudo leer gps_viajes de Supabase, usando solo localStorage');
+    }
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
       var camionId = GPS_MAP[sheetName];
@@ -1180,10 +1187,7 @@ async function importGPS(input) {
       if (!camionId) continue;
       var ws = wb.Sheets[sheetName];
       var rows = XLSX.utils.sheet_to_json(ws, {header:1, range:'A15:J500'});
-      if (!rows || !rows.length) {
-        errores++;
-        continue;
-      }
+      if (!rows || !rows.length) { errores++; continue; }
       var headers = rows[0] || [];
       for (var i=1; i<rows.length; i++) {
         var row = rows[i];
@@ -1202,12 +1206,9 @@ async function importGPS(input) {
             try {
               var d = XLSX.SSF.parse_date_code(fechaRaw);
               fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');
-            } catch(e) {
-              fecha = null;
-            }
+            } catch(e) { fecha = null; }
           } else {
-            var fStr = String(fechaRaw).trim();
-            fStr = fStr.split(' ')[0];
+            var fStr = String(fechaRaw).trim().split(' ')[0];
             var m = fStr.match(/(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})/);
             if (m) {
               var parts = m[0].split(/[\/\-]/);
@@ -1217,26 +1218,30 @@ async function importGPS(input) {
           }
         }
         if (!fecha || !kmFin) continue;
-        try {
-          var res = await sb.from('gps_viajes').upsert([{
-            camion: camionId,
-            fecha: fecha,
-            viajes: viajesVal,
-            km_inicio: kmInicio,
-            km_fin: kmFin,
-            km_recorridos: kmRec
-          }], {count:'exact'});
-          insertados++;
-        } catch(e) {
-          if (e.message && e.message.indexOf('23505') >= 0) {
-            duplicados++;
-          } else {
-            console.error('Error insertando viaje:', e, 'camion:', camionId, 'fecha:', fecha);
-            errores++;
-          }
-        }
+        var key = camionId+'|'+fecha;
+        var yaExiste = gpsExistentes.some(function(g){ return g.camion===camionId && g.fecha===fecha; });
+        if (yaExiste) { duplicados++; continue; }
+        var obj = { camion: camionId, fecha: fecha, viajes: viajesVal, km_inicio: kmInicio, km_fin: kmFin, km_recorridos: kmRec };
+        viajesNuevos.push(obj);
+        gpsExistentes.push(obj);
+        insertados++;
       }
     }
+    if (viajesNuevos.length > 0) {
+      try {
+        var res = await sb.from('gps_viajes').insert(viajesNuevos, {count:'exact'});
+        console.log('Insertados en Supabase:', res.status, res.data ? res.data.length : 0);
+      } catch(e) {
+        console.warn('Error insertando en Supabase, guardando en localStorage:', e.message);
+      }
+    }
+    var local = JSON.parse(localStorage.getItem('m3v7_gps_viajes') || '[]');
+    var localMap = {};
+    for (var l=0; l<local.length; l++) localMap[local[l].camion+'|'+local[l].fecha] = local[l];
+    for (var vn=0; vn<viajesNuevos.length; vn++) {
+      localMap[viajesNuevos[vn].camion+'|'+viajesNuevos[vn].fecha] = viajesNuevos[vn];
+    }
+    localStorage.setItem('m3v7_gps_viajes', JSON.stringify(Object.keys(localMap).map(function(k){ return localMap[k]; })));
     statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
     setTimeout(function(){ statusEl.innerHTML = ''; }, 6000);
   } catch(e) {
@@ -1252,59 +1257,55 @@ async function renderGPSDash() {
   try {
     var tabla = document.getElementById('d-km-table');
     if (!tabla) return;
+    var viajes = [];
+    try {
+      var r = await sb.from('gps_viajes').select('*').neq('camion','__none__').limit(5000);
+      viajes = r.data || [];
+    } catch(e) {
+      console.warn('Supabase GPS no disponible, usando localStorage');
+    }
+    if (!viajes.length) {
+      var localRaw = localStorage.getItem('m3v7_gps_viajes');
+      if (localRaw) {
+        try { viajes = JSON.parse(localRaw); } catch(e) {}
+      }
+    }
+    if (!viajes.length) {
+      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS cargados. Subí el Excel desde el botón azul.</p>';
+      return;
+    }
     var hoy = new Date();
-    var diaSemana = hoy.getDay();
-    var lunes = new Date(hoy);
-    lunes.setDate(hoy.getDate() - ((diaSemana + 6) % 7));
     var fechasSemana = [];
-    for (var i=0; i<7; i++) {
+    var lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    for (var i=0;i<7;i++) {
       var d = new Date(lunes);
-      d.setDate(lunes.getDate() + i);
+      d.setDate(lunes.getDate()+i);
       fechasSemana.push(d.toISOString().split('T')[0]);
     }
     var mesActual = hoy.toISOString().substring(0,7);
-    var todosIds = [];
-    for (var c=0; c<resData.length; c++) todosIds.push(resData[c].id);
-    if (!todosIds.length) {
-      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin camiones cargados.</p>';
-      return;
-    }
-    var q = sb.from('gps_viajes').select('*').in('camion', todosIds).like('fecha', fechasSemana[0]+','+mesActual+'%');
-    var rSem = await q;
-    var viajes = rSem.data || [];
     var porCamion = {};
     for (var v=0; v<viajes.length; v++) {
       var x = viajes[v];
-      if (!porCamion[x.camion]) porCamion[x.camion] = {semana:[0,0,0,0,0,0,0], mes:0};
-      if (x.fecha >= fechasSemana[0] && x.fecha <= fechasSemana[6]) {
-        var idx = fechasSemana.indexOf(x.fecha);
-        if (idx >= 0) porCamion[x.camion].semana[idx] = x.km_recorridos || 0;
-      }
-      if (x.fecha && x.fecha.substring(0,7) === mesActual) {
-        porCamion[x.camion].mes += (x.km_recorridos || 0);
-      }
+      if (!x.camion || !x.fecha) continue;
+      if (!porCamion[x.camion]) porCamion[x.camion] = { semana:[0,0,0,0,0,0,0], mes:0 };
+      var idx = fechasSemana.indexOf(x.fecha);
+      if (idx >= 0) porCamion[x.camion].semana[idx] = x.km_recorridos || 0;
+      if (x.fecha.substring(0,7) === mesActual) porCamion[x.camion].mes += (x.km_recorridos || 0);
     }
     var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
     html += '<thead><tr style="background:var(--azl);color:var(--az);font-weight:700">';
     html += '<th style="padding:6px;text-align:left">Camión</th>';
-    html += '<th style="padding:6px;text-align:center">Lun</th>';
-    html += '<th style="padding:6px;text-align:center">Mar</th>';
-    html += '<th style="padding:6px;text-align:center">Mié</th>';
-    html += '<th style="padding:6px;text-align:center">Jue</th>';
-    html += '<th style="padding:6px;text-align:center">Vie</th>';
-    html += '<th style="padding:6px;text-align:center">Sáb</th>';
-    html += '<th style="padding:6px;text-align:center">Dom</th>';
-    html += '<th style="padding:6px;text-align:right;background:var(--grnl)">Mes</th>';
-    html += '</tr></thead><tbody>';
+    html += '<th style="padding:6px;text-align:center">Lun</th><th style="padding:6px;text-align:center">Mar</th><th style="padding:6px;text-align:center">Mié</th>';
+    html += '<th style="padding:6px;text-align:center">Jue</th><th style="padding:6px;text-align:center">Vie</th><th style="padding:6px;text-align:center">Sáb</th><th style="padding:6px;text-align:center">Dom</th>';
+    html += '<th style="padding:6px;text-align:right;background:var(--grnl)">Mes</th></tr></thead><tbody>';
     for (var c=0; c<resData.length; c++) {
       var cam = resData[c];
       var d = porCamion[cam.id] || {semana:[0,0,0,0,0,0,0],mes:0};
-      var estilo = cam.est === 'REPARACION' ? 'background:var(--redl)' : '';
-      html += '<tr style="'+estilo+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
+      var bg = cam.est==='REPARACION' ? 'background:var(--redl)' : '';
+      html += '<tr style="'+bg+'border-bottom:1px solid var(--border);cursor:pointer" onclick="abrirDetalle(\''+cam.id+'\')">';
       html += '<td style="padding:6px;font-weight:700">'+cam.id+' - '+(cam.nom||'')+'</td>';
-      for (var i=0;i<7;i++) {
-        html += '<td style="padding:6px;text-align:center;color:var(--az)">'+(d.semana[i]?d.semana[i].toLocaleString('es-AR'):'-')+'</td>';
-      }
+      for (var i=0;i<7;i++) html += '<td style="padding:6px;text-align:center;color:var(--az)">'+(d.semana[i]?d.semana[i].toLocaleString('es-AR'):'-')+'</td>';
       html += '<td style="padding:6px;text-align:right;font-weight:700;color:var(--grn)">'+(d.mes?d.mes.toLocaleString('es-AR'):'-')+'</td>';
       html += '</tr>';
     }
@@ -1312,9 +1313,9 @@ async function renderGPSDash() {
     html += '<p style="font-size:11px;color:var(--muted);margin-top:8px"><i class="ti ti-info-circle"></i> Semana del '+fechasSemana[0]+' al '+fechasSemana[6]+' | Mes: '+mesActual+'</p>';
     tabla.innerHTML = html;
   } catch(e) {
-    console.error('Error cargando dashboard GPS:', e);
+    console.error('Error dashboard GPS:', e);
     var tabla = document.getElementById('d-km-table');
-    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar datos GPS. Verificá que la tabla gps_viajes exista en Supabase.</p>';
+    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar GPS.</p>';
   }
 }
 
