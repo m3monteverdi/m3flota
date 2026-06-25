@@ -120,21 +120,23 @@ async function init() {
      await loadChoferes();
      await loadOTCounter();
      await loadAllReportes();
-     var urlParams = new URLSearchParams(window.location.search);
-     var camionParam = urlParams.get('camion');
-     var tabParam = urlParams.get('tab');
-     if (camionParam) {
-       var exists = camiones.some(function(c) { return c.id === camionParam; });
-       if (exists) {
-         document.getElementById('r-cam').value = camionParam;
-         var tabBtn = document.querySelectorAll('.tab')[1];
-         showTab('nuevo', tabBtn);
-       }
-     }
-     if (tabParam === 'nuevo') {
-       var tabBtn2 = document.querySelectorAll('.tab')[1];
-       showTab('nuevo', tabBtn2);
-     }
+    var urlParams = new URLSearchParams(window.location.search);
+    var camionParam = urlParams.get('camion');
+    var tabParam = urlParams.get('tab');
+    if (camionParam) {
+      var exists = camiones.some(function(c) { return c.id === camionParam; });
+      if (exists) {
+        document.getElementById('r-cam').value = camionParam;
+        var tabBtn = document.querySelectorAll('.tab')[1];
+        showTab('nuevo', tabBtn);
+      }
+    }
+    if (tabParam === 'nuevo') {
+      var tabBtn2 = document.querySelectorAll('.tab')[1];
+      showTab('nuevo', tabBtn2);
+    } else {
+      showTab('nuevo', document.querySelectorAll('.tab')[1]);
+    }
    } catch(e) {
      console.error('Error en init:', e);
    }
