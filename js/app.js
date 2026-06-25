@@ -288,16 +288,21 @@ async function renderDash() {
   }
   vencs.sort(function(a,b){return a.dias-b.dias;});
 
-  document.getElementById('d-op').textContent = op;
-  document.getElementById('d-rep').textContent = rep;
-  document.getElementById('d-alert').textContent = vencs.length;
-  document.getElementById('d-mant').textContent = allReportes.filter(function(r){
+  var elOp = document.getElementById('d-op');
+  if (elOp) elOp.textContent = op;
+  var elRep = document.getElementById('d-rep');
+  if (elRep) elRep.textContent = rep;
+  var elAlert = document.getElementById('d-alert');
+  if (elAlert) elAlert.textContent = vencs.length;
+  var elMant = document.getElementById('d-mant');
+  if (elMant) elMant.textContent = allReportes.filter(function(r){
     var f = new Date(r.fecha);
     var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
     return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo'||r.tipo==='neumatico');
   }).length;
 
   var vencEl = document.getElementById('d-vencs');
+  if (!vencEl) return;
   if (!vencs.length) {
     vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin vencimientos próximos.</p>';
   } else {
@@ -1164,12 +1169,10 @@ async function importGPS(input) {
     var insertados = 0;
     var duplicados = 0;
     var errores = 0;
+    var localRaw = localStorage.getItem('m3v7_gps_viajes');
     var gpsExistentes = [];
-    try {
-      var r = await sb.from('gps_viajes').select('*').neq('camion','__none__');
-      gpsExistentes = r.data || [];
-    } catch(e) {
-      console.warn('No se pudo leer gps_viajes de Supabase, usando solo localStorage');
+    if (localRaw) {
+      try { gpsExistentes = JSON.parse(localRaw); } catch(e) {}
     }
     var pestañasEncontradas = [];
     var pestañasIgnoradas = [];
@@ -1224,12 +1227,7 @@ async function importGPS(input) {
     console.log('GPS Import:', resumen);
     statusEl.innerHTML = resumen + '<br><i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
     if (viajesNuevos.length > 0) {
-      try {
-        var res = await sb.from('gps_viajes').insert(viajesNuevos, {count:'exact'});
-        console.log('Insertados en Supabase:', res.status, res.data ? res.data.length : 0);
-      } catch(e) {
-        console.warn('Error insertando en Supabase, guardando en localStorage:', e.message);
-      }
+      console.log('Guardados en localStorage:', viajesNuevos.length);
     }
     var local = JSON.parse(localStorage.getItem('m3v7_gps_viajes') || '[]');
     var localMap = {};
