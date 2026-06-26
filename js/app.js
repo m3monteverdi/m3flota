@@ -103,10 +103,10 @@ var RD = [
   {id:'SEMIREMOLQUE',nom:'SEMIREMOLQUE',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'26/12/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   ];
 function loadRes() {
-  try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
+  try { var r = localStorage.getItem('m3v8'); if (r) return JSON.parse(r); } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
-function saveRes(d) { try { localStorage.setItem('m3v7', JSON.stringify(d)); } catch(e) {} }
+function saveRes(d) {   try { localStorage.setItem('m3v8', JSON.stringify(d)); } catch(e) {} }
 var resData = loadRes();
 
 function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id) return resData[i]; return null; }
