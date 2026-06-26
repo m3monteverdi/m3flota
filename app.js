@@ -11,7 +11,7 @@ var allReportes = [];
 var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
-var camionesOcultos = ['CARR', 'SEMI', '106'];
+var camionesOcultos = ['CARR', 'SEMI', '106', 'CARRETON', 'SEMIREMOLQUE'];
 function camionVisible(c) {
   return camionesOcultos.indexOf(c.id) < 0;
 }
@@ -92,16 +92,19 @@ var RD = [
   {id:'113',nom:'FORD CARGO 2625',pat:'DMQ335',cho:'---',cap:'7m3',est:'DISPONIBLE',seg:'02/07/2026',rto:'07/11/2026',us:'05/05/2026',ps:'130.665 km',ue:'05/05/2026',pe:'121.000 km',uc:'05/05/2026',pc:'130.665 km',ub:'08/11/2024',pb:'---'},
   {id:'114',nom:'IVECO TECTOR BOMBA',pat:'AE-378-JW',cho:'Dario Guerra',cap:'32mts',est:'DISPONIBLE',seg:'02/07/2026',rto:'18/05/2027',us:'16/04/2026',ps:'5.000 km',ue:'16/04/2026',pe:'4.700 km',uc:'16/04/2026',pc:'5.000 km',ub:'15/07/2024',pb:'---'},
   {id:'918',nom:'CAT CARGADORA 918',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'23/04/2026',ps:'28.100 hs',ue:'23/04/2026',pe:'28.750 hs',uc:'23/04/2026',pc:'28.100 hs',ub:'23/04/2026',pb:'---'},
-  {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'03/04/2024',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
-  {id:'007',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'---',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-  {id:'115',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'---',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
-  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
-  {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'}
+    {id:'106',nom:'DIMEX 74-310',pat:'CMS120',cho:'David',cap:'---',est:'DISPONIBLE',seg:'28/11/2024',rto:'13/09/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'109',nom:'IVECO CURSOR 330',pat:'PJD392',cho:'David',cap:'---',est:'DISPONIBLE',seg:'29/07/2025',rto:'30/07/2026',us:'13/08/2025',ps:'210.000 km',ue:'---',pe:'---',uc:'---',pc:'---',ub:'17/02/2025',pb:'---'},
+  {id:'107',nom:'MERCEDES HIDRO',pat:'IVA173',cho:'J. Moran',cap:'6.000 kg',est:'DISPONIBLE',seg:'07/12/2024',rto:'07/01/2027',us:'20/10/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'115',nom:'MERCEDES ACCELO',pat:'AF-026-OS',cho:'Marcos',cap:'---',est:'DISPONIBLE',seg:'29/10/2025',rto:'VENCIDA',us:'18/12/2025',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'26/05/2025',pb:'---'},
+  {id:'116',nom:'ISUZU NPR 75',pat:'AG664XK',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'27/04/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'HILUX',nom:'TOYOTA HILUX',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'VENCIDA',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'CARRETON',nom:'CARRETON',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'13/09/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
+  {id:'SEMIREMOLQUE',nom:'SEMIREMOLQUE',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'26/12/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
 ];
-  try { var r = localStorage.getItem('m3v7'); if (r) return JSON.parse(r); } catch(e) {}
+  try { var r = localStorage.getItem('m3v8'); if (r) return JSON.parse(r); } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
-function saveRes(d) { try { localStorage.setItem('m3v7', JSON.stringify(d)); } catch(e) {} }
+function saveRes(d) {   try { localStorage.setItem('m3v8', JSON.stringify(d)); } catch(e) {} }
 var resData = loadRes();
 
 function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id) return resData[i]; return null; }
@@ -1159,12 +1162,12 @@ function toggleFlota() {
 }
 
 var GPS_MAP = {
-  'Hidrogrua': '007',
+  'Hidrogrua': '107',
   '99': '109',
   'Isuzu': '116',
   'Mercedes Accelo': '115',
   'Toyota Hilux': 'HILUX',
-  'Mercedes Hidro': '007',
+  'Mercedes Hidro': '107',
   'Iveco Cursor': '109',
   'Iveco Trakker 350': '100',
   'Iveco Tector Attack': '101',
