@@ -1175,12 +1175,12 @@ function toggleFlota() {
 }
 
 var GPS_MAP = {
-  'Hidrogrua': '007',
+  'Hidrogrua': '107',
   '99': '109',
   'Isuzu': '116',
   'Mercedes Accelo': '115',
   'Toyota Hilux': 'HILUX',
-  'Mercedes Hidro': '007',
+  'Mercedes Hidro': '107',
   'Iveco Cursor': '109',
   'Iveco Trakker 350': '100',
   'Iveco Tector Attack': '101',
@@ -1200,7 +1200,7 @@ var GPS_MAP = {
 function normalizarNombrePestana(nombre) {
   if (!nombre) return null;
   var n = nombre.toLowerCase().trim();
-  if (n.indexOf('hidro') >= 0 || n.indexOf('007') >= 0) return '007';
+  if (n.indexOf('hidro') >= 0 || n.indexOf('107') >= 0) return '107';
   if (n.indexOf('99') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('tector bomba') >= 0 || n.indexOf('114') >= 0) return '114';
   if (n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0 || n.indexOf('109') >= 0) return '109';
   if (n.indexOf('accelo') >= 0 || n.indexOf('acelo') >= 0 || n.indexOf('115') >= 0) return '115';
