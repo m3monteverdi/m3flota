@@ -372,6 +372,9 @@ function renderFlota() {
     return c.id.toLowerCase().indexOf(q) >= 0 || c.nom.toLowerCase().indexOf(q) >= 0 || c.cho.toLowerCase().indexOf(q) >= 0;
   });
   filtrados.sort(function(a,b) {
+    var aRep = a.est === 'REPARACION' ? 1 : 0;
+    var bRep = b.est === 'REPARACION' ? 1 : 0;
+    if (aRep !== bRep) return bRep - aRep;
     var pa = getAlertPriority(a);
     var pb = getAlertPriority(b);
     if (pa.hasUrgent && !pb.hasUrgent) return -1;
