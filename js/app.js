@@ -766,14 +766,23 @@ async function loadReps() {
 /* ============ HISTORIAL ============ */
  async function loadHist() {
    var fil = document.getElementById('fil-cam').value;
+   var textFil = (document.getElementById('fil-text').value || '').toLowerCase().trim();
    var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
    if (fil) q = q.eq('camion',fil);
    var r = await q;
    var el = document.getElementById('tabla-hist');
-   if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
+   if (!el) return;
+   var data = r.data || [];
+   if (textFil) {
+     data = data.filter(function(x) {
+       var desc = (x.descripcion || '').toLowerCase();
+       return desc.indexOf(textFil) >= 0;
+     });
+   }
+   if (!data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
    var html = '';
-   for (var i = 0; i < r.data.length; i++) {
-     var x = r.data[i];
+   for (var i = 0; i < data.length; i++) {
+     var x = data[i];
      html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
      html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
      html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';

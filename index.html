@@ -123,7 +123,8 @@
 
 <div class="pane" id="pane-historial">
    <div class="card" style="padding:10px">
-     <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px"></select>
+     <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px;margin-bottom:8px"></select>
+     <input type="text" id="fil-text" placeholder="Buscar palabra en descripcion (ej: correa, filtro)..." oninput="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px">
    </div>
    <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
  </div>
