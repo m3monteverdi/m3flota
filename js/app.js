@@ -416,6 +416,10 @@ function renderFlota() {
     if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
     if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
     if (alertaTxt) html += '<div class=\"ftc-alert\" style=\"color:#D97706\"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaTxt+'</div>';
+
+    var batHtml = getBatteryBar(c);
+    if (batHtml) html += batHtml;
+
     html += '</div>';
   }
   if (!flotaExpandida && filtrados.length > maxVisible) {
@@ -429,6 +433,31 @@ function renderFlota() {
     var flotaGrid = document.getElementById('flota-grid');
     if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la página.</p>';
   }
+}
+
+function getBatteryBar(c) {
+  var ub = c.ub;
+  var pb = c.pb;
+  if (!ub || ub === '---') return '';
+  var hoy = new Date();
+  var hoyTS = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime();
+  var dUb = parseDateDMY(ub);
+  if (!dUb) return '';
+  var dPb = null;
+  if (pb && pb !== '---') {
+    dPb = parseDateDMY(pb);
+  }
+  if (!dPb) {
+    dPb = new Date(dUb.getFullYear() + 3, dUb.getMonth(), dUb.getDate());
+  }
+  var totalMs = dPb.getTime() - dUb.getTime();
+  var pasadoMs = hoyTS - dUb.getTime();
+  var pct = totalMs > 0 ? Math.round(Math.max(0, 1 - pasadoMs / totalMs) * 100) : 0;
+  var color = '#16A34A';
+  if (pct <= 0) color = '#DC2626';
+  else if (pct < 30) color = '#D97706';
+  var texto = 'Bateria ' + pct + '%';
+  return '<div class=\"ftc-info\" style=\"margin-top:4px\"><i class=\"ti ti-battery\"></i> '+texto+'<div style=\"background:#ddd;border-radius:999px;height:8px;width:100%;margin-top:4px;overflow:hidden\"><div style=\"background:'+color+';height:100%;width:'+pct+'%;border-radius:999px\"></div></div></div>';
 }
 
 /* ============ DETALLE CAMION (timeline) ============ */
