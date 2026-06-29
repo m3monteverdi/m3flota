@@ -345,7 +345,7 @@ async function renderDash() {
       html += '<div class="activ-item"><div class="activ-dot" style="background:'+col+'"></div><div style="flex:1">';
       html += '<div class="activ-tit">'+labels[x.tipo]+' - '+x.camion+'</div>';
       html += '<div class="activ-sub">'+x.descripcion.substring(0,45)+(x.descripcion.length>45?'...':'')+'</div>';
-      html += '<div class="activ-time">'+x.fecha+'</div></div></div>';
+      html += '<div class="activ-time">'+fmtFecha(x.fecha)+'</div></div></div>';
     }
     activEl.innerHTML = html;
   }
@@ -503,7 +503,7 @@ async function abrirDetalle(camId) {
       var x = reps[i];
       var col = colores[x.tipo] || '#888';
       html += '<div class="tl-item"><div class="tl-dot" style="color:'+col+'"></div>';
-      html += '<div class="tl-date">'+x.fecha+'</div>';
+      html += '<div class="tl-date">'+fmtFecha(x.fecha)+'</div>';
       html += '<div class="tl-card">';
       html += '<div class="rt">'+tbadge(x.tipo)+(x.es_ot?'<span class="chip">'+x.id+'</span>':'')+'</div>';
       html += '<div style="font-size:13px;margin-top:6px">'+x.descripcion+'</div>';
@@ -638,6 +638,14 @@ function formatDateToDMY(iso) {
   return p[2]+'/'+p[1]+'/'+p[0];
 }
 
+var MESES = ['','enero','febrero','marzo','abr','mayo','jun','jul','agosto','sept','oct','nov','dic'];
+function fmtFecha(iso) {
+  if (!iso || iso === '---') return '---';
+  var p = iso.split('-');
+  var m = parseInt(p[1], 10);
+  return p[2]+'/'+MESES[m]+'/'+p[0];
+}
+
 function showOT(r) {
   var ul = {alta:'ALTA - no puede circular',media:'Media - con cuidado',baja:'Baja - programar'};
   var mod = getCamModelo(r.camion);
@@ -685,7 +693,7 @@ async function loadOTs() {
     (function(idx, x) {
       var div = document.createElement('div');
       div.className = 'rfalla';
-      div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div><div style="font-size:12px;color:#666;margin-top:4px">'+x.fecha+' | '+x.descripcion.substring(0,60)+'...</div>';
+      div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div><div style="font-size:12px;color:#666;margin-top:4px">'+fmtFecha(x.fecha)+' | '+x.descripcion.substring(0,60)+'...</div>';
       div.onclick = function() { selOT(otsCache[idx]); };
       el.appendChild(div);
     })(i, r.data[i]);
@@ -700,7 +708,7 @@ function selOT(r) {
     '<div style="display:flex;justify-content:space-between;margin-bottom:8px">'
     +'<span style="font-weight:800;font-size:14px">'+r.id+' - Camion '+r.camion+'</span>'
     +'<span class="badge bamb">'+(ul[r.urgencia]||'')+'</span></div>'
-    +'<div style="font-size:12px;color:#888;margin-bottom:8px">Fecha: '+r.fecha+' | Chofer: '+r.chofer+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-bottom:8px">Fecha: '+fmtFecha(r.fecha)+' | Chofer: '+r.chofer+'</div>'
     +'<div style="background:#EEF4FF;border-radius:10px;padding:10px;font-size:13px;border-left:4px solid var(--az)">'+r.descripcion+'</div>'
     +(r.repuestos?'<div style="font-size:12px;color:#888;margin-top:6px">Repuestos estimados: '+r.repuestos+'</div>':'');
   window._otSel = r;
@@ -756,7 +764,7 @@ async function loadReps() {
   var html = '';
   for (var i = 0; i < r.data.length; i++) {
     var x = r.data[i];
-    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bpur"><i class="ti ti-hammer"></i> Reparacion</span></span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
+    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bpur"><i class="ti ti-hammer"></i> Reparacion</span></span><span style="font-size:12px;color:#888">'+fmtFecha(x.fecha)+'</span></div>';
     html += '<div style="font-size:13px;margin:6px 0">'+x.descripcion.substring(0,90)+(x.descripcion.length>90?'...':'')+'</div>';
     html += '<div style="font-size:12px;color:#888">'+(x.repuestos?x.repuestos.substring(0,50)+' ':'')+'</div></div>';
   }
@@ -783,7 +791,7 @@ async function loadReps() {
    var html = '';
    for (var i = 0; i < data.length; i++) {
      var x = data[i];
-     html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+x.fecha+'</span></div>';
+     html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+fmtFecha(x.fecha)+'</span></div>';
      html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
      html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';
      html += '<span>'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
@@ -855,7 +863,7 @@ async function openOT(id) {
    if (!vencs.length) { showMsg('ok-msg','ok','No hay vencimientos próximos para alertar.'); return; }
    var htmlBody = '<h2>Alertas de Vencimientos - M3 Flota</h2><ul>';
    vencs.forEach(function(v){
-     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+v.fecha+' ('+v.dias+' días)</li>';
+     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+fmtFecha(v.fecha)+' ('+v.dias+' días)</li>';
    });
    htmlBody += '</ul>';
    try {
