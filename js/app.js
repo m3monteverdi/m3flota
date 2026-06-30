@@ -1,4 +1,4 @@
-var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+﻿var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
 var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
 var ADMIN_KEY = 'monteverdi';
 var EMAIL_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
@@ -66,10 +66,10 @@ function updateOnlineStatus() {
   if (!el) return;
   if (isOnline) {
     el.className = 'online-badge on';
-    el.innerHTML = '<i class="ti ti-wifi"></i> En línea';
+    el.innerHTML = '<i class="ti ti-wifi"></i> En lÃ­nea';
   } else {
     el.className = 'online-badge off';
-    el.innerHTML = '<i class="ti ti-wifi-off"></i> Sin conexión';
+    el.innerHTML = '<i class="ti ti-wifi-off"></i> Sin conexiÃ³n';
   }
 }
 window.addEventListener('online', function() {
@@ -273,15 +273,15 @@ function generarRecomendaciones(camId) {
   var reps = allReportes.filter(function(r){ return r.camion === camId; });
   var dRto = diasHasta(c.rto);
   var dSeg = diasHasta(c.seg);
-  if (c.est === 'REPARACION') recs.push({tipo:'urgent', texto:'Unidad en reparación. Verificar cierre de OT al finalizar.'});
-  if (dRto !== null && dRto < 0) recs.push({tipo:'alert', texto:'RTO VENCIDO. Gestionar renovación urgente.'});
-  else if (dRto !== null && dRto < 10) recs.push({tipo:'warn', texto:'RTO vence en '+dRto+' días ('+c.rto+').'});
+  if (c.est === 'REPARACION') recs.push({tipo:'urgent', texto:'Unidad en reparaciÃ³n. Verificar cierre de OT al finalizar.'});
+  if (dRto !== null && dRto < 0) recs.push({tipo:'alert', texto:'RTO VENCIDO. Gestionar renovaciÃ³n urgente.'});
+  else if (dRto !== null && dRto < 10) recs.push({tipo:'warn', texto:'RTO vence en '+dRto+' dÃ­as ('+c.rto+').'});
   if (dSeg !== null && dSeg < 0) recs.push({tipo:'alert', texto:'Seguro VENCIDO. Contactar aseguradora.'});
-  else if (dSeg !== null && dSeg < 10) recs.push({tipo:'warn', texto:'Seguro vence en '+dSeg+' días ('+c.seg+').'});
+  else if (dSeg !== null && dSeg < 10) recs.push({tipo:'warn', texto:'Seguro vence en '+dSeg+' dÃ­as ('+c.seg+').'});
   var fallas = reps.filter(function(r){ return r.tipo === 'falla'; });
-  if (fallas.length >= 3) recs.push({tipo:'warn', texto:''+fallas.length+' fallas registradas. Revisar sistema eléctrico y motor.'});
+  if (fallas.length >= 3) recs.push({tipo:'warn', texto:''+fallas.length+' fallas registradas. Revisar sistema elÃ©ctrico y motor.'});
   var ultServ = reps.filter(function(r){ return r.tipo === 'service'; })[0];
-  if (!ultServ && c.us === '---' && c.ps !== '---') recs.push({tipo:'info', texto:'Sin registros de service. Programar próximo service ('+c.ps+').'});
+  if (!ultServ && c.us === '---' && c.ps !== '---') recs.push({tipo:'info', texto:'Sin registros de service. Programar prÃ³ximo service ('+c.ps+').'});
   if (c.cho === '---') recs.push({tipo:'warn', texto:'Sin chofer asignado. Asignar conductor.'});
   return recs;
 }
@@ -319,14 +319,14 @@ async function renderDash() {
   var vencEl = document.getElementById('d-vencs');
   if (!vencEl) return;
   if (!vencs.length) {
-    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin vencimientos próximos.</p>';
+    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin vencimientos prÃ³ximos.</p>';
   } else {
     var html2 = '';
     for (var i=0;i<Math.min(vencs.length,8);i++) {
       var v = vencs[i];
       var badgeClass = v.dias < 0 ? 'bred' : (v.dias < 10 ? 'bred' : 'bamb');
-      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' días';
-      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - Camión '+v.cam+' ('+v.cho+')</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
+      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' dÃ­as';
+      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - CamiÃ³n '+v.cam+' ('+v.cho+')</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
     }
     vencEl.innerHTML = html2;
   }
@@ -337,7 +337,7 @@ async function renderDash() {
     activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad.</p>';
   } else {
     var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB',neumatico:'#9333EA'};
-    var labels = {falla:'Falla',service:'Service',reparacion:'Reparación',preventivo:'Preventivo',engrase:'Engrase'};
+    var labels = {falla:'Falla',service:'Service',reparacion:'ReparaciÃ³n',preventivo:'Preventivo',engrase:'Engrase'};
     var html = '';
     for (var i=0;i<ultimos.length;i++) {
       var x = ultimos[i];
@@ -431,7 +431,7 @@ function renderFlota() {
   } catch(e) {
     console.error('Error en renderFlota:', e);
     var flotaGrid = document.getElementById('flota-grid');
-    if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la página.</p>';
+    if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la pÃ¡gina.</p>';
   }
 }
 
@@ -772,10 +772,7 @@ async function loadReps() {
 }
 
 /* ============ HISTORIAL ============ */
- async function loadHist() {
-   var fil = document.getElementById('fil-cam').value;
-   var textFil = (document.getElementById('fil-text').value || '').toLowerCase().trim();
-   var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
+ async function loadHist() { var el = document.getElementById('tabla-hist'); if (el) el.innerHTML = '<p style=\'color:#888;text-align:center;padding:2rem\'>Sin reportes.</p>'; });
    if (fil) q = q.eq('camion',fil);
    var r = await q;
    var el = document.getElementById('tabla-hist');
@@ -806,7 +803,7 @@ async function loadReps() {
  }
 
 async function delReporte(id) {
-    if (!confirm('¿Eliminar este reporte?')) return;
+    if (!confirm('Â¿Eliminar este reporte?')) return;
     if (!isOnline) {
       addOfflineOp({type:'delete_reporte', data:id, timestamp:Date.now()});
       await loadAllReportes();
@@ -860,10 +857,10 @@ async function openOT(id) {
 
  async function enviarAlertasEmail() {
    var vencs = obtenerVencimientos();
-   if (!vencs.length) { showMsg('ok-msg','ok','No hay vencimientos próximos para alertar.'); return; }
+   if (!vencs.length) { showMsg('ok-msg','ok','No hay vencimientos prÃ³ximos para alertar.'); return; }
    var htmlBody = '<h2>Alertas de Vencimientos - M3 Flota</h2><ul>';
    vencs.forEach(function(v){
-     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+fmtFecha(v.fecha)+' ('+v.dias+' días)</li>';
+     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+fmtFecha(v.fecha)+' ('+v.dias+' dÃ­as)</li>';
    });
    htmlBody += '</ul>';
    try {
@@ -1263,7 +1260,7 @@ function normalizarNombrePestana(nombre) {
   if (n.indexOf('tector bomba') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('114') >= 0) return '114';
   if (n.indexOf('cat') >= 0 || n.indexOf('cargadora') >= 0 || n.indexOf('918') >= 0) return '918';
   if (n.indexOf('dimex') >= 0 || n.indexOf('106') >= 0 || n.indexOf('cms120') >= 0) return '106';
-  if (n.indexOf('carreton') >= 0 || n.indexOf('carretón') >= 0 || n.indexOf('ecomec') >= 0) return 'CARR';
+  if (n.indexOf('carreton') >= 0 || n.indexOf('carretÃ³n') >= 0 || n.indexOf('ecomec') >= 0) return 'CARR';
   if (n.indexOf('semi') >= 0 || n.indexOf('semirremolque') >= 0 || n.indexOf('gomatro') >= 0) return 'SEMI';
   return null;
 }
@@ -1283,13 +1280,13 @@ async function importGPS(input) {
     var localRaw = localStorage.getItem('m3v7_gps_viajes');
     var gpsExistentes = [];
     if (localRaw) { try { gpsExistentes = JSON.parse(localRaw); } catch(e) {} }
-    var pestañasEncontradas = [];
-    var pestañasIgnoradas = [];
+    var pestaÃ±asEncontradas = [];
+    var pestaÃ±asIgnoradas = [];
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
       var camionId = normalizarNombrePestana(sheetName);
-      if (!camionId) { pestañasIgnoradas.push(sheetName); continue; }
-      pestañasEncontradas.push(sheetName);
+      if (!camionId) { pestaÃ±asIgnoradas.push(sheetName); continue; }
+      pestaÃ±asEncontradas.push(sheetName);
       var ws = wb.Sheets[sheetName];
       var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
       if (!allRows || allRows.length < 3) { errores++; continue; }
@@ -1368,7 +1365,7 @@ async function renderGPSDash() {
       console.warn('Error leyendo localStorage GPS:', e);
     }
     if (!viajes || !viajes.length) {
-      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS. Subí el Excel desde el botón azul.</p>';
+      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS. SubÃ­ el Excel desde el botÃ³n azul.</p>';
       return;
     }
     viajes = viajes.slice(0, 200);
@@ -1415,7 +1412,7 @@ async function renderGPSDash() {
     for (var p=0; p<idsPendientes.length; p++) {
       var pid = idsPendientes[p];
       var d = porCamion[pid];
-      html += '<tr class="km-pendiente" onclick="alert(\'Camión no configurado en la flota: '+pid+'\\nAgregalo en Config para ver detalles.\')">';
+      html += '<tr class="km-pendiente" onclick="alert(\'CamiÃ³n no configurado en la flota: '+pid+'\\nAgregalo en Config para ver detalles.\')">';
       html += '<td>'+pid+' <span style="font-weight:400;color:var(--org);font-size:11px">(sin configurar)</span></td>';
       for (var i=0;i<7;i++) {
         html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
@@ -1434,3 +1431,4 @@ async function renderGPSDash() {
 }
 
 init();
+

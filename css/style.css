@@ -1,5 +1,5 @@
-/* =============================================
-   M3 FLOTA - SISTEMA DE DISEÑO PREMIUM
+﻿/* =============================================
+   M3 FLOTA - SISTEMA DE DISEÃ‘O PREMIUM
    ============================================= */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -497,7 +497,7 @@ body {
 }
 
 /* =============================================
-   DASHBOARD - Diseño Premium
+   DASHBOARD - DiseÃ±o Premium
    ============================================= */
 .dash-stat-grid {
   display: grid;
@@ -897,3 +897,4 @@ body {
   #qr-modal { display: flex !important; }
   #qr-print-area { display: flex !important; justify-content: center; padding: 20px; }
 }
+
