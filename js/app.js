@@ -836,8 +836,8 @@ async function loadHist() {
      if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
      html += '</span></div></div>';
    }
-   el.innerHTML = html;
- }
+  el.innerHTML = html;
+}
 
 async function delReporte(id) {
     if (!confirm('Â¿Eliminar este reporte?')) return;
