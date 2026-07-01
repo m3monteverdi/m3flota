@@ -772,7 +772,7 @@ async function loadReps() {
 }
 
 /* ============ HISTORIAL ============ */
- async function loadHist() { var el = document.getElementById('tabla-hist'); if (el) el.innerHTML = '<p style=\'color:#888;text-align:center;padding:2rem\'>Sin reportes.</p>'; });
+ async function loadHist() { var el = document.getElementById('tabla-hist'); if (el) el.innerHTML = '<p style=\'color:#888;text-align:center;padding:2rem\'>Sin reportes.</p>'; }
    if (fil) q = q.eq('camion',fil);
    var r = await q;
    var el = document.getElementById('tabla-hist');
