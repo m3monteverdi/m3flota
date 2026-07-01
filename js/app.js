@@ -1,4 +1,4 @@
-﻿var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
 var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
 var ADMIN_KEY = 'monteverdi';
 var EMAIL_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
@@ -802,40 +802,6 @@ async function loadHist() {
     if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
     html += '</span></div></div>';
   }
-  el.innerHTML = html;
-}
-  if (!data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
-  var html = '';
-  for (var i = 0; i < data.length; i++) {
-    var x = data[i];
-    html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+fmtFecha(x.fecha)+'</span></div>';
-    html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
-    html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';
-    html += '<span>'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
-    html += '<span style="display:flex;gap:6px">';
-    if (adminOk) {
-      html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:12px;padding:4px 8px"><i class="ti ti-trash"></i></button>';
-    }
-    if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
-    html += '</span></div></div>';
-  }
-  el.innerHTML = html;
-}
-   if (!data.length) { el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin reportes.</p>'; return; }
-   var html = '';
-   for (var i = 0; i < data.length; i++) {
-     var x = data[i];
-     html += '<div class="ri"><div class="rt"><span><span class="chip">'+x.camion+'</span>'+tbadge(x.tipo)+'</span><span style="font-size:12px;color:#888">'+fmtFecha(x.fecha)+'</span></div>';
-     html += '<div style="font-size:14px;margin:6px 0">'+x.descripcion.substring(0,80)+(x.descripcion.length>80?'...':'')+'</div>';
-     html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';
-     html += '<span>'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
-     html += '<span style="display:flex;gap:6px">';
-     if (adminOk) {
-       html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:12px;padding:4px 8px"><i class="ti ti-trash"></i></button>';
-     }
-     if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
-     html += '</span></div></div>';
-   }
   el.innerHTML = html;
 }
 
