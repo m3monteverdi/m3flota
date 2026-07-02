@@ -231,13 +231,7 @@ function registrarPreventivo() {
       setTimeout(registrarPreventivo, 100);
     }
   }, 200);
-} else {
-      setTimeout(mostrarPreventivoEnReportar, 100);
-    }
-  }, 200);
-}
-
-function showMsg(id, type, txt) {
+}function showMsg(id, type, txt) {
   var el = document.getElementById(id);
   el.querySelector('span').textContent = txt;
   el.className = 'msg ' + (type === 'ok' ? 'mok' : 'merr');
