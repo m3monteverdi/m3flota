@@ -588,7 +588,7 @@ function pickTipo(t) {
   document.getElementById('qp-step1').classList.add('hid');
   document.getElementById('qp-step2').classList.remove('hid');
   document.getElementById('falla-extra').classList.toggle('hid', t !== 'falla');
-  document.getElementById('r-cho-field').classList.toggle('hid', t === 'preventivo');
+  // chofer visible en preventivo
 }
 
 function qpBack() {
@@ -605,7 +605,7 @@ async function guardar() {
   var urg = document.getElementById('r-urg').value;
   var rep = document.getElementById('r-rep').value.trim();
   var fec = document.getElementById('r-fec').value;
-  if (!cam || !tip || !des) { showMsg('err-msg','err','Completa camion y descripcion.'); return; }
+  if (!cam || !cho || !tip || !des) { showMsg('err-msg','err','Completa camion, chofer y descripcion.'); return; }
   var esOT = (tip === 'falla');
   var id = esOT ? 'OT-'+String(otCounter).padStart(3,'0') : 'REP-'+Date.now();
   if (esOT) otCounter++;
