@@ -222,11 +222,15 @@ function askKey(btn) {
    else return;
  }
 
-function abrirPreventivoReparar() {
-  showTab('reparaciones', document.querySelectorAll('.tab')[2]);
+function mostrarPreventivoEnReportar() {
+  showTab('nuevo', document.querySelectorAll('.tab')[1]);
   setTimeout(function() {
-    pickTipo('preventivo');
-  }, 150);
+    if (document.getElementById('qp-step1') && document.getElementById('qp-step2')) {
+      pickTipo('preventivo');
+    } else {
+      setTimeout(mostrarPreventivoEnReportar, 100);
+    }
+  }, 200);
 }
 
 function showMsg(id, type, txt) {
