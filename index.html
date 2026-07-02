@@ -53,7 +53,6 @@
       <p style="font-size:15px;font-weight:800;margin-bottom:14px;text-align:center">Que ocurrio?</p>
       <div class="qpick-grid">
         <div class="qpick qp-falla" onclick="pickTipo('falla')"><i class="ti ti-alert-triangle"></i><div class="qpick-lbl">Falla</div></div>
-        <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo / Revision General</div></div>
         <div class="qpick qp-serv" onclick="pickTipo('service')"><i class="ti ti-tool"></i><div class="qpick-lbl">Service</div></div>
         <div class="qpick qp-engr" onclick="pickTipo('engrase')"><i class="ti ti-droplet"></i><div class="qpick-lbl">Engrase</div></div>
         <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">Neumaticos</div></div>
@@ -94,6 +93,12 @@
 <div class="pane" id="pane-reparaciones">
   <div class="msg mok" id="ok-rep" style="display:none"><i class="ti ti-check"></i><span></span></div>
   <div class="msg merr" id="err-rep" style="display:none"><i class="ti ti-alert-circle"></i><span></span></div>
+  <div class="card">
+    <p style="font-size:15px;font-weight:800;margin-bottom:14px;text-align:center">Que ocurrio?</p>
+    <div class="qpick-grid">
+      <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo / Revision General</div></div>
+    </div>
+  </div>
   <div class="card" id="buscador-ot">
     <p style="font-size:14px;font-weight:800;margin-bottom:10px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-tool"></i> Registrar reparacion</p>
     <div class="field"><label>Filtrar por camion</label>
