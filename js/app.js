@@ -1,4 +1,4 @@
-var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+﻿var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
 var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
 var ADMIN_KEY = 'monteverdi';
 var EMAIL_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
@@ -1283,13 +1283,13 @@ async function importGPS(input) {
     var localRaw = localStorage.getItem('m3v7_gps_viajes');
     var gpsExistentes = [];
     if (localRaw) { try { gpsExistentes = JSON.parse(localRaw); } catch(e) {} }
-    var pestaÃ±asEncontradas = [];
-    var pestaÃ±asIgnoradas = [];
+    var pestañasEncontradas = [];
+    var pestañasIgnoradas = [];
     for (var s=0; s<wb.SheetNames.length; s++) {
       var sheetName = wb.SheetNames[s];
       var camionId = normalizarNombrePestana(sheetName);
-      if (!camionId) { pestaÃ±asIgnoradas.push(sheetName); continue; }
-      pestaÃ±asEncontradas.push(sheetName);
+      if (!camionId) { pestañasIgnoradas.push(sheetName); continue; }
+      pestañasEncontradas.push(sheetName);
       var ws = wb.Sheets[sheetName];
       var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
       if (!allRows || allRows.length < 3) { errores++; continue; }
