@@ -999,17 +999,17 @@ async function delChofer(id) {
 }
 
 /* ============ SEGURO FLOTA ============ */
-async function subirSeguro(input) {
+async function subirSeguroAdmin(input) {
   var file = input.files[0];
   if (!file) return;
   if (file.type !== 'application/pdf') { alert('Solo se aceptan archivos PDF.'); return; }
-  var statusEl = document.getElementById('seguro-status');
+  var statusEl = document.getElementAdminId('seguro-admin-status');
   if (statusEl) statusEl.innerHTML = '<i class="ti ti-loader"></i> Subiendo póliza...';
   try {
     var reader = new FileReader();
     reader.onload = function(e) {
       try { localStorage.setItem('m3v8_seguro_pdf', e.target.result); } catch(err) {}
-      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada. <a href="#" onclick="verSeguro(event)" style="color:var(--az)">Ver póliza</a>';
+      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada correctamente.';
     };
     reader.readAsDataURL(file);
   } catch(err) {
@@ -1018,27 +1018,22 @@ async function subirSeguro(input) {
   input.value = '';
 }
 
-function verSeguro(e) {
-  e.preventDefault();
+function verSeguro() {
   var pdf = localStorage.getItem('m3v8_seguro_pdf');
-  if (!pdf) { alert('No hay póliza cargada.'); return; }
-  try {
-    var base64 = pdf.split(',')[1];
-    var binary = atob(base64);
-    var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'poliza-seguro.pdf';
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() { URL.revokeObjectURL(url); document.body.removeChild(a); }, 100);
-  } catch(err) {
-    alert('Error al abrir la póliza: ' + err.message);
+  if (!pdf) { alert('No hay póliza cargada. Contactá al administrador.'); return; }
+  var modal = document.getElementById('seguro-modal');
+  var frame = document.getElementById('seguro-pdf-frame');
+  if (modal && frame) {
+    frame.src = pdf;
+    modal.style.display = 'flex';
   }
+}
+
+function closeSeguroModal() {
+  var modal = document.getElementById('seguro-modal');
+  var frame = document.getElementById('seguro-pdf-frame');
+  if (modal) modal.style.display = 'none';
+  if (frame) frame.src = '';
 }
 
 /* ============ INFORME EXCEL COMPLETO ============ */
