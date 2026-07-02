@@ -1029,7 +1029,13 @@ function verSeguro(e) {
     for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
     var url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'poliza-seguro.pdf';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); document.body.removeChild(a); }, 100);
   } catch(err) {
     alert('Error al abrir la póliza: ' + err.message);
   }
