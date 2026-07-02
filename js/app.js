@@ -220,6 +220,13 @@ function askKey(btn) {
    if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
    else if (c !== null) alert('Clave incorrecta.');
    else return;
+ }
+
+function abrirPreventivoReparar() {
+  showTab('reparaciones', document.querySelectorAll('.tab')[2]);
+  setTimeout(function() {
+    pickTipo('preventivo');
+  }, 150);
 }
 
 function showMsg(id, type, txt) {
