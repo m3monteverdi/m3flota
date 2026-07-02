@@ -33,7 +33,7 @@
 <div class="pane on" id="pane-flota">
   <div class="search-box">
     <i class="ti ti-search"></i>
-    <input type="text" id="search-flota" placeholder="Buscar camion, chofer o modelo..." oninput="renderFlota()">
+    <input type="text" id="search-flota" placeholder="Buscar camion, maquinista o modelo..." oninput="renderFlota()">
   </div>
   <div class="flota-grid" id="flota-grid"><div class="loader">Cargando...</div></div>
 </div>
@@ -173,16 +173,16 @@
     <button class="bo" onclick="addCamion()" style="width:100%"><i class="ti ti-plus"></i> Agregar camion</button>
   </div>
   <div class="card">
-    <p style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Choferes</p>
-    <div id="lista-choferes" style="margin-bottom:12px"></div>
+    <p style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Maquinistas</p>
+    <div id="lista-Maquinistas" style="margin-bottom:12px"></div>
     <div style="display:flex;gap:8px">
-      <input type="text" id="nc-cho" placeholder="Nombre del chofer" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px;flex:1">
-      <button class="bo" onclick="addChofer()"><i class="ti ti-plus"></i> Agregar</button>
+      <input type="text" id="nc-cho" placeholder="Nombre del maquinista" style="font-size:14px;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px;flex:1">
+      <button class="bo" onclick="addmaquinista()"><i class="ti ti-plus"></i> Agregar</button>
     </div>
   </div>
   <div class="card">
     <p style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-shield"></i> Póliza de Seguro</p>
-    <p style="font-size:12px;color:#888;margin-bottom:10px">Subí la póliza de seguro para que los choferes la vean en Flota.</p>
+    <p style="font-size:12px;color:#888;margin-bottom:10px">Subí la póliza de seguro para que los Maquinistas la vean en Flota.</p>
     <input type="file" id="seguro-file-admin" accept=".pdf" style="display:none" onchange="subirSeguroAdmin(this)">
     <button class="bp" onclick="document.getElementById('seguro-file-admin').click()" style="width:100%"><i class="ti ti-upload"></i> Subir Póliza</button>
     <div id="seguro-admin-status" style="font-size:12px;color:#888;margin-top:6px"></div>
