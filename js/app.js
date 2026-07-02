@@ -222,12 +222,16 @@ function askKey(btn) {
    else return;
  }
 
-function mostrarPreventivoEnReportar() {
+function registrarPreventivo() {
   showTab('nuevo', document.querySelectorAll('.tab')[1]);
   setTimeout(function() {
     if (document.getElementById('qp-step1') && document.getElementById('qp-step2')) {
       pickTipo('preventivo');
     } else {
+      setTimeout(registrarPreventivo, 100);
+    }
+  }, 200);
+} else {
       setTimeout(mostrarPreventivoEnReportar, 100);
     }
   }, 200);
