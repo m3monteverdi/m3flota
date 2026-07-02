@@ -1022,9 +1022,17 @@ function verSeguro(e) {
   e.preventDefault();
   var pdf = localStorage.getItem('m3v8_seguro_pdf');
   if (!pdf) { alert('No hay póliza cargada.'); return; }
-  var w = window.open('', '_blank');
-  w.document.write('<html><head><title>Póliza de Seguro</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><iframe src="'+pdf+'" style="width:90vw;height:90vh;border:none"></iframe></body></html>');
-  w.document.close();
+  try {
+    var base64 = pdf.split(',')[1];
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
+    var url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch(err) {
+    alert('Error al abrir la póliza: ' + err.message);
+  }
 }
 
 /* ============ INFORME EXCEL COMPLETO ============ */
