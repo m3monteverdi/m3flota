@@ -208,6 +208,7 @@ function showTab(id, btn) {
   if (btn) btn.classList.add('on');
   if (id === 'historial') loadHist();
   if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
+  if (id === 'dash') return;
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
   if (id === 'nuevo') { qpReset(); }
@@ -296,7 +297,73 @@ function generarRecomendaciones(camId) {
   return recs;
 }
 
-function loadConfig() {
+/* ============ DASHBOARD ============ */
+async function renderDash() {
+  await loadAllReportes();
+  var totalCam = resData.length;
+  var op = resData.filter(function(c){return c.est==='DISPONIBLE';}).length;
+  var rep = totalCam - op;
+
+  var vencs = [];
+  for (var i=0;i<resData.length;i++) {
+    var c = resData[i];
+    ['rto','seg'].forEach(function(k){
+      var d = diasHasta(c[k]);
+      if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k], cho:c.cho, nom:c.nom});
+    });
+  }
+  vencs.sort(function(a,b){return a.dias-b.dias;});
+
+  var elOp = document.getElementById('d-op');
+  if (elOp) elOp.textContent = op;
+  var elRep = document.getElementById('d-rep');
+  if (elRep) elRep.textContent = rep;
+  var elAlert = document.getElementById('d-alert');
+  if (elAlert) elAlert.textContent = vencs.length;
+  var elMant = document.getElementById('d-mant');
+  if (elMant) elMant.textContent = allReportes.filter(function(r){
+    var f = new Date(r.fecha);
+    var hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
+    return f >= hace30 && (r.tipo==='service'||r.tipo==='engrase'||r.tipo==='preventivo'||r.tipo==='neumatico');
+  }).length;
+
+  var vencEl = document.getElementById('d-vencs');
+  if (!vencEl) return;
+  if (!vencs.length) {
+    vencEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin vencimientos prÃ³ximos.</p>';
+  } else {
+    var html2 = '';
+    for (var i=0;i<Math.min(vencs.length,8);i++) {
+      var v = vencs[i];
+      var badgeClass = v.dias < 0 ? 'bred' : (v.dias < 10 ? 'bred' : 'bamb');
+      var txt = v.dias < 0 ? 'VENCIDO' : v.dias + ' dÃ­as';
+      html2 += '<div class="venc-item"><span style="font-size:13px;font-weight:600">'+v.tipo+' - CamiÃ³n '+v.cam+' ('+v.cho+')</span><span class="badge '+badgeClass+'">'+txt+'</span></div>';
+    }
+    vencEl.innerHTML = html2;
+  }
+
+  var activEl = document.getElementById('d-activ');
+  var ultimos = allReportes.slice(0,6);
+  if (!ultimos.length) {
+    activEl.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin actividad.</p>';
+  } else {
+    var colores = {falla:'#DC2626',service:'#D97706',reparacion:'#7C3AED',preventivo:'#16A34A',engrase:'#1A56DB',neumatico:'#9333EA'};
+    var labels = {falla:'Falla',service:'Service',reparacion:'ReparaciÃ³n',preventivo:'Preventivo',engrase:'Engrase'};
+    var html = '';
+    for (var i=0;i<ultimos.length;i++) {
+      var x = ultimos[i];
+      var col = colores[x.tipo] || '#888';
+      html += '<div class="activ-item"><div class="activ-dot" style="background:'+col+'"></div><div style="flex:1">';
+      html += '<div class="activ-tit">'+labels[x.tipo]+' - '+x.camion+'</div>';
+      html += '<div class="activ-sub">'+x.descripcion.substring(0,45)+(x.descripcion.length>45?'...':'')+'</div>';
+      html += '<div class="activ-time">'+fmtFecha(x.fecha)+'</div></div></div>';
+    }
+    activEl.innerHTML = html;
+  }
+  renderGPSDash();
+}
+
+/* ============ FLOTA (tarjetas) ============ */
 function getAlertPriority(c) {
   var hasUrgent = false;
   var hasVencimiento = false;
@@ -775,6 +842,7 @@ async function delReporte(id) {
     await loadAllReportes();
     await loadHist();
     if (document.getElementById('pane-reparaciones').classList.contains('on')) { loadOTs(); loadReps(); }
+    if (document.getElementById('pane-dashboard').classList.contains('on') || document.getElementById('pane-dash').classList.contains('on')) { renderDash(); }
   }
 
 async function openOT(id) {
@@ -787,6 +855,53 @@ async function openOT(id) {
    document.getElementById('qp-step1').classList.add('hid');
    document.getElementById('qp-step2').classList.add('hid');
    showOT(r.data);
+ }
+
+ /* ============ NOTIFICACIONES EMAIL ============ */
+ function obtenerVencimientos() {
+   var vencs = [];
+   for (var i=0;i<resData.length;i++) {
+     var c = resData[i];
+     ['rto','seg'].forEach(function(k){
+        var d = diasHasta(c[k]);
+        if (d !== null && d < 10) vencs.push({cam:c.id, tipo:k==='rto'?'RTO':'Seguro', dias:d, fecha:c[k], cho:c.cho, nom:c.nom});
+     });
+   }
+   return vencs.sort(function(a,b){return a.dias-b.dias;});
+ }
+
+ async function enviarAlertasEmail() {
+   var vencs = obtenerVencimientos();
+   if (!vencs.length) { showMsg('ok-msg','ok','No hay vencimientos prÃ³ximos para alertar.'); return; }
+   var htmlBody = '<h2>Alertas de Vencimientos - M3 Flota</h2><ul>';
+   vencs.forEach(function(v){
+     htmlBody += '<li><strong>'+v.cam+'</strong> - '+v.tipo+': '+fmtFecha(v.fecha)+' ('+v.dias+' dÃ­as)</li>';
+   });
+   htmlBody += '</ul>';
+   try {
+     if (EMAIL_PUBLIC_KEY === 'user_xxx') {
+       alert('Configurar EmailJS: SERVICE_ID, TEMPLATE_ID y PUBLIC_KEY en app.js');
+       return;
+     }
+     var res = await fetch(EMAIL_ENDPOINT, {
+       method: 'POST',
+       headers: {'Content-Type': 'application/json'},
+       body: JSON.stringify({
+         service_id: EMAIL_SERVICE_ID,
+         template_id: EMAIL_TEMPLATE_ID,
+         user_id: EMAIL_PUBLIC_KEY,
+         template_params: {
+           to_email: 'm3.monteverdi@gmail.com',
+           subject: 'Alertas de Vencimientos - M3 Flota',
+           html_body: htmlBody
+         }
+       })
+     });
+     if (res.ok) showMsg('ok-msg','ok','Alertas enviadas a m3.monteverdi@gmail.com');
+     else showMsg('err-msg','err','Error enviando email');
+   } catch(e) {
+     showMsg('err-msg','err','Error: '+e.message);
+   }
  }
 
 /* ============ CONFIG ============ */
@@ -1163,6 +1278,219 @@ async function saveEditCamion() {
 function toggleFlota() {
   flotaExpandida = !flotaExpandida;
   renderFlota();
+}
+
+var GPS_MAP = {
+  'Hidrogrua': '107',
+  '99': '109',
+  'Isuzu': '116',
+  'Mercedes Accelo': '115',
+  'Toyota Hilux': 'HILUX',
+  'Mercedes Hidro': '107',
+  'Iveco Cursor': '109',
+  'Iveco Trakker 350': '100',
+  'Iveco Tector Attack': '101',
+  'Scania P380': '102',
+  'Scania P420': '104',
+  'Scania 380': '105',
+  'Iveco Trakker 380': '108',
+  'Iveco Trakker 410': '110',
+  'Ford Cargo': '113',
+  'Iveco Tector Bomba': '114',
+  'Cat Cargadora': '918',
+  'Dimex': '106',
+  'Carreton': 'CARR',
+  'Semi': 'SEMI'
+};
+
+function normalizarNombrePestana(nombre) {
+  if (!nombre) return null;
+  var n = nombre.toLowerCase().trim();
+  if (n.indexOf('hidro') >= 0 || n.indexOf('107') >= 0) return '107';
+  if (n.indexOf('99') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('tector bomba') >= 0 || n.indexOf('114') >= 0) return '114';
+  if (n.indexOf('cursor') >= 0 || n.indexOf('iveco cursor') >= 0 || n.indexOf('109') >= 0) return '109';
+  if (n.indexOf('accelo') >= 0 || n.indexOf('acelo') >= 0 || n.indexOf('115') >= 0) return '115';
+  if (n.indexOf('hilux') >= 0 || n.indexOf('toyota') >= 0) return 'HILUX';
+  if (n.indexOf('isuzu') >= 0 || n.indexOf('npr') >= 0 || n.indexOf('npr75') >= 0 || n.indexOf('116') >= 0 || n.indexOf('isuzu npr') >= 0) return '116';
+  if (n.indexOf('trakker 350') >= 0 || n.indexOf('100') >= 0) return '100';
+  if (n.indexOf('tector attack') >= 0 || n.indexOf('101') >= 0 || n.indexOf('ag-160') >= 0) return '101';
+  if (n.indexOf('scania p380') >= 0 || n.indexOf('p380') >= 0 || n.indexOf('102') >= 0) return '102';
+  if (n.indexOf('scania p420') >= 0 || n.indexOf('p420') >= 0 || n.indexOf('104') >= 0) return '104';
+  if (n.indexOf('scania 380') >= 0 || n.indexOf('105') >= 0) return '105';
+  if (n.indexOf('trakker 380') >= 0 || n.indexOf('108') >= 0) return '108';
+  if (n.indexOf('trakker 410') >= 0 || n.indexOf('110') >= 0) return '110';
+  if (n.indexOf('ford') >= 0 || n.indexOf('cargo') >= 0 || n.indexOf('113') >= 0) return '113';
+  if (n.indexOf('tector bomba') >= 0 || n.indexOf('bomba') >= 0 || n.indexOf('114') >= 0) return '114';
+  if (n.indexOf('cat') >= 0 || n.indexOf('cargadora') >= 0 || n.indexOf('918') >= 0) return '918';
+  if (n.indexOf('dimex') >= 0 || n.indexOf('106') >= 0 || n.indexOf('cms120') >= 0) return '106';
+  if (n.indexOf('carreton') >= 0 || n.indexOf('carretÃ³n') >= 0 || n.indexOf('ecomec') >= 0) return 'CARR';
+  if (n.indexOf('semi') >= 0 || n.indexOf('semirremolque') >= 0 || n.indexOf('gomatro') >= 0) return 'SEMI';
+  return null;
+}
+
+async function importGPS(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var statusEl = document.getElementById('gps-status');
+  statusEl.innerHTML = '<i class="ti ti-loader"></i> Procesando...';
+  try {
+    var data = await file.arrayBuffer();
+    var wb = XLSX.read(data, {type:'array'});
+    var viajesNuevos = [];
+    var insertados = 0;
+    var duplicados = 0;
+    var errores = 0;
+    var localRaw = localStorage.getItem('m3v7_gps_viajes');
+    var gpsExistentes = [];
+    if (localRaw) { try { gpsExistentes = JSON.parse(localRaw); } catch(e) {} }
+    var pestañasEncontradas = [];
+    var pestañasIgnoradas = [];
+    for (var s=0; s<wb.SheetNames.length; s++) {
+      var sheetName = wb.SheetNames[s];
+      var camionId = normalizarNombrePestana(sheetName);
+      if (!camionId) { pestañasIgnoradas.push(sheetName); continue; }
+      pestañasEncontradas.push(sheetName);
+      var ws = wb.Sheets[sheetName];
+      var allRows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      if (!allRows || allRows.length < 3) { errores++; continue; }
+      var headerIdx = -1;
+      for (var h=0; h<allRows.length; h++) {
+        var hr = allRows[h];
+        if (hr && hr.length >= 10 && typeof hr[3] === 'string' && hr[3].toLowerCase().indexOf('comienzo') >= 0) {
+          headerIdx = h; break;
+        }
+      }
+      if (headerIdx < 0) { errores++; continue; }
+      var dataRows = allRows.slice(headerIdx + 1);
+      for (var i=0; i<dataRows.length; i++) {
+        var row = dataRows[i];
+        if (!row) continue;
+        var viajesVal = parseFloat(row[1]) || 0;
+        var kmFinRaw = row[9];
+        var kmFin = parseFloat(String(kmFinRaw).replace(/[^\d.]/g,'')) || 0;
+        var kmInicioRaw = row[6];
+        var kmInicio = parseFloat(String(kmInicioRaw).replace(/[^\d.]/g,'')) || 0;
+        var kmRec = kmFin - kmInicio;
+        if (kmRec < 0) kmRec = kmFin;
+        var fechaRaw = row[3] || row[4] || row[5];
+        var fecha = null;
+        if (fechaRaw) {
+          if (typeof fechaRaw === 'number') {
+            try { var d = XLSX.SSF.parse_date_code(fechaRaw); fecha = d.y+'-'+String(d.m).padStart(2,'0')+'-'+String(d.d).padStart(2,'0'); } catch(e) {}
+          } else {
+            var fStr = String(fechaRaw).trim().split(' ')[0];
+            var m = fStr.match(/(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})/);
+            if (m) {
+              var parts = m[0].split(/[\/\-]/);
+              if (parts[0].length === 4) fecha = parts[0]+'-'+parts[1].padStart(2,'0')+'-'+parts[2].padStart(2,'0');
+              else fecha = parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0');
+            }
+          }
+        }
+        if (!fecha || !kmFin) continue;
+        var key = camionId+'|'+fecha;
+        var yaExiste = gpsExistentes.some(function(g){ return g.camion===camionId && g.fecha===fecha; });
+        if (yaExiste) { duplicados++; continue; }
+        viajesNuevos.push({ camion: camionId, fecha: fecha, viajes: viajesVal, km_inicio: kmInicio, km_fin: kmFin, km_recorridos: kmRec });
+        gpsExistentes.push(viajesNuevos[viajesNuevos.length-1]);
+        insertados++;
+      }
+    }
+    if (viajesNuevos.length > 0) {
+      var local = JSON.parse(localStorage.getItem('m3v7_gps_viajes') || '[]');
+      var localMap = {};
+      for (var l=0; l<local.length; l++) localMap[local[l].camion+'|'+local[l].fecha] = local[l];
+      for (var vn=0; vn<viajesNuevos.length; vn++) localMap[viajesNuevos[vn].camion+'|'+viajesNuevos[vn].fecha] = viajesNuevos[vn];
+      localStorage.setItem('m3v7_gps_viajes', JSON.stringify(Object.keys(localMap).map(function(k){ return localMap[k]; })));
+    }
+    statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Cargados: '+insertados+' | Duplicados: '+duplicados+' | Errores: '+errores;
+    setTimeout(function(){ statusEl.innerHTML = ''; }, 6000);
+  } catch(e) {
+    statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error al procesar archivo.';
+  }
+  input.value = '';
+}
+
+renderFlota();
+
+async function renderGPSDash() {
+  try {
+    var tabla = document.getElementById('d-km-table');
+    if (!tabla) return;
+    tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem"><i class="ti ti-loader"></i> Cargando km...</p>';
+    var viajes = [];
+    try {
+      var localRaw = localStorage.getItem('m3v7_gps_viajes');
+      if (localRaw) {
+        viajes = JSON.parse(localRaw);
+      }
+    } catch(e) {
+      console.warn('Error leyendo localStorage GPS:', e);
+    }
+    if (!viajes || !viajes.length) {
+      tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Sin datos GPS. SubÃ­ el Excel desde el botÃ³n azul.</p>';
+      return;
+    }
+    viajes = viajes.slice(0, 200);
+    var hoy = new Date();
+    var fechasSemana = [];
+    var lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    for (var i=0;i<7;i++) {
+      var d = new Date(lunes);
+      d.setDate(lunes.getDate()+i);
+      fechasSemana.push(d.toISOString().split('T')[0]);
+    }
+    var mesActual = hoy.toISOString().substring(0,7);
+    var porCamion = {};
+    for (var v=0; v<viajes.length; v++) {
+      var x = viajes[v];
+      if (!x.camion || !x.fecha) continue;
+      if (!porCamion[x.camion]) porCamion[x.camion] = { semana:[0,0,0,0,0,0,0], mes:0 };
+      var idx = fechasSemana.indexOf(x.fecha);
+      if (idx >= 0) porCamion[x.camion].semana[idx] = x.km_recorridos || 0;
+      if (x.fecha.substring(0,7) === mesActual) porCamion[x.camion].mes += (x.km_recorridos || 0);
+    }
+    var html = '<div class="km-table-wrap"><table class="km-table">';
+    html += '<thead><tr>';
+    html += '<th>Camion</th><th>Lun</th><th>Mar</th><th>Mie</th><th>Jue</th><th>Vie</th><th>Sab</th><th>Dom</th>';
+    html += '<th class="km-mes-col">Mes</th></tr></thead><tbody>';
+    for (var c=0; c<resData.length; c++) {
+      var cam = resData[c];
+      if (!camionVisible(cam)) continue;
+      var d = porCamion[cam.id] || {semana:[0,0,0,0,0,0,0],mes:0};
+      var rowBg = cam.est==='REPARACION' ? 'km-reparacion' : '';
+      html += '<tr class="'+rowBg+'" onclick="abrirDetalle(\''+cam.id+'\')">';
+      html += '<td>'+cam.id+' <span style="font-weight:400;color:var(--muted);font-size:11px">'+(cam.nom||'')+'</span></td>';
+      for (var i=0;i<7;i++) {
+        html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
+      }
+      html += '<td class="km-mes-col">'+(d.mes ? d.mes.toLocaleString('es-AR') : '-')+'</td>';
+      html += '</tr>';
+    }
+    var idsPendientes = [];
+    if (porCamion && typeof porCamion === 'object') {
+      idsPendientes = Object.keys(porCamion).filter(function(id) { return !resData.some(function(c){ return c.id===id && camionVisible(c); }); });
+    }
+    for (var p=0; p<idsPendientes.length; p++) {
+      var pid = idsPendientes[p];
+      var d = porCamion[pid];
+      html += '<tr class="km-pendiente" onclick="alert(\'CamiÃ³n no configurado en la flota: '+pid+'\\nAgregalo en Config para ver detalles.\')">';
+      html += '<td>'+pid+' <span style="font-weight:400;color:var(--org);font-size:11px">(sin configurar)</span></td>';
+      for (var i=0;i<7;i++) {
+        html += '<td>'+(d.semana[i] ? '<span style="font-weight:700;color:var(--az)">'+d.semana[i].toLocaleString('es-AR')+'</span>' : '<span style="color:var(--muted)">-</span>')+'</td>';
+      }
+      html += '<td class="km-mes-col">'+(d.mes ? d.mes.toLocaleString('es-AR') : '-')+'</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    html += '<p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right"><i class="ti ti-info-circle"></i> Semana '+fechasSemana[0]+' al '+fechasSemana[6]+' | Mes: '+mesActual+'</p>';
+    tabla.innerHTML = html;
+  } catch(e) {
+    console.error('Error dashboard GPS:', e);
+    var tabla = document.getElementById('d-km-table');
+    if (tabla) tabla.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:1rem">Error al cargar GPS.</p>';
+  }
 }
 
 init();
