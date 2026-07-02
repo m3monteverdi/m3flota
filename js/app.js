@@ -998,6 +998,35 @@ async function delChofer(id) {
   await loadChoferes(); loadConfig();
 }
 
+/* ============ SEGURO FLOTA ============ */
+async function subirSeguro(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { alert('Solo se aceptan archivos PDF.'); return; }
+  var statusEl = document.getElementById('seguro-status');
+  if (statusEl) statusEl.innerHTML = '<i class="ti ti-loader"></i> Subiendo póliza...';
+  try {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try { localStorage.setItem('m3v8_seguro_pdf', e.target.result); } catch(err) {}
+      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada. <a href="#" onclick="verSeguro(event)" style="color:var(--az)">Ver póliza</a>';
+    };
+    reader.readAsDataURL(file);
+  } catch(err) {
+    if (statusEl) statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error: '+err.message;
+  }
+  input.value = '';
+}
+
+function verSeguro(e) {
+  e.preventDefault();
+  var pdf = localStorage.getItem('m3v8_seguro_pdf');
+  if (!pdf) { alert('No hay póliza cargada.'); return; }
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title>Póliza de Seguro</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><iframe src="'+pdf+'" style="width:90vw;height:90vh;border:none"></iframe></body></html>');
+  w.document.close();
+}
+
 /* ============ INFORME EXCEL COMPLETO ============ */
  async function exportExcel() {
     if (!adminOk) { alert('Necesitas clave de administrador para generar informes.'); return; }

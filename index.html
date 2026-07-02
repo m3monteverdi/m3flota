@@ -34,6 +34,9 @@
   <div class="search-box">
     <i class="ti ti-search"></i>
     <input type="text" id="search-flota" placeholder="Buscar camion, chofer o modelo..." oninput="renderFlota()">
+    <button class="bo" onclick="document.getElementById('seguro-file').click()" style="margin-left:8px"><i class="ti ti-shield"></i> SEGURO</button>
+    <input type="file" id="seguro-file" accept=".pdf" style="display:none" onchange="subirSeguro(this)">
+    <div id="seguro-status" style="font-size:12px;color:#888;margin-top:4px"></div>
   </div>
   <div class="flota-grid" id="flota-grid"><div class="loader">Cargando...</div></div>
 </div>
@@ -51,10 +54,10 @@
       <p style="font-size:15px;font-weight:800;margin-bottom:14px;text-align:center">Que ocurrio?</p>
       <div class="qpick-grid">
         <div class="qpick qp-falla" onclick="pickTipo('falla')"><i class="ti ti-alert-triangle"></i><div class="qpick-lbl">Falla</div></div>
-        <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo</div></div>
+        <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo / Revision General</div></div>
         <div class="qpick qp-serv" onclick="pickTipo('service')"><i class="ti ti-tool"></i><div class="qpick-lbl">Service</div></div>
         <div class="qpick qp-engr" onclick="pickTipo('engrase')"><i class="ti ti-droplet"></i><div class="qpick-lbl">Engrase</div></div>
-        <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">NeumÃ¡ticos</div></div>
+        <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">Neumaticos</div></div>
       </div>
     </div>
   </div>
