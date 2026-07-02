@@ -1003,12 +1003,15 @@ async function subirSeguroAdmin(input) {
   var file = input.files[0];
   if (!file) return;
   if (file.type !== 'application/pdf') { alert('Solo se aceptan archivos PDF.'); return; }
-  var statusEl = document.getElementAdminId('seguro-admin-status');
+  var statusEl = document.getElementById('seguro-admin-status');
   if (statusEl) statusEl.innerHTML = '<i class="ti ti-loader"></i> Subiendo póliza...';
   try {
     var reader = new FileReader();
     reader.onload = function(e) {
-      try { localStorage.setItem('m3v8_seguro_pdf', e.target.result); } catch(err) {}
+      try {
+        localStorage.setItem('m3v8_seguro_pdf', e.target.result);
+        sb.from('seguro_poliza').upsert({id:1, pdf:e.target.result}).then(function(){});
+      } catch(err) {}
       if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada correctamente.';
     };
     reader.readAsDataURL(file);
@@ -1018,9 +1021,16 @@ async function subirSeguroAdmin(input) {
   input.value = '';
 }
 
-function verSeguro() {
+async function verSeguro() {
   var pdf = localStorage.getItem('m3v8_seguro_pdf');
+  if (!pdf) {
+    try {
+      var r = await sb.from('seguro_poliza').select('pdf').eq('id',1).single();
+      if (r.data && r.data.pdf) pdf = r.data.pdf;
+    } catch(e) {}
+  }
   if (!pdf) { alert('No hay póliza cargada. Contactá al administrador.'); return; }
+  try { localStorage.setItem('m3v8_seguro_pdf', pdf); } catch(e) {}
   var modal = document.getElementById('seguro-modal');
   var frame = document.getElementById('seguro-pdf-frame');
   if (modal && frame) {
