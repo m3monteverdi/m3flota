@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <title>M3 Monteverdi Cubico</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚛</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ðŸš›</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,7 @@
     <div class="htit" style="font-size:22px;letter-spacing:.5px">WorkFlot</div>
     <div class="hsub" id="hdr-sub">M3 Monteverdi Cubico</div>
   </div>
-  <div id="online-badge" class="online-badge on" style="margin-left:auto"><i class="ti ti-wifi"></i> En línea</div>
+  <div id="online-badge" class="online-badge on" style="margin-left:auto"><i class="ti ti-wifi"></i> En lÃ­nea</div>
 </div>
 <div class="tabs noprint">
    <button class="tab on" onclick="showTab('flota',this)"><i class="ti ti-truck"></i>Flota</button>
@@ -54,7 +54,7 @@
         <div class="qpick qp-prev" onclick="pickTipo('preventivo')"><i class="ti ti-shield-check"></i><div class="qpick-lbl">Preventivo</div></div>
         <div class="qpick qp-serv" onclick="pickTipo('service')"><i class="ti ti-tool"></i><div class="qpick-lbl">Service</div></div>
         <div class="qpick qp-engr" onclick="pickTipo('engrase')"><i class="ti ti-droplet"></i><div class="qpick-lbl">Engrase</div></div>
-        <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">Neumáticos</div></div>
+        <div class="qpick qp-neum" onclick="pickTipo('neumatico')"><i class="ti ti-circle-dot"></i><div class="qpick-lbl">NeumÃ¡ticos</div></div>
       </div>
     </div>
   </div>
@@ -132,17 +132,17 @@
   <div class="pane" id="pane-dash">
     <div class="card card-blue" style="margin-bottom:12px">
       <p style="font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px"><i class="ti ti-map"></i> Cargar viajes GPS (PowerFleet)</p>
-      <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">Subí el Excel de TripsInformationSummary para ver los km por camión.</p>
+      <p style="font-size:12px;opacity:.8;margin-top:4px;margin-bottom:12px">SubÃ­ el Excel de TripsInformationSummary para ver los km por camiÃ³n.</p>
       <input type="file" id="gps-file" accept=".xlsx,.xls" style="display:none" onchange="importGPS(this)">
       <button class="bp" onclick="document.getElementById('gps-file').click()" style="background:rgba(255,255,255,.2);box-shadow:none;border:2px solid rgba(255,255,255,.5)"><i class="ti ti-upload"></i> Subir Excel GPS</button>
       <div id="gps-status" style="margin-top:8px;font-size:12px"></div>
     </div>
     <div class="card" style="margin-bottom:12px">
-      <p class="dash-sec-tit"><i class="ti ti-gauge"></i> Kilómetros por camión</p>
+      <p class="dash-sec-tit"><i class="ti ti-gauge"></i> KilÃ³metros por camiÃ³n</p>
       <div id="d-km-table" style="min-height:60px"></div>
     </div>
     <div class="card" style="margin-bottom:12px">
-      <p class="dash-sec-tit"><i class="ti ti-history"></i> Última actividad</p>
+      <p class="dash-sec-tit"><i class="ti ti-history"></i> Ãšltima actividad</p>
       <div id="d-activ"></div>
     </div>
     <div class="card card-blue" style="margin-bottom:12px">
@@ -207,6 +207,6 @@
 </div>
 
 <script src="https://unpkg.com/qrcode/build/qrcode.min.js" defer></script>
-<script src="js/app.js?v=13" defer></script>
+<script src="js/app.js?v=14" defer></script>
 </body>
 </html>
