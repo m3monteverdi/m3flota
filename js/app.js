@@ -123,8 +123,11 @@ async function init() {
      await loadCamionesOffline();
      await loadChoferes();
      await loadOTCounter();
-     await loadAllReportes();
-    var urlParams = new URLSearchParams(window.location.search);
+  await loadAllReportes();
+  if (!otsArchivadas.length) {
+    otsArchivadas = allReportes.filter(function(x){ return x.es_ot; });
+  }
+  var urlParams = new URLSearchParams(window.location.search);
     var camionParam = urlParams.get('camion');
     var tabParam = urlParams.get('tab');
     if (camionParam) {
