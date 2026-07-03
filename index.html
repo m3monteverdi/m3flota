@@ -22,13 +22,14 @@
   </div>
   <div id="online-badge" class="online-badge on" style="margin-left:auto"><i class="ti ti-wifi"></i> En linea</div>
 </div>
-<div class="tabs noprint">
-   <button class="tab on" onclick="showTab('flota',this)"><i class="ti ti-truck"></i>Flota</button>
-   <button class="tab" onclick="showTab('nuevo',this)"><i class="ti ti-circle-plus"></i>Reportar</button>
-   <button class="tab" onclick="showTab('reparaciones',this)"><i class="ti ti-tool"></i>Reparar</button>
+  <div class="tabs noprint">
+    <button class="tab on" onclick="showTab('flota',this)"><i class="ti ti-truck"></i>Flota</button>
+    <button class="tab" onclick="showTab('nuevo',this)"><i class="ti ti-circle-plus"></i>Reportar</button>
+    <button class="tab" onclick="showTab('reparaciones',this)"><i class="ti ti-tool"></i>Reparar</button>
     <button class="tab" onclick="showTab('historial',this)"><i class="ti ti-history"></i>Historial</button>
-   <button class="tab" onclick="askKey(this)"><i class="ti ti-settings"></i>Config</button>
- </div>
+    <button class="tab" onclick="showTab('ot',this)"><i class="ti ti-clipboard-list"></i>OT</button>
+    <button class="tab" onclick="askKey(this)"><i class="ti ti-settings"></i>Config</button>
+  </div>
 
 <div class="pane on" id="pane-flota">
   <div class="search-box">
@@ -131,10 +132,15 @@
      <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px;margin-bottom:8px"></select>
      <input type="text" id="fil-text" placeholder="Buscar palabra en descripcion (ej: correa, filtro)..." oninput="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px">
    </div>
-   <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
- </div>
+    <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
+  </div>
 
-
+  <div class="pane" id="pane-ot">
+    <div class="card">
+      <p style="font-size:14px;font-weight:800;margin-bottom:10px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-clipboard-list"></i> Ordenes de Trabajo Archivadas</p>
+      <div id="lista-ots-archivadas"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
 
   <div class="pane" id="pane-config">
    <div class="card card-blue" style="margin-bottom:12px">

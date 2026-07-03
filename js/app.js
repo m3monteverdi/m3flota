@@ -8,6 +8,7 @@ var EMAIL_PUBLIC_KEY = 'RZLZQ0ckeCPRV-dVw';
 var sb = supabase.createClient(SB_URL, SB_KEY);
 var camiones = [], choferes = [], otCounter = 1, otsCache = [], adminOk = false;
 var allReportes = [];
+var otsArchivadas = [];
 var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
@@ -207,8 +208,8 @@ function showTab(id, btn) {
   document.getElementById('pane-'+id).classList.add('on');
   if (btn) btn.classList.add('on');
   if (id === 'historial') loadHist();
+  if (id === 'ot') loadOTsArchivadas();
   if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
-  if (id === 'dash') return;
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
   if (id === 'nuevo') { qpReset(); }
@@ -635,8 +636,13 @@ async function guardar() {
   if (tip === 'falla') { var c = getCam(cam); if (c && urg === 'alta') { c.est = 'REPARACION'; saveRes(resData); } }
   showMsg('ok-msg','ok', esOT ? 'Reporte guardado. OT '+id+' generada.' : 'Reporte guardado correctamente.');
   await loadAllReportes();
-  if (esOT) showOT(rep2);
-  else document.getElementById('ot-area').innerHTML = '';
+  if (esOT) {
+    otsArchivadas.unshift(rep2);
+    if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
+    showOT(rep2);
+  } else {
+    document.getElementById('ot-area').innerHTML = '';
+  }
   document.getElementById('r-des').value = '';
   document.getElementById('r-rep').value = '';
   document.getElementById('r-km').value = '';
@@ -679,11 +685,45 @@ function showOT(r) {
   h += '<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px;margin-top:14px" class="noprint">';
-  h += '<button class="bp" onclick="window.print()" style="flex:1"><i class="ti ti-printer"></i> Imprimir OT</button>';
+  h += '<button class="bp" onclick="printOT()" style="flex:1"><i class="ti ti-printer"></i> Imprimir OT</button>';
   h += '<button class="bo" onclick="document.getElementById(\'ot-area\').innerHTML=\'\'"><i class="ti ti-x"></i> Cerrar</button>';
   h += '</div>';
   document.getElementById('ot-area').innerHTML = h;
   document.getElementById('ot-area').scrollIntoView({behavior:'smooth'});
+}
+
+function printOT() {
+  var contenido = document.getElementById('ot-area').innerHTML;
+  var ventana = window.open('', '_blank', 'width=900,height=900');
+  ventana.document.write('<!DOCTYPE html><html><head><title>Orden de Trabajo</title>');
+  ventana.document.write('<link rel="stylesheet" href="css/style.css">');
+  ventana.document.write('<style>');
+  ventana.document.write('body{font-family:Plus Jakarta Sans,sans-serif;padding:20px;}');
+  ventana.document.write('.ot-wrap{max-width:800px;margin:0 auto;}');
+  ventana.document.write('@media print{body{padding:0;} .noprint{display:none !important;}}');
+  ventana.document.write('</style>');
+  ventana.document.write('</head><body>');
+  ventana.document.write(contenido);
+  ventana.document.write('</body></html>');
+  ventana.document.close();
+  ventana.focus();
+  setTimeout(function(){ ventana.print(); }, 300);
+}
+
+function loadOTsArchivadas() {
+  var el = document.getElementById('lista-ots-archivadas');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!otsArchivadas.length) { el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs archivadas.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < otsArchivadas.length; i++) {
+    var x = otsArchivadas[i];
+    html += '<div class="ri" style="cursor:pointer" onclick="showOT(otsArchivadas['+i+'])">';
+    html += '<div class="rt"><span><span class="chip">'+x.camion+'</span><span class="badge bred"><i class="ti ti-alert-triangle"></i> OT</span></span><span style="font-size:12px;color:#888">'+fmtFecha(x.fecha)+'</span></div>';
+    html += '<div style="font-size:13px;margin:6px 0">'+(x.descripcion||'').substring(0,90)+((x.descripcion||'').length>90?'...':'')+'</div>';
+    html += '<div style="font-size:12px;color:#888">Chofer: '+(x.chofer||'-')+'</div></div>';
+  }
+  el.innerHTML = html;
 }
 
 /* ============ REPARACIONES ============ */
