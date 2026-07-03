@@ -806,6 +806,10 @@ async function saveRep() {
   }
   var c = getCam(r.camion); if (c) { c.est = 'DISPONIBLE'; saveRes(resData); }
   showMsg('ok-rep','ok','Reparacion guardada. El camion vuelve a estar operativo.');
+  if (r && r.es_ot) {
+    if (!otsArchivadas.some(function(x){ return x.id === r.id; })) otsArchivadas.unshift(r);
+    if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
+  }
   cancelRep(); loadOTs(); loadReps(); await loadAllReportes();
 }
 
