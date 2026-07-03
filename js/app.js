@@ -685,6 +685,7 @@ function showOT(r) {
   h += '<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px;margin-top:14px" class="noprint">';
+  h += '<button class="bp" onclick="archivarOT(\''+r.id+'\')" style="flex:1"><i class="ti ti-archive"></i> Archivar</button>';
   h += '<button class="bp" onclick="printOT()" style="flex:1"><i class="ti ti-printer"></i> Imprimir OT</button>';
   h += '<button class="bo" onclick="document.getElementById(\'ot-area\').innerHTML=\'\'"><i class="ti ti-x"></i> Cerrar</button>';
   h += '</div>';
@@ -708,6 +709,19 @@ function printOT() {
   ventana.document.close();
   ventana.focus();
   setTimeout(function(){ ventana.print(); }, 300);
+}
+
+function archivarOT(otId) {
+  var ot = allReportes.find(function(x){ return x.id === otId; });
+  if (!ot) { showMsg('err-msg','err','No se encontro la OT.'); return; }
+  if (!otsArchivadas.some(function(x){ return x.id === otId; })) {
+    otsArchivadas.unshift(ot);
+    showMsg('ok-msg','ok','OT archivada en la pestaña OT.');
+  } else {
+    showMsg('ok-msg','ok','Esta OT ya estaba archivada.');
+  }
+  if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
+  document.getElementById('ot-area').innerHTML = '';
 }
 
 function loadOTsArchivadas() {
