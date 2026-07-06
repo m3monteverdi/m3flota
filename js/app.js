@@ -726,38 +726,20 @@ function archivarOT(otId) {
 }
 
 function archivarOtDesdeReparar(otId) {
-  if (!otsArchivadas.some(function(x){ return x.id === otId; })) {
-    var ot = allReportes.find(function(x){ return x.id === otId; });
-    if (ot) otsArchivadas.unshift(ot);
+  var ot = allReportes.find(function(x){ return x.id === otId; });
+  if (ot && !otsArchivadas.some(function(x){ return x.id === otId; })) {
+    otsArchivadas.unshift(ot);
+  }
+  var el = document.getElementById('lista-ots');
+  if (el) {
+    var item = el.querySelector('.rfalla[data-ot-id="'+otId+'"]');
+    if (item) item.remove();
+    if (!el.querySelector('.rfalla')) {
+      el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>';
+    }
   }
   if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
-  var el = document.getElementById('lista-ots');
-  if (!el) return;
-  el.innerHTML = '';
-  var fil = document.getElementById('fil-ot-cam').value;
-  var q = sb.from('reportes').select('*').eq('es_ot',true).order('fecha',{ascending:false});
-  if (fil) q = q.eq('camion',fil);
-  q.then(function(r){
-    var data = r.data || [];
-    otsCache = data.filter(function(x){ return x.id !== otId; });
-    if (!otsCache.length) { el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>'; return; }
-    var p = document.createElement('p');
-    p.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px';
-    p.textContent = 'Toca una OT para registrar la reparacion:';
-    el.appendChild(p);
-    var ul = {alta:'Alta',media:'Media',baja:'Baja'};
-    for (var i = 0; i < otsCache.length; i++) {
-      (function(idx, x) {
-        var div = document.createElement('div');
-        div.className = 'rfalla';
-        div.setAttribute('data-ot-id', x.id);
-        div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div><div style="font-size:12px;color:#666;margin-top:4px">'+fmtFecha(x.fecha)+' | '+x.descripcion.substring(0,60)+'...</div><div style="margin-top:6px"><button class="bo" onclick="event.stopPropagation(); archivarOtDesdeReparar(\''+x.id+'\')" style="font-size:11px;padding:4px 10px"><i class="ti ti-archive"></i> Archivar</button></div>';
-        div.onclick = function() { selOT(otsCache[idx]); };
-        el.appendChild(div);
-      })(i, otsCache[i]);
-    }
-  });
-  showMsg('ok-msg','ok','OT archivada y ocultada de Reparar.');
+  showMsg('ok-msg','ok','OT archivada. Ya esta en la pestaña OT.');
 }
 
 /* ============ REPARACIONES ============ */
