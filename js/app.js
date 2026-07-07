@@ -9,6 +9,13 @@ var sb = supabase.createClient(SB_URL, SB_KEY);
 var camiones = [], choferes = [], otCounter = 1, otsCache = [], adminOk = false;
 var allReportes = [];
 var otsArchivadas = [];
+function loadOTsArchivadasLocal() {
+  try { var r = localStorage.getItem('m3v8_ots_archivadas'); if (r) otsArchivadas = JSON.parse(r); } catch(e) {}
+}
+function saveOTsArchivadasLocal() {
+  try { localStorage.setItem('m3v8_ots_archivadas', JSON.stringify(otsArchivadas)); } catch(e) {}
+}
+loadOTsArchivadasLocal();
 var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
@@ -711,17 +718,34 @@ function printOT() {
   setTimeout(function(){ ventana.print(); }, 300);
 }
 
+function loadOTsArchivadas() {
+  var el = document.getElementById('lista-ots-archivadas');
+  if (!el) return;
+  if (!otsArchivadas.length) {
+    el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs archivadas.</p>';
+    return;
+  }
+  var ul = {alta:'Alta',media:'Media',baja:'Baja'};
+  var html = '';
+  for (var i = 0; i < otsArchivadas.length; i++) {
+    var x = otsArchivadas[i];
+    html += '<div class="rfalla">';
+    html += '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div>';
+    html += '<div style="font-size:12px;color:#666;margin-top:4px">'+fmtFecha(x.fecha)+' | '+(x.chofer||'')+' | '+x.descripcion.substring(0,60)+'...</div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
 function archivarOT(otId) {
   var ot = allReportes.find(function(x){ return x.id === otId; }) || otsArchivadas.find(function(x){ return x.id === otId; });
   if (!ot) { showMsg('err-msg','err','No se encontro la OT.'); return; }
   if (!otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
-    showMsg('ok-msg','ok','OT archivada en la pestana OT.');
-  } else {
-    showMsg('ok-msg','ok','Esta OT ya estaba archivada.');
+    saveOTsArchivadasLocal();
   }
-  if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
-  if (document.getElementById('pane-reparaciones').classList.contains('on')) loadOTs();
+  showMsg('ok-msg','ok','OT archivada en la pestana OT.');
+  showTab('ot', document.querySelectorAll('.tab')[4]);
   document.getElementById('ot-area').innerHTML = '';
 }
 
@@ -729,6 +753,7 @@ function archivarOtDesdeReparar(otId) {
   var ot = allReportes.find(function(x){ return x.id === otId; }) || otsCache.find(function(x){ return x.id === otId; });
   if (ot && !otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
+    saveOTsArchivadasLocal();
   }
   var el = document.getElementById('lista-ots');
   if (el) {
@@ -738,10 +763,8 @@ function archivarOtDesdeReparar(otId) {
       el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>';
     }
   }
-  if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
-  showMsg('ok-rep','ok','OT archivada. Ya esta en la pestaña OT.');
+  showMsg('ok-rep','ok','OT archivada. Ya esta en la pestana OT.');
   showTab('ot', document.querySelectorAll('.tab')[4]);
-  loadOTsArchivadas();
 }
 
 /* ============ REPARACIONES ============ */
