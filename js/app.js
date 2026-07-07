@@ -712,11 +712,11 @@ function printOT() {
 }
 
 function archivarOT(otId) {
-  var ot = allReportes.find(function(x){ return x.id === otId; });
+  var ot = allReportes.find(function(x){ return x.id === otId; }) || otsArchivadas.find(function(x){ return x.id === otId; });
   if (!ot) { showMsg('err-msg','err','No se encontro la OT.'); return; }
   if (!otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
-    showMsg('ok-msg','ok','OT archivada en la pestaña OT.');
+    showMsg('ok-msg','ok','OT archivada en la pestana OT.');
   } else {
     showMsg('ok-msg','ok','Esta OT ya estaba archivada.');
   }
@@ -726,7 +726,7 @@ function archivarOT(otId) {
 }
 
 function archivarOtDesdeReparar(otId) {
-  var ot = allReportes.find(function(x){ return x.id === otId; });
+  var ot = allReportes.find(function(x){ return x.id === otId; }) || otsCache.find(function(x){ return x.id === otId; });
   if (ot && !otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
   }
@@ -739,7 +739,9 @@ function archivarOtDesdeReparar(otId) {
     }
   }
   if (document.getElementById('pane-ot').classList.contains('on')) loadOTsArchivadas();
-  showMsg('ok-msg','ok','OT archivada. Ya esta en la pestaña OT.');
+  showMsg('ok-rep','ok','OT archivada. Ya esta en la pestaña OT.');
+  showTab('ot', document.querySelectorAll('.tab')[4]);
+  loadOTsArchivadas();
 }
 
 /* ============ REPARACIONES ============ */
