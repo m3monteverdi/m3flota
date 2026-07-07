@@ -776,13 +776,16 @@ async function loadOTs() {
   var el = document.getElementById('lista-ots');
   el.innerHTML = '';
   if (!r.data || !r.data.length) { el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>'; return; }
-  otsCache = r.data;
+  var archivadasIds = otsArchivadas.map(function(x){ return x.id; });
+  var datos = r.data.filter(function(x){ return archivadasIds.indexOf(x.id) < 0; });
+  otsCache = datos;
+  if (!datos.length) { el.innerHTML = '<p style="color:#888;font-size:13px;padding:8px">No hay OTs generadas.</p>'; return; }
   var p = document.createElement('p');
   p.style.cssText = 'font-size:12px;color:#888;margin-bottom:8px';
   p.textContent = 'Toca una OT para registrar la reparacion:';
   el.appendChild(p);
   var ul = {alta:'Alta',media:'Media',baja:'Baja'};
-  for (var i = 0; i < r.data.length; i++) {
+  for (var i = 0; i < datos.length; i++) {
     (function(idx, x) {
       var div = document.createElement('div');
       div.className = 'rfalla';
@@ -790,8 +793,9 @@ async function loadOTs() {
       div.innerHTML = '<div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">'+x.id+' - '+x.camion+'</span><span style="font-size:12px;color:#D97706;font-weight:600">'+(ul[x.urgencia]||'')+'</span></div><div style="font-size:12px;color:#666;margin-top:4px">'+fmtFecha(x.fecha)+' | '+x.descripcion.substring(0,60)+'...</div><div style="margin-top:6px"><button class="bo" onclick="event.stopPropagation(); archivarOtDesdeReparar(\''+x.id+'\')" style="font-size:11px;padding:4px 10px"><i class="ti ti-archive"></i> Archivar</button></div>';
       div.onclick = function() { selOT(otsCache[idx]); };
       el.appendChild(div);
-    })(i, r.data[i]);
+    })(i, datos[i]);
   }
+}
 }
 
 function selOT(r) {
