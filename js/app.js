@@ -111,7 +111,20 @@ var RD = [
   {id:'SEMIREMOLQUE',nom:'SEMIREMOLQUE',pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'26/12/2026',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'},
   ];
 function loadRes() {
-  try { var r = localStorage.getItem('m3v8'); if (r) return JSON.parse(r); } catch(e) {}
+  try { 
+    var r = localStorage.getItem('m3v8'); 
+    if (r) {
+      var parsed = JSON.parse(r);
+      var hasValidData = false;
+      for (var i = 0; i < parsed.length; i++) {
+        if (parsed[i].est === 'REPARACION' || parsed[i].rto !== '---' || parsed[i].seg !== '---') {
+          hasValidData = true;
+          break;
+        }
+      }
+      if (hasValidData) return parsed;
+    }
+  } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
 function saveRes(d) {   try { localStorage.setItem('m3v8', JSON.stringify(d)); } catch(e) {} }
@@ -176,26 +189,26 @@ async function loadCamiones() {
     var existing = resMap[c.id];
     var base = RD.find(function(x){ return x.id === c.id; }) || {};
     var target = existing || {};
-    target.nom = target.nom || c.modelo || base.nom || c.id;
-    target.pat = target.pat || c.pat || base.pat || '---';
-    target.cho = target.cho || c.cho || base.cho || '---';
-    target.cap = target.cap || c.cap || base.cap || '---';
-    target.est = target.est || c.est || base.est || 'DISPONIBLE';
-    target.seg = target.seg || c.seg || base.seg || '---';
-    target.rto = target.rto || c.rto || base.rto || '---';
-    target.us = target.us || c.us || base.us || '---';
-    target.ps = target.ps || c.ps || base.ps || '---';
-    target.ue = target.ue || c.ue || base.ue || '---';
-    target.pe = target.pe || c.pe || base.pe || '---';
-    target.uc = target.uc || c.uc || base.uc || '---';
-    target.pc = target.pc || c.pc || base.pc || '---';
-    target.ub = target.ub || c.ub || base.ub || '---';
-    target.pb = target.pb || c.pb || base.pb || '---';
-    if (!existing) {
-      resData.push(target);
-    }
-  }
-  for (var i = 0; i < RD.length; i++) {
+    target.nom = target.nom || base.nom || c.modelo || c.id;
+    target.pat = (target.pat && target.pat !== '---') ? target.pat : (base.pat || c.pat || '---');
+    target.cho = (target.cho && target.cho !== '---') ? target.cho : (base.cho || c.cho || '---');
+    target.cap = (target.cap && target.cap !== '---') ? target.cap : (base.cap || c.cap || '---');
+    target.est = ((target.est && target.est !== 'DISPONIBLE') ? target.est : (base.est || c.est || 'DISPONIBLE'));
+    target.seg = (target.seg && target.seg !== '---') ? target.seg : (base.seg || c.seg || '---');
+    target.rto = (target.rto && target.rto !== '---') ? target.rto : (base.rto || c.rto || '---');
+    target.us = (target.us && target.us !== '---') ? target.us : (base.us || c.us || '---');
+    target.ps = (target.ps && target.ps !== '---') ? target.ps : (base.ps || c.ps || '---');
+    target.ue = (target.ue && target.ue !== '---') ? target.ue : (base.ue || c.ue || '---');
+    target.pe = (target.pe && target.pe !== '---') ? target.pe : (base.pe || c.pe || '---');
+    target.uc = (target.uc && target.uc !== '---') ? target.uc : (base.uc || c.uc || '---');
+    target.pc = (target.pc && target.pc !== '---') ? target.pc : (base.pc || c.pc || '---');
+    target.ub = (target.ub && target.ub !== '---') ? target.ub : (base.ub || c.ub || '---');
+    target.pb = (target.pb && target.pb !== '---') ? target.pb : (base.pb || c.pb || '---');
+     if (!existing) {
+       resData.push(target);
+     }
+   }
+   for (var i = 0; i < RD.length; i++) {
     var rd = RD[i];
     if (!resMap[rd.id] && !remoteMap[rd.id]) {
       resData.push({
@@ -225,60 +238,7 @@ async function loadCamiones() {
   });
   fillCamiones();
 }
-  for (var i = 0; i < remote.length; i++) {
-    var c = remote[i];
-    if (!resMap[c.id]) {
-      var base = RD.find(function(x){ return x.id === c.id; }) || {};
-      resData.push({
-        id: c.id,
-        nom: c.modelo || base.nom || c.id,
-        pat: c.pat || base.pat || '---',
-        cho: c.cho || base.cho || '---',
-        cap: c.cap || base.cap || '---',
-        est: c.est || base.est || 'DISPONIBLE',
-        seg: c.seg || base.seg || '---',
-        rto: c.rto || base.rto || '---',
-        us: c.us || base.us || '---',
-        ps: c.ps || base.ps || '---',
-        ue: c.ue || base.ue || '---',
-        pe: c.pe || base.pe || '---',
-        uc: c.uc || base.uc || '---',
-        pc: c.pc || base.pc || '---',
-        ub: c.ub || base.ub || '---',
-        pb: c.pb || base.pb || '---'
-      });
-    }
-  }
-  for (var i = 0; i < RD.length; i++) {
-    var rd = RD[i];
-    if (!resMap[rd.id] && !remote.some(function(c){ return c.id === rd.id; })) {
-      resData.push({
-        id: rd.id,
-        nom: rd.nom,
-        pat: rd.pat,
-        cho: rd.cho,
-        cap: rd.cap,
-        est: rd.est,
-        seg: rd.seg,
-        rto: rd.rto,
-        us: rd.us,
-        ps: rd.ps,
-        ue: rd.ue,
-        pe: rd.pe,
-        uc: rd.uc,
-        pc: rd.pc,
-        ub: rd.ub,
-        pb: rd.pb
-      });
-    }
-  }
-  resData.sort(function(a,b){ return a.id.toLowerCase() < b.id.toLowerCase() ? -1 : 1; });
-  saveRes(resData);
-  camiones = resData.map(function(c) {
-    return { id: c.id, modelo: c.nom };
-  });
-  fillCamiones();
-}
+
 async function loadChoferes() {
   var r = await sb.from('choferes').select('*').order('nombre');
   choferes = r.data || [];
