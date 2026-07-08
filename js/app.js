@@ -780,30 +780,67 @@ function showOT(r) {
   h += '<div class="firma-row"><div class="firma">Firma del chofer</div><div class="firma">Firma del mecanico</div><div class="firma">Autorizo</div></div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px;margin-top:14px" class="noprint">';
-  h += '<button class="bp" onclick="archivarOT(\''+r.id+'\')" style="flex:1"><i class="ti ti-archive"></i> Archivar</button>';
+  h += '<button class="bp" onclick="exportPDF()" style="flex:1"><i class="ti ti-file-spreadsheet"></i> Exportar PDF</button>';
   h += '<button class="bp" onclick="printOT()" style="flex:1"><i class="ti ti-printer"></i> Imprimir OT</button>';
   h += '<button class="bo" onclick="document.getElementById(\'ot-area\').innerHTML=\'\'"><i class="ti ti-x"></i> Cerrar</button>';
   h += '</div>';
+  document.getElementById('ot-area').setAttribute('data-ot-id', r.id);
   document.getElementById('ot-area').innerHTML = h;
   document.getElementById('ot-area').scrollIntoView({behavior:'smooth'});
 }
 
+function exportPDF() {
+  var elemento = document.getElementById('ot-area');
+  if (!elemento) return;
+  var opt = {
+    margin: 10,
+    filename: 'OT-' + (elemento.getAttribute('data-ot-id') || 'documento') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(elemento).save().catch(function(){});
+}
+
 function printOT() {
   var contenido = document.getElementById('ot-area').innerHTML;
-  var ventana = window.open('', '_blank', 'width=900,height=900');
-  ventana.document.write('<!DOCTYPE html><html><head><title>Orden de Trabajo</title>');
-  ventana.document.write('<link rel="stylesheet" href="css/style.css">');
-  ventana.document.write('<style>');
-  ventana.document.write('body{font-family:Plus Jakarta Sans,sans-serif;padding:20px;}');
-  ventana.document.write('.ot-wrap{max-width:800px;margin:0 auto;}');
-  ventana.document.write('@media print{body{padding:0;} .noprint{display:none !important;}}');
-  ventana.document.write('</style>');
-  ventana.document.write('</head><body>');
-  ventana.document.write(contenido);
-  ventana.document.write('</body></html>');
-  ventana.document.close();
-  ventana.focus();
-  setTimeout(function(){ ventana.print(); }, 300);
+  var win = window.open('', '_blank', 'width=900,height=900');
+  if (!win) { alert('Permití ventanas emergentes para imprimir la OT'); return; }
+  win.document.write('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Orden de Trabajo</title>');
+  win.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">');
+  win.document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
+  win.document.write('<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">');
+  win.document.write('<style>');
+  win.document.write('* { box-sizing: border-box; margin: 0; padding: 0; }');
+  win.document.write('body { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 24px; color: #1f2937; line-height: 1.5; }');
+  win.document.write('.ot-wrap { max-width: 800px; margin: 0 auto; }');
+  win.document.write('.ot-hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 14px; margin-bottom: 16px; }');
+  win.document.write('.ot-logo { font-size: 12px; font-weight: 800; color: #2563eb; letter-spacing: .05em; text-transform: uppercase; }');
+  win.document.write('.ot-tit { font-size: 22px; font-weight: 900; margin-top: 4px; letter-spacing: -.5px; }');
+  win.document.write('.ot-sec { font-size: 10px; text-transform: uppercase; color: #2563eb; margin: 14px 0 6px; font-weight: 800; letter-spacing: .1em; }');
+  win.document.write('.ot-kv { display: flex; gap: 8px; font-size: 13px; padding: 4px 0; }');
+  win.document.write('.ot-k { color: #6b7280; min-width: 100px; font-weight: 500; }');
+  win.document.write('.firma-row { display: flex; gap: 16px; margin-top: 36px; }');
+  win.document.write('.firma { border-top: 2px solid #2563eb; flex: 1; padding-top: 6px; font-size: 11px; color: #6b7280; }');
+  win.document.write('@media print { body { padding: 0; } .noprint { display: none !important; } }');
+  win.document.write('</style>');
+  win.document.write('</head><body>');
+  win.document.write(contenido);
+  win.document.write('</body></html>');
+  win.document.close();
+  var timeoutId;
+  function tryPrint() {
+    try {
+      win.focus();
+      win.print();
+    } catch(e) {}
+  }
+  if (win.attachEvent) {
+    win.attachEvent('onload', function() { clearTimeout(timeoutId); tryPrint(); });
+  } else {
+    win.onload = function() { clearTimeout(timeoutId); tryPrint(); };
+  }
+  timeoutId = setTimeout(tryPrint, 900);
 }
 
 function loadOTsArchivadas() {
