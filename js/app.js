@@ -796,7 +796,6 @@ async function loadOTs() {
     })(i, datos[i]);
   }
 }
-}
 
 function selOT(r) {
   document.getElementById('buscador-ot').classList.add('hid');
