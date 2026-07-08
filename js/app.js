@@ -130,24 +130,25 @@ async function init() {
      await loadCamionesOffline();
      await loadChoferes();
      await loadOTCounter();
-  await loadAllReportes();
-  var urlParams = new URLSearchParams(window.location.search);
-    var camionParam = urlParams.get('camion');
-    var tabParam = urlParams.get('tab');
-    if (camionParam) {
-      var exists = camiones.some(function(c) { return c.id === camionParam; });
-      if (exists) {
-        document.getElementById('r-cam').value = camionParam;
-        var tabBtn = document.querySelectorAll('.tab')[1];
-        showTab('nuevo', tabBtn);
-      }
-    }
-    if (tabParam === 'nuevo') {
-      var tabBtn2 = document.querySelectorAll('.tab')[1];
-      showTab('nuevo', tabBtn2);
-    } else {
-      showTab('nuevo', document.querySelectorAll('.tab')[1]);
-    }
+     await loadAllReportes();
+     await syncOTsArchivadas();
+     var urlParams = new URLSearchParams(window.location.search);
+     var camionParam = urlParams.get('camion');
+     var tabParam = urlParams.get('tab');
+     if (camionParam) {
+       var exists = camiones.some(function(c) { return c.id === camionParam; });
+       if (exists) {
+         document.getElementById('r-cam').value = camionParam;
+         var tabBtn = document.querySelectorAll('.tab')[1];
+         showTab('nuevo', tabBtn);
+       }
+     }
+     if (tabParam === 'nuevo') {
+       var tabBtn2 = document.querySelectorAll('.tab')[1];
+       showTab('nuevo', tabBtn2);
+     } else {
+       showTab('nuevo', document.querySelectorAll('.tab')[1]);
+     }
    } catch(e) {
      console.error('Error en init:', e);
    }
@@ -161,6 +162,29 @@ async function init() {
 async function loadCamiones() {
   var r = await sb.from('camiones').select('*').order('id');
   camiones = r.data || [];
+  if (camiones.length) {
+    resData = camiones.map(function(c) {
+      return {
+        id: c.id,
+        nom: c.modelo || c.nom || '',
+        pat: c.pat || '---',
+        cho: c.cho || '---',
+        cap: c.cap || '---',
+        est: c.est || 'DISPONIBLE',
+        seg: c.seg || '---',
+        rto: c.rto || '---',
+        us: c.us || '---',
+        ps: c.ps || '---',
+        ue: c.ue || '---',
+        pe: c.pe || '---',
+        uc: c.uc || '---',
+        pc: c.pc || '---',
+        ub: c.ub || '---',
+        pb: c.pb || '---'
+      };
+    });
+    saveRes(resData);
+  }
   fillCamiones();
 }
 async function loadChoferes() {
@@ -215,7 +239,11 @@ function showTab(id, btn) {
   document.getElementById('pane-'+id).classList.add('on');
   if (btn) btn.classList.add('on');
   if (id === 'historial') loadHist();
-  if (id === 'ot') loadOTsArchivadas();
+  if (id === 'ot') {
+    syncOTsArchivadas().then(function() {
+      loadOTsArchivadas();
+    });
+  }
   if (id === 'config') { loadConfig(); setTimeout(function(){ initQRFlota(); }, 200); }
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
@@ -578,7 +606,13 @@ function saveEditDetalle() {
   }
   c.est = document.getElementById('efd-est').value;
   saveRes(resData);
-  abrirDetalle(detalleCamionId);
+  sb.from('camiones').update({
+    rto:c.rto, seg:c.seg, uc:c.uc, pc:c.pc,
+    ub:c.ub, pb:c.pb, ue:c.ue, pe:c.pe,
+    us:c.us, ps:c.ps, cho:c.cho, est:c.est
+  }).eq('id', detalleCamionId).then(function() {
+    abrirDetalle(detalleCamionId);
+  });
 }
 
 /* ============ CARGA RAPIDA (Reportar) ============ */
@@ -736,6 +770,13 @@ function loadOTsArchivadas() {
   }
   el.innerHTML = html;
 }
+async function syncOTsArchivadas() {
+  try {
+    var r = await sb.from('reportes').select('*').like('id','OT-%').eq('es_ot',false).order('fecha',{ascending:false});
+    otsArchivadas = r.data || [];
+    saveOTsArchivadasLocal();
+  } catch(e) {}
+}
 
 function archivarOT(otId) {
   var ot = allReportes.find(function(x){ return x.id === otId; }) || otsArchivadas.find(function(x){ return x.id === otId; });
@@ -743,6 +784,9 @@ function archivarOT(otId) {
   if (!otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
     saveOTsArchivadasLocal();
+    sb.from('reportes').update({es_ot:false}).eq('id', otId).then(function() {
+      syncOTsArchivadas();
+    });
   }
   showMsg('ok-msg','ok','OT archivada en la pestana OT.');
   showTab('ot', document.querySelectorAll('.tab')[4]);
@@ -754,6 +798,9 @@ function archivarOtDesdeReparar(otId) {
   if (ot && !otsArchivadas.some(function(x){ return x.id === otId; })) {
     otsArchivadas.unshift(ot);
     saveOTsArchivadasLocal();
+    sb.from('reportes').update({es_ot:false}).eq('id', otId).then(function() {
+      syncOTsArchivadas();
+    });
   }
   var el = document.getElementById('lista-ots');
   if (el) {
@@ -1041,11 +1088,9 @@ async function addCamion() {
     }
     alert('Error: '+r.error.message); return;
   }
-  resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
-  saveRes(resData);
+  await loadCamiones();
   document.getElementById('nc-id').value = '';
   document.getElementById('nc-mod').value = '';
-  await loadCamiones(); loadConfig();
 }
 async function addChofer() {
   var nom = document.getElementById('nc-cho').value.trim();
@@ -1359,6 +1404,11 @@ async function saveEditCamion() {
   c.ub = document.getElementById('ed-ub').value.trim() || '---';
   c.pb = document.getElementById('ed-pb').value.trim() || '---';
   saveRes(resData);
+  await sb.from('camiones').update({
+    modelo:c.nom, pat:c.pat, cho:c.cho, cap:c.cap, est:c.est,
+    rto:c.rto, seg:c.seg, us:c.us, ps:c.ps, ue:c.ue, pe:c.pe,
+    uc:c.uc, pc:c.pc, ub:c.ub, pb:c.pb
+  }).eq('id', editCamionId);
   closeEdit();
   renderFlota();
   showMsg('ok-msg','ok','Datos del camion actualizados.');
