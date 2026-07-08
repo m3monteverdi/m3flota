@@ -161,30 +161,122 @@ async function init() {
 
 async function loadCamiones() {
   var r = await sb.from('camiones').select('*').order('id');
-  camiones = r.data || [];
-  if (camiones.length) {
-    resData = camiones.map(function(c) {
-      return {
-        id: c.id,
-        nom: c.modelo || c.nom || '',
-        pat: c.pat || '---',
-        cho: c.cho || '---',
-        cap: c.cap || '---',
-        est: c.est || 'DISPONIBLE',
-        seg: c.seg || '---',
-        rto: c.rto || '---',
-        us: c.us || '---',
-        ps: c.ps || '---',
-        ue: c.ue || '---',
-        pe: c.pe || '---',
-        uc: c.uc || '---',
-        pc: c.pc || '---',
-        ub: c.ub || '---',
-        pb: c.pb || '---'
-      };
-    });
-    saveRes(resData);
+  var remote = r.data || [];
+  var remoteMap = {};
+  for (var i = 0; i < remote.length; i++) {
+    remoteMap[remote[i].id] = remote[i];
   }
+  loadRes();
+  var resMap = {};
+  for (var i = 0; i < resData.length; i++) {
+    resMap[resData[i].id] = resData[i];
+  }
+  for (var i = 0; i < remote.length; i++) {
+    var c = remote[i];
+    var existing = resMap[c.id];
+    var base = RD.find(function(x){ return x.id === c.id; }) || {};
+    var target = existing || {};
+    target.nom = target.nom || c.modelo || base.nom || c.id;
+    target.pat = target.pat || c.pat || base.pat || '---';
+    target.cho = target.cho || c.cho || base.cho || '---';
+    target.cap = target.cap || c.cap || base.cap || '---';
+    target.est = target.est || c.est || base.est || 'DISPONIBLE';
+    target.seg = target.seg || c.seg || base.seg || '---';
+    target.rto = target.rto || c.rto || base.rto || '---';
+    target.us = target.us || c.us || base.us || '---';
+    target.ps = target.ps || c.ps || base.ps || '---';
+    target.ue = target.ue || c.ue || base.ue || '---';
+    target.pe = target.pe || c.pe || base.pe || '---';
+    target.uc = target.uc || c.uc || base.uc || '---';
+    target.pc = target.pc || c.pc || base.pc || '---';
+    target.ub = target.ub || c.ub || base.ub || '---';
+    target.pb = target.pb || c.pb || base.pb || '---';
+    if (!existing) {
+      resData.push(target);
+    }
+  }
+  for (var i = 0; i < RD.length; i++) {
+    var rd = RD[i];
+    if (!resMap[rd.id] && !remoteMap[rd.id]) {
+      resData.push({
+        id: rd.id,
+        nom: rd.nom,
+        pat: rd.pat,
+        cho: rd.cho,
+        cap: rd.cap,
+        est: rd.est,
+        seg: rd.seg,
+        rto: rd.rto,
+        us: rd.us,
+        ps: rd.ps,
+        ue: rd.ue,
+        pe: rd.pe,
+        uc: rd.uc,
+        pc: rd.pc,
+        ub: rd.ub,
+        pb: rd.pb
+      });
+    }
+  }
+  resData.sort(function(a,b){ return a.id.toLowerCase() < b.id.toLowerCase() ? -1 : 1; });
+  saveRes(resData);
+  camiones = resData.map(function(c) {
+    return { id: c.id, modelo: c.nom };
+  });
+  fillCamiones();
+}
+  for (var i = 0; i < remote.length; i++) {
+    var c = remote[i];
+    if (!resMap[c.id]) {
+      var base = RD.find(function(x){ return x.id === c.id; }) || {};
+      resData.push({
+        id: c.id,
+        nom: c.modelo || base.nom || c.id,
+        pat: c.pat || base.pat || '---',
+        cho: c.cho || base.cho || '---',
+        cap: c.cap || base.cap || '---',
+        est: c.est || base.est || 'DISPONIBLE',
+        seg: c.seg || base.seg || '---',
+        rto: c.rto || base.rto || '---',
+        us: c.us || base.us || '---',
+        ps: c.ps || base.ps || '---',
+        ue: c.ue || base.ue || '---',
+        pe: c.pe || base.pe || '---',
+        uc: c.uc || base.uc || '---',
+        pc: c.pc || base.pc || '---',
+        ub: c.ub || base.ub || '---',
+        pb: c.pb || base.pb || '---'
+      });
+    }
+  }
+  for (var i = 0; i < RD.length; i++) {
+    var rd = RD[i];
+    if (!resMap[rd.id] && !remote.some(function(c){ return c.id === rd.id; })) {
+      resData.push({
+        id: rd.id,
+        nom: rd.nom,
+        pat: rd.pat,
+        cho: rd.cho,
+        cap: rd.cap,
+        est: rd.est,
+        seg: rd.seg,
+        rto: rd.rto,
+        us: rd.us,
+        ps: rd.ps,
+        ue: rd.ue,
+        pe: rd.pe,
+        uc: rd.uc,
+        pc: rd.pc,
+        ub: rd.ub,
+        pb: rd.pb
+      });
+    }
+  }
+  resData.sort(function(a,b){ return a.id.toLowerCase() < b.id.toLowerCase() ? -1 : 1; });
+  saveRes(resData);
+  camiones = resData.map(function(c) {
+    return { id: c.id, modelo: c.nom };
+  });
   fillCamiones();
 }
 async function loadChoferes() {
@@ -451,23 +543,25 @@ function renderFlota() {
     if (dRto !== null && dRto < 30) alertaTxt = 'RTO vence pronto';
     else if (dSeg !== null && dSeg < 30) alertaTxt = 'Seguro vence pronto';
 
-    var ultRep = allReportes.filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
-    html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
-    if (adminOk) {
-      html += '<button class="bo" onclick="event.stopPropagation();openEdit(\''+c.id+'\')" style="position:absolute;bottom:10px;right:10px;font-size:9px;padding:4px 8px;background:var(--az);color:#fff;border:none;border-radius:6px;cursor:pointer"><i class="ti ti-pencil"></i></button>';
-    }
-    html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
-    html += '<div class="ftc-id">'+c.id+'</div>';
-    html += '<div class="ftc-mod">'+c.nom+'</div>';
-    if (c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
-    if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
-    if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
-    if (alertaTxt) html += '<div class=\"ftc-alert\" style=\"color:#D97706\"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaTxt+'</div>';
+     var ultRep = allReportes.filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
+     html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
+     if (adminOk) {
+       html += '<button class="bo" onclick="event.stopPropagation();openEdit(\''+c.id+'\')" style="position:absolute;bottom:10px;right:10px;font-size:9px;padding:4px 8px;background:var(--az);color:#fff;border:none;border-radius:6px;cursor:pointer"><i class="ti ti-pencil"></i></button>';
+     }
+     html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
+     html += '<div class="ftc-id">'+c.id+'</div>';
+     html += '<div class="ftc-mod">'+c.nom+'</div>';
+     if (c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
+     if (c.rto && c.rto !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-calendar\"></i> RTO: '+c.rto+'</div>';
+     if (c.seg && c.seg !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-shield\"></i> Seguro: '+c.seg+'</div>';
+     if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
+     if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
+     if (alertaTxt) html += '<div class=\"ftc-alert\" style=\"color:#D97706\"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaTxt+'</div>';
 
-    var batHtml = getBatteryBar(c);
-    if (batHtml) html += batHtml;
+     var batHtml = getBatteryBar(c);
+     if (batHtml) html += batHtml;
 
-    html += '</div>';
+     html += '</div>';
   }
   if (!flotaExpandida && filtrados.length > maxVisible) {
     html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
