@@ -190,24 +190,36 @@ async function loadCamiones() {
     var base = RD.find(function(x){ return x.id === c.id; }) || {};
     var target = existing || {};
     target.nom = target.nom || base.nom || c.modelo || c.id;
-    target.pat = (target.pat && target.pat !== '---') ? target.pat : (base.pat || c.pat || '---');
-    target.cho = (target.cho && target.cho !== '---') ? target.cho : (base.cho || c.cho || '---');
-    target.cap = (target.cap && target.cap !== '---') ? target.cap : (base.cap || c.cap || '---');
-    target.est = ((target.est && target.est !== 'DISPONIBLE') ? target.est : (base.est || c.est || 'DISPONIBLE'));
-    target.seg = (target.seg && target.seg !== '---') ? target.seg : (base.seg || c.seg || '---');
-    target.rto = (target.rto && target.rto !== '---') ? target.rto : (base.rto || c.rto || '---');
-    target.us = (target.us && target.us !== '---') ? target.us : (base.us || c.us || '---');
-    target.ps = (target.ps && target.ps !== '---') ? target.ps : (base.ps || c.ps || '---');
-    target.ue = (target.ue && target.ue !== '---') ? target.ue : (base.ue || c.ue || '---');
-    target.pe = (target.pe && target.pe !== '---') ? target.pe : (base.pe || c.pe || '---');
-    target.uc = (target.uc && target.uc !== '---') ? target.uc : (base.uc || c.uc || '---');
-    target.pc = (target.pc && target.pc !== '---') ? target.pc : (base.pc || c.pc || '---');
-    target.ub = (target.ub && target.ub !== '---') ? target.ub : (base.ub || c.ub || '---');
-    target.pb = (target.pb && target.pb !== '---') ? target.pb : (base.pb || c.pb || '---');
-     if (!existing) {
-       resData.push(target);
-     }
-   }
+    target.pat = target.pat || base.pat || c.pat || '---';
+    target.cho = target.cho || base.cho || c.cho || '---';
+    target.cap = target.cap || base.cap || c.cap || '---';
+    target.seg = target.seg || base.seg || c.seg || '---';
+    target.rto = target.rto || base.rto || c.rto || '---';
+    target.us = target.us || base.us || c.us || '---';
+    target.ps = target.ps || base.ps || c.ps || '---';
+    target.ue = target.ue || base.ue || c.ue || '---';
+    target.pe = target.pe || base.pe || c.pe || '---';
+    target.uc = target.uc || base.uc || c.uc || '---';
+    target.pc = target.pc || base.pc || c.pc || '---';
+    target.ub = target.ub || base.ub || c.ub || '---';
+    target.pb = target.pb || base.pb || c.pb || '---';
+    if (existing) {
+      target.est = target.est;
+    } else {
+      target.est = base.est || c.est || 'DISPONIBLE';
+    }
+    if (!existing) {
+      resData.push(target);
+    }
+  }
+    if (!existing) {
+      resData.push(target);
+    }
+  }
+    if (!existing) {
+      resData.push(target);
+    }
+  }
    for (var i = 0; i < RD.length; i++) {
     var rd = RD[i];
     if (!resMap[rd.id] && !remoteMap[rd.id]) {
@@ -497,11 +509,14 @@ function renderFlota() {
     var badgeTxt = c.est === 'REPARACION' ? 'EN REPARACION' : 'OPERATIVO';
     var badgeClass = c.est === 'REPARACION' ? 'bred' : 'bgrn';
 
-    var alertaTxt = '';
+    var alertaRto = '';
+    var alertaSeg = '';
     var dRto = diasHasta(c.rto);
     var dSeg = diasHasta(c.seg);
-    if (dRto !== null && dRto < 30) alertaTxt = 'RTO vence pronto';
-    else if (dSeg !== null && dSeg < 30) alertaTxt = 'Seguro vence pronto';
+    if (dRto !== null && dRto < 0) alertaRto = 'RTO VENCIDO';
+    else if (dRto !== null && dRto < 30) alertaRto = 'RTO vence en ' + dRto + ' dias';
+    if (dSeg !== null && dSeg < 0) alertaSeg = 'Seguro VENCIDO';
+    else if (dSeg !== null && dSeg < 30) alertaSeg = 'Seguro vence en ' + dSeg + ' dias';
 
      var ultRep = allReportes.filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
      html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
@@ -516,7 +531,8 @@ function renderFlota() {
      if (c.seg && c.seg !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-shield\"></i> Seguro: '+c.seg+'</div>';
      if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
      if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
-     if (alertaTxt) html += '<div class=\"ftc-alert\" style=\"color:#D97706\"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaTxt+'</div>';
+     if (alertaRto) html += '<div class=\"ftc-alert\" style=\"color:'+(dRto < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaRto+'</div>';
+     if (alertaSeg) html += '<div class=\"ftc-alert\" style=\"color:'+(dSeg < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-shield\"></i> '+alertaSeg+'</div>';
 
      var batHtml = getBatteryBar(c);
      if (batHtml) html += batHtml;
