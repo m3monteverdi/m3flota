@@ -212,15 +212,7 @@ async function loadCamiones() {
       resData.push(target);
     }
   }
-    if (!existing) {
-      resData.push(target);
-    }
-  }
-    if (!existing) {
-      resData.push(target);
-    }
-  }
-   for (var i = 0; i < RD.length; i++) {
+  for (var i = 0; i < RD.length; i++) {
     var rd = RD[i];
     if (!resMap[rd.id] && !remoteMap[rd.id]) {
       resData.push({
