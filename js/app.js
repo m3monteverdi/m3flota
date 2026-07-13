@@ -558,34 +558,6 @@ function renderFlota() {
     if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la pÃ¡gina.</p>';
   }
 }
-     html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
-     html += '<div class="ftc-id">'+c.id+'</div>';
-     html += '<div class="ftc-mod">'+c.nom+'</div>';
-     if (c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
-     if (c.rto && c.rto !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-calendar\"></i> RTO: '+c.rto+'</div>';
-     if (c.seg && c.seg !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-shield\"></i> Seguro: '+c.seg+'</div>';
-     if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
-     if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
-     if (alertaRto) html += '<div class=\"ftc-alert\" style=\"color:'+(dRto < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaRto+'</div>';
-     if (alertaSeg) html += '<div class=\"ftc-alert\" style=\"color:'+(dSeg < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-shield\"></i> '+alertaSeg+'</div>';
-
-     var batHtml = getBatteryBar(c);
-     if (batHtml) html += batHtml;
-
-     html += '</div>';
-  }
-  if (!flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
-  } else if (flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-up\"></i> Ver menos</button>';
-  }
-  el.innerHTML = html;
-  } catch(e) {
-    console.error('Error en renderFlota:', e);
-    var flotaGrid = document.getElementById('flota-grid');
-    if (flotaGrid) flotaGrid.innerHTML = '<p style="color:var(--red);padding:2rem;text-align:center">Error al cargar flota. Recarga la pÃ¡gina.</p>';
-  }
-}
 
 function getBatteryBar(c) {
   var ub = c.ub;
