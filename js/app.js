@@ -485,73 +485,74 @@ function renderFlota() {
     var searchEl = document.getElementById('search-flota');
     var gridEl = document.getElementById('flota-grid');
     if (!searchEl || !gridEl) return;
-  var q = (searchEl.value || '').toLowerCase().trim();
-  var el = gridEl;
-  var filtrados = resData.filter(function(c) {
-    if (!camionVisible(c)) return false;
-    if (!q) return true;
-    return (c.id || '').toLowerCase().indexOf(q) >= 0 || (c.nom || '').toLowerCase().indexOf(q) >= 0 || (c.cho || '').toLowerCase().indexOf(q) >= 0;
-  });
-  filtrados.sort(function(a,b) {
-    var aRep = (a.est || '') === 'REPARACION' ? 1 : 0;
-    var bRep = (b.est || '') === 'REPARACION' ? 1 : 0;
-    if (aRep !== bRep) return bRep - aRep;
-    var pa = getAlertPriority(a);
-    var pb = getAlertPriority(b);
-    if (pa.hasUrgent && !pb.hasUrgent) return -1;
-    if (!pa.hasUrgent && pb.hasUrgent) return 1;
-    if (pa.hasVencimiento && !pb.hasVencimiento) return -1;
-    if (!pa.hasVencimiento && pb.hasVencimiento) return 1;
-    if ((a.id || '').toLowerCase() < (b.id || '').toLowerCase()) return -1;
-    if ((a.id || '').toLowerCase() > (b.id || '').toLowerCase()) return 1;
-    return 0;
-  });
-  if (!filtrados.length) { el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:2rem;grid-column:1/-1">Sin resultados.</p>'; return; }
-  var maxVisible = 18;
-  var limit = flotaExpandida ? filtrados.length : Math.min(maxVisible, filtrados.length);
-  var html = '';
-  for (var i=0;i<limit;i++) {
-    var c = filtrados[i];
-    var claseFondo = (c.est || '') === 'REPARACION' ? 'ftc-rep' : 'ftc-op';
-    var badgeTxt = (c.est || '') === 'REPARACION' ? 'EN REPARACION' : 'OPERATIVO';
-    var badgeClass = (c.est || '') === 'REPARACION' ? 'bred' : 'bgrn';
+    var q = (searchEl.value || '').toLowerCase().trim();
+    var el = gridEl;
+    var safeResData = resData || [];
+    var filtrados = safeResData.filter(function(c) {
+      if (!camionVisible(c)) return false;
+      if (!q) return true;
+      return (c.id || '').toLowerCase().indexOf(q) >= 0 || (c.nom || '').toLowerCase().indexOf(q) >= 0 || (c.cho || '').toLowerCase().indexOf(q) >= 0;
+    });
+    filtrados.sort(function(a,b) {
+      var aRep = (a.est || '') === 'REPARACION' ? 1 : 0;
+      var bRep = (b.est || '') === 'REPARACION' ? 1 : 0;
+      if (aRep !== bRep) return bRep - aRep;
+      var pa = getAlertPriority(a);
+      var pb = getAlertPriority(b);
+      if (pa.hasUrgent && !pb.hasUrgent) return -1;
+      if (!pa.hasUrgent && pb.hasUrgent) return 1;
+      if (pa.hasVencimiento && !pb.hasVencimiento) return -1;
+      if (!pa.hasVencimiento && pb.hasVencimiento) return 1;
+      if ((a.id || '').toLowerCase() < (b.id || '').toLowerCase()) return -1;
+      if ((a.id || '').toLowerCase() > (b.id || '').toLowerCase()) return 1;
+      return 0;
+    });
+    if (!filtrados.length) { el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:2rem;grid-column:1/-1">Sin resultados.</p>'; return; }
+    var maxVisible = 18;
+    var limit = flotaExpandida ? filtrados.length : Math.min(maxVisible, filtrados.length);
+    var html = '';
+    for (var i=0;i<limit;i++) {
+      var c = filtrados[i];
+      var claseFondo = (c.est || '') === 'REPARACION' ? 'ftc-rep' : 'ftc-op';
+      var badgeTxt = (c.est || '') === 'REPARACION' ? 'EN REPARACION' : 'OPERATIVO';
+      var badgeClass = (c.est || '') === 'REPARACION' ? 'bred' : 'bgrn';
 
-    var alertaRto = '';
-    var alertaSeg = '';
-    var dRto = diasHasta(c.rto);
-    var dSeg = diasHasta(c.seg);
-    if (dRto !== null && dRto < 0) alertaRto = 'RTO VENCIDO';
-    else if (dRto !== null && dRto < 30) alertaRto = 'RTO vence en ' + dRto + ' dias';
-    if (dSeg !== null && dSeg < 0) alertaSeg = 'Seguro VENCIDO';
-    else if (dSeg !== null && dSeg < 30) alertaSeg = 'Seguro vence en ' + dSeg + ' dias';
+      var alertaRto = '';
+      var alertaSeg = '';
+      var dRto = diasHasta(c.rto);
+      var dSeg = diasHasta(c.seg);
+      if (dRto !== null && dRto < 0) alertaRto = 'RTO VENCIDO';
+      else if (dRto !== null && dRto < 30) alertaRto = 'RTO vence en ' + dRto + ' dias';
+      if (dSeg !== null && dSeg < 0) alertaSeg = 'Seguro VENCIDO';
+      else if (dSeg !== null && dSeg < 30) alertaSeg = 'Seguro vence en ' + dSeg + ' dias';
 
-     var ultRep = (allReportes || []).filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
-     html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
-     if (adminOk) {
-       html += '<button class="bo" onclick="event.stopPropagation();openEdit(\''+c.id+'\')" style="position:absolute;bottom:10px;right:10px;font-size:9px;padding:4px 8px;background:var(--az);color:#fff;border:none;border-radius:6px;cursor:pointer"><i class="ti ti-pencil"></i></button>';
-     }
-     html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
-     html += '<div class="ftc-id">'+c.id+'</div>';
-     html += '<div class="ftc-mod">'+(c.nom || c.id)+'</div>';
-     if (c.cho && c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
-     if (c.rto && c.rto !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-calendar\"></i> RTO: '+c.rto+'</div>';
-     if (c.seg && c.seg !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-shield\"></i> Seguro: '+c.seg+'</div>';
-     if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
-     if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
-     if (alertaRto) html += '<div class=\"ftc-alert\" style=\"color:'+(dRto < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaRto+'</div>';
-     if (alertaSeg) html += '<div class=\"ftc-alert\" style=\"color:'+(dSeg < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-shield\"></i> '+alertaSeg+'</div>';
+      var ultRep = (allReportes || []).filter(function(r){return r.camion===c.id && r.tipo==='falla';})[0];
+      html += '<div class="ftc '+claseFondo+'" onclick="abrirDetalle(\''+c.id+'\')">';
+      if (adminOk) {
+        html += '<button class="bo" onclick="event.stopPropagation();openEdit(\''+c.id+'\')" style="position:absolute;bottom:10px;right:10px;font-size:9px;padding:4px 8px;background:var(--az);color:#fff;border:none;border-radius:6px;cursor:pointer"><i class="ti ti-pencil"></i></button>';
+      }
+      html += '<span class="badge '+badgeClass+'" style="position:absolute;top:10px;right:10px;font-size:9px">'+badgeTxt+'</span>';
+      html += '<div class="ftc-id">'+c.id+'</div>';
+      html += '<div class="ftc-mod">'+(c.nom || c.id)+'</div>';
+      if (c.cho && c.cho !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-user\"></i> '+c.cho+'</div>';
+      if (c.rto && c.rto !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-calendar\"></i> RTO: '+c.rto+'</div>';
+      if (c.seg && c.seg !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-shield\"></i> Seguro: '+c.seg+'</div>';
+      if (c.ps && c.ps !== '---') html += '<div class=\"ftc-info\"><i class=\"ti ti-tool\"></i> Prox. service: '+c.ps+'</div>';
+      if (ultRep) html += '<div class=\"ftc-alert\" style=\"color:#DC2626\"><i class=\"ti ti-alert-triangle\"></i> '+ultRep.descripcion.substring(0,30)+'...</div>';
+      if (alertaRto) html += '<div class=\"ftc-alert\" style=\"color:'+(dRto < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-calendar-exclamation\"></i> '+alertaRto+'</div>';
+      if (alertaSeg) html += '<div class=\"ftc-alert\" style=\"color:'+(dSeg < 0 ? '#DC2626' : '#D97706')+'"><i class=\"ti ti-shield\"></i> '+alertaSeg+'</div>';
 
-     var batHtml = getBatteryBar(c);
-     if (batHtml) html += batHtml;
+      var batHtml = getBatteryBar(c);
+      if (batHtml) html += batHtml;
 
-     html += '</div>';
-  }
-  if (!flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
-  } else if (flotaExpandida && filtrados.length > maxVisible) {
-    html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-up\"></i> Ver menos</button>';
-  }
-  el.innerHTML = html;
+      html += '</div>';
+    }
+    if (!flotaExpandida && filtrados.length > maxVisible) {
+      html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-down\"></i> Ver mas ('+(filtrados.length - maxVisible)+' ocultos)</button>';
+    } else if (flotaExpandida && filtrados.length > maxVisible) {
+      html += '<button class="bo" onclick="toggleFlota()" style="grid-column:1/-1;padding:12px;font-size:14px"><i class=\"ti ti-chevron-up\"></i> Ver menos</button>';
+    }
+    el.innerHTML = html;
   } catch(e) {
     console.error('Error en renderFlota:', e);
     var flotaGrid = document.getElementById('flota-grid');
