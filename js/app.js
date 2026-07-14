@@ -1,4 +1,4 @@
-﻿var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
+var SB_URL = 'https://gjxbyxpbuomyuqyrieuc.supabase.co';
 var SB_KEY = 'sb_publishable_5wUycHhaBXqdTk2ktSKywg_3HuPBpV4';
 var ADMIN_KEY = 'monteverdi';
 var EMAIL_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
@@ -112,7 +112,7 @@ var RD = [
   ];
 function loadRes() {
   try { 
-    var r = localStorage.getItem('m3v8'); 
+    var r = localStorage.getItem('m3v9'); 
     if (r) {
       var parsed = JSON.parse(r);
       var hasValidData = false;
@@ -127,7 +127,7 @@ function loadRes() {
   } catch(e) {}
   return JSON.parse(JSON.stringify(RD));
 }
-function saveRes(d) {   try { localStorage.setItem('m3v8', JSON.stringify(d)); } catch(e) {} }
+function saveRes(d) {   try { localStorage.setItem('m3v9', JSON.stringify(d)); } catch(e) {} }
 var resData = loadRes();
 
 function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id) return resData[i]; return null; }
@@ -176,35 +176,74 @@ async function loadCamiones() {
   try {
     var r = await sb.from('camiones').select('*').order('id');
     var remote = r.data || [];
-    if (remote.length) {
-      resData = remote.map(function(c) {
-        return {
+    var remoteMap = {};
+    for (var i = 0; i < remote.length; i++) {
+      remoteMap[remote[i].id] = remote[i];
+    }
+    // Cargar estado guardado localmente
+    loadRes();
+    var resMap = {};
+    for (var i = 0; i < resData.length; i++) {
+      resMap[resData[i].id] = resData[i];
+    }
+    // Funcion auxiliar: usa valor de Supabase si es real, sino usa fallback (RD)
+    function mejor(sbVal, fallback) {
+      if (sbVal && sbVal !== '---' && sbVal !== '') return sbVal;
+      return fallback || '---';
+    }
+    // Fusionar: Supabase > datos locales > RD (defaults hardcodeados)
+    for (var i = 0; i < remote.length; i++) {
+      var c = remote[i];
+      var existing = resMap[c.id];
+      var base = RD.find(function(x){ return x.id === c.id; }) || {};
+      if (existing) {
+        // Ya existe: actualizar con datos de Supabase si son mejores
+        if (c.modelo && c.modelo !== c.id) existing.nom = c.modelo;
+        existing.pat = mejor(c.pat, existing.pat || base.pat);
+        existing.cho = mejor(c.cho, existing.cho || base.cho);
+        existing.cap = mejor(c.cap, existing.cap || base.cap);
+        existing.seg = mejor(c.seg, existing.seg || base.seg);
+        existing.rto = mejor(c.rto, existing.rto || base.rto);
+        existing.us  = mejor(c.us,  existing.us  || base.us);
+        existing.ps  = mejor(c.ps,  existing.ps  || base.ps);
+        existing.ue  = mejor(c.ue,  existing.ue  || base.ue);
+        existing.pe  = mejor(c.pe,  existing.pe  || base.pe);
+        existing.uc  = mejor(c.uc,  existing.uc  || base.uc);
+        existing.pc  = mejor(c.pc,  existing.pc  || base.pc);
+        existing.ub  = mejor(c.ub,  existing.ub  || base.ub);
+        existing.pb  = mejor(c.pb,  existing.pb  || base.pb);
+        if (c.est && c.est !== '') existing.est = c.est;
+      } else {
+        // No existe localmente: agregar desde Supabase complementado con RD
+        resData.push({
           id: c.id,
-          nom: c.modelo || c.id,
-          pat: c.pat || '---',
-          cho: c.cho || '---',
-          cap: c.cap || '---',
-          est: c.est || 'DISPONIBLE',
-          seg: c.seg || '---',
-          rto: c.rto || '---',
-          us: c.us || '---',
-          ps: c.ps || '---',
-          ue: c.ue || '---',
-          pe: c.pe || '---',
-          uc: c.uc || '---',
-          pc: c.pc || '---',
-          ub: c.ub || '---',
-          pb: c.pb || '---'
-        };
-      });
-      saveRes(resData);
-    } else {
-      loadRes();
-      if (!resData.length) {
-        resData = JSON.parse(JSON.stringify(RD));
-        saveRes(resData);
+          nom: (c.modelo && c.modelo !== c.id) ? c.modelo : (base.nom || c.id),
+          pat: mejor(c.pat, base.pat),
+          cho: mejor(c.cho, base.cho),
+          cap: mejor(c.cap, base.cap),
+          est: c.est || base.est || 'DISPONIBLE',
+          seg: mejor(c.seg, base.seg),
+          rto: mejor(c.rto, base.rto),
+          us:  mejor(c.us,  base.us),
+          ps:  mejor(c.ps,  base.ps),
+          ue:  mejor(c.ue,  base.ue),
+          pe:  mejor(c.pe,  base.pe),
+          uc:  mejor(c.uc,  base.uc),
+          pc:  mejor(c.pc,  base.pc),
+          ub:  mejor(c.ub,  base.ub),
+          pb:  mejor(c.pb,  base.pb)
+        });
       }
     }
+    // Agregar los que solo existen en RD (no estan en Supabase todavia)
+    for (var i = 0; i < RD.length; i++) {
+      var rd = RD[i];
+      if (!resMap[rd.id] && !remoteMap[rd.id]) {
+        resData.push(JSON.parse(JSON.stringify(rd)));
+      }
+    }
+    resData.sort(function(a,b){ return a.id.toLowerCase() < b.id.toLowerCase() ? -1 : 1; });
+    saveRes(resData);
   } catch(e) {
     console.warn('Fallo carga remota de camiones, usando cache local.', e);
     loadRes();
