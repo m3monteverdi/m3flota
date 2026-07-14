@@ -176,78 +176,46 @@ async function loadCamiones() {
   try {
     var r = await sb.from('camiones').select('*').order('id');
     var remote = r.data || [];
-    var remoteMap = {};
-    for (var i = 0; i < remote.length; i++) {
-      remoteMap[remote[i].id] = remote[i];
-    }
-    loadRes();
-    var resMap = {};
-    for (var i = 0; i < resData.length; i++) {
-      resMap[resData[i].id] = resData[i];
-    }
-    for (var i = 0; i < remote.length; i++) {
-      var c = remote[i];
-      var existing = resMap[c.id];
-      var base = RD.find(function(x){ return x.id === c.id; }) || {};
-      var target = existing || {};
-      target.nom = target.nom || base.nom || c.modelo || c.id;
-      target.pat = target.pat || base.pat || c.pat || '---';
-      target.cho = target.cho || base.cho || c.cho || '---';
-      target.cap = target.cap || base.cap || c.cap || '---';
-      target.seg = target.seg || base.seg || c.seg || '---';
-      target.rto = target.rto || base.rto || c.rto || '---';
-      target.us = target.us || base.us || c.us || '---';
-      target.ps = target.ps || base.ps || c.ps || '---';
-      target.ue = target.ue || base.ue || c.ue || '---';
-      target.pe = target.pe || base.pe || c.pe || '---';
-      target.uc = target.uc || base.uc || c.uc || '---';
-      target.pc = target.pc || base.pc || c.pc || '---';
-      target.ub = target.ub || base.ub || c.ub || '---';
-      target.pb = target.pb || base.pb || c.pb || '---';
-      if (existing) {
-        target.est = target.est;
-      } else {
-        target.est = base.est || c.est || 'DISPONIBLE';
-      }
-      if (!existing) {
-        resData.push(target);
+    if (remote.length) {
+      resData = remote.map(function(c) {
+        return {
+          id: c.id,
+          nom: c.modelo || c.id,
+          pat: c.pat || '---',
+          cho: c.cho || '---',
+          cap: c.cap || '---',
+          est: c.est || 'DISPONIBLE',
+          seg: c.seg || '---',
+          rto: c.rto || '---',
+          us: c.us || '---',
+          ps: c.ps || '---',
+          ue: c.ue || '---',
+          pe: c.pe || '---',
+          uc: c.uc || '---',
+          pc: c.pc || '---',
+          ub: c.ub || '---',
+          pb: c.pb || '---'
+        };
+      });
+      saveRes(resData);
+    } else {
+      loadRes();
+      if (!resData.length) {
+        resData = JSON.parse(JSON.stringify(RD));
+        saveRes(resData);
       }
     }
-    for (var i = 0; i < RD.length; i++) {
-      var rd = RD[i];
-      if (!resMap[rd.id] && !remoteMap[rd.id]) {
-        resData.push({
-          id: rd.id,
-          nom: rd.nom,
-          pat: rd.pat,
-          cho: rd.cho,
-          cap: rd.cap,
-          est: rd.est,
-          seg: rd.seg,
-          rto: rd.rto,
-          us: rd.us,
-          ps: rd.ps,
-          ue: rd.ue,
-          pe: rd.pe,
-          uc: rd.uc,
-          pc: rd.pc,
-          ub: rd.ub,
-          pb: rd.pb
-        });
-      }
-    }
-    resData.sort(function(a,b){ return a.id.toLowerCase() < b.id.toLowerCase() ? -1 : 1; });
-    saveRes(resData);
-    camiones = resData.map(function(c) {
-      return { id: c.id, modelo: c.nom };
-    });
   } catch(e) {
     console.warn('Fallo carga remota de camiones, usando cache local.', e);
     loadRes();
-    camiones = resData.map(function(c) {
-      return { id: c.id, modelo: c.nom };
-    });
+    if (!resData.length) {
+      resData = JSON.parse(JSON.stringify(RD));
+      saveRes(resData);
+    }
   }
+  camiones = resData.map(function(c) {
+    return { id: c.id, modelo: c.nom };
+  });
   fillCamiones();
 }
 
