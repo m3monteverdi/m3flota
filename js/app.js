@@ -795,7 +795,7 @@ function showOT(r) {
   var mod = getCamModelo(r.camion);
   var h = '<div class="ot-wrap">';
   h += '<div class="ot-hdr"><div>';
-  h += '<div class="ot-logo">WORKFLOT</div>';
+  h += '<div class="ot-logo">M3 Monteverdi Cubico</div>';
   h += '<div class="ot-tit">Orden de Trabajo '+r.id+'</div>';
   h += '<div style="font-size:12px;color:#666;margin-top:2px">Fecha: '+r.fecha+'</div>';
   h += '</div><div style="text-align:right"><div style="font-size:11px;color:#888;font-weight:600">URGENCIA</div>';
@@ -845,14 +845,14 @@ function printOT() {
   win.document.write('* { box-sizing: border-box; margin: 0; padding: 0; }');
   win.document.write('body { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 24px; color: #1f2937; line-height: 1.5; }');
   win.document.write('.ot-wrap { max-width: 800px; margin: 0 auto; }');
-  win.document.write('.ot-hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #b45309; padding-bottom: 14px; margin-bottom: 16px; }');
-  win.document.write('.ot-logo { font-size: 12px; font-weight: 800; color: #b45309; letter-spacing: .05em; text-transform: uppercase; }');
+  win.document.write('.ot-hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 14px; margin-bottom: 16px; }');
+  win.document.write('.ot-logo { font-size: 12px; font-weight: 800; color: #2563eb; letter-spacing: .05em; text-transform: uppercase; }');
   win.document.write('.ot-tit { font-size: 22px; font-weight: 900; margin-top: 4px; letter-spacing: -.5px; }');
-  win.document.write('.ot-sec { font-size: 10px; text-transform: uppercase; color: #b45309; margin: 14px 0 6px; font-weight: 800; letter-spacing: .1em; }');
+  win.document.write('.ot-sec { font-size: 10px; text-transform: uppercase; color: #2563eb; margin: 14px 0 6px; font-weight: 800; letter-spacing: .1em; }');
   win.document.write('.ot-kv { display: flex; gap: 8px; font-size: 13px; padding: 4px 0; }');
   win.document.write('.ot-k { color: #6b7280; min-width: 100px; font-weight: 500; }');
   win.document.write('.firma-row { display: flex; gap: 16px; margin-top: 36px; }');
-  win.document.write('.firma { border-top: 2px solid #b45309; flex: 1; padding-top: 6px; font-size: 11px; color: #6b7280; }');
+  win.document.write('.firma { border-top: 2px solid #2563eb; flex: 1; padding-top: 6px; font-size: 11px; color: #6b7280; }');
   win.document.write('@media print { body { padding: 0; } .noprint { display: none !important; } }');
   win.document.write('</style>');
   win.document.write('</head><body>');

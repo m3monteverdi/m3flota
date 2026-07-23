@@ -5,11 +5,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --az:     hsl(45, 90%, 50%);
-  --azd:    hsl(45, 90%, 40%);
-  --azl:    hsl(45, 80%, 96%);
-  --azm:    hsl(45, 40%, 82%);
-  --az2:    hsl(35, 95%, 50%);
+  --az:     hsl(220, 80%, 48%);
+  --azd:    hsl(220, 80%, 36%);
+  --azl:    hsl(220, 80%, 96%);
+  --azm:    hsl(220, 40%, 82%);
+  --az2:    hsl(250, 70%, 58%);
 
   --red:    hsl(0, 75%, 50%);
   --redl:   hsl(0, 75%, 97%);
