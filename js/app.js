@@ -346,16 +346,18 @@ function askKey(btn) {
 function unlockCamion(camId) {
    var c = getCam(camId);
    if (!c) { alert('Camion no encontrado'); return; }
-   if (camionesDesbloqueados[camId]) {
-     delete camionesDesbloqueados[camId];
-     saveCamionesDesbloqueados();
-     alert('Camion '+camId+' bloqueado. No podés editar su historial.');
+   if (adminOk || camionesDesbloqueados[camId]) {
+     if (!adminOk) {
+       delete camionesDesbloqueados[camId];
+       saveCamionesDesbloqueados();
+       alert('Camion '+camId+' bloqueado. No podés editar su historial.');
+     }
      if (document.getElementById('tabla-hist')) loadHist();
      if (detalleCamionId === camId) abrirDetalle(camId);
      return;
    }
    var pass = prompt('Ingresa la contraseña para editar el historial de '+camId+':');
-   if (pass !== null && pass === (c.pass || '')) {
+   if (pass !== null && pass === ADMIN_KEY) {
      camionesDesbloqueados[camId] = true;
      saveCamionesDesbloqueados();
      alert('Camion '+camId+' desbloqueado. Podés editar su historial.');

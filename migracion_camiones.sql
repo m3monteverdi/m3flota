@@ -15,7 +15,6 @@ ALTER TABLE camiones ADD COLUMN IF NOT EXISTS uc TEXT DEFAULT '---';
 ALTER TABLE camiones ADD COLUMN IF NOT EXISTS pc TEXT DEFAULT '---';
 ALTER TABLE camiones ADD COLUMN IF NOT EXISTS ub TEXT DEFAULT '---';
 ALTER TABLE camiones ADD COLUMN IF NOT EXISTS pb TEXT DEFAULT '---';
-ALTER TABLE camiones ADD COLUMN IF NOT EXISTS pass TEXT DEFAULT '';
 
 -- Verificar
 SELECT column_name, data_type, is_nullable, column_default
