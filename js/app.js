@@ -16,6 +16,14 @@ function saveOTsArchivadasLocal() {
   try { localStorage.setItem('m3v8_ots_archivadas', JSON.stringify(otsArchivadas)); } catch(e) {}
 }
 loadOTsArchivadasLocal();
+var camionesDesbloqueados = {};
+function loadCamionesDesbloqueados() {
+  try { var r = localStorage.getItem('m3_camiones_desbloqueados'); if (r) camionesDesbloqueados = JSON.parse(r); } catch(e) {}
+}
+function saveCamionesDesbloqueados() {
+  try { localStorage.setItem('m3_camiones_desbloqueados', JSON.stringify(camionesDesbloqueados)); } catch(e) {}
+}
+loadCamionesDesbloqueados();
 var tipoActual = '';
 var detalleCamionId = null;
 var isOnline = navigator.onLine;
@@ -211,7 +219,8 @@ async function loadCamiones() {
         existing.uc  = mejor(c.uc,  existing.uc  || base.uc);
         existing.pc  = mejor(c.pc,  existing.pc  || base.pc);
         existing.ub  = mejor(c.ub,  existing.ub  || base.ub);
-        existing.pb  = mejor(c.pb,  existing.pb  || base.pb);
+        existing.pb  = mejor(c.pb, existing.pb || base.pb);
+        existing.pass = c.pass || existing.pass || base.pass || '';
         if (c.est && c.est !== '') existing.est = c.est;
       } else {
         // No existe localmente: agregar desde Supabase complementado con RD
@@ -231,8 +240,9 @@ async function loadCamiones() {
           uc:  mejor(c.uc,  base.uc),
           pc:  mejor(c.pc,  base.pc),
           ub:  mejor(c.ub,  base.ub),
-          pb:  mejor(c.pb,  base.pb)
-        });
+          pb:  mejor(c.pb,  base.pb),
+          pass: c.pass || ''
+         });
       }
     }
     // Agregar los que solo existen en RD (no estan en Supabase todavia)
@@ -331,10 +341,94 @@ function askKey(btn) {
    if (c === ADMIN_KEY) { adminOk = true; showTab('config', btn); }
    else if (c !== null) alert('Clave incorrecta.');
    else return;
- }
+}
+
+function unlockCamion(camId) {
+   var c = getCam(camId);
+   if (!c) { alert('Camion no encontrado'); return; }
+   if (camionesDesbloqueados[camId]) {
+     delete camionesDesbloqueados[camId];
+     saveCamionesDesbloqueados();
+     alert('Camion '+camId+' bloqueado. No podés editar su historial.');
+     if (document.getElementById('tabla-hist')) loadHist();
+     if (detalleCamionId === camId) abrirDetalle(camId);
+     return;
+   }
+   var pass = prompt('Ingresa la contraseña para editar el historial de '+camId+':');
+   if (pass !== null && pass === (c.pass || '')) {
+     camionesDesbloqueados[camId] = true;
+     saveCamionesDesbloqueados();
+     alert('Camion '+camId+' desbloqueado. Podés editar su historial.');
+     if (document.getElementById('tabla-hist')) loadHist();
+     if (detalleCamionId === camId) abrirDetalle(camId);
+   } else if (pass !== null) {
+     alert('Contraseña incorrecta.');
+   }
+}
+
+var reporteEditId = null;
+function editarReporte(id) {
+   var rep = (allReportes || []).find(function(r) { return r.id === id; });
+   if (!rep) { alert('Reporte no encontrado'); return; }
+   reporteEditId = id;
+   var fec = (rep.fecha || '').split('T')[0];
+   var tipos = {falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase',neumatico:'Neumatico'};
+   var opts = '';
+   for (var t in tipos) {
+     opts += '<option value="'+t+'" '+(rep.tipo===t?'selected':'')+'>'+tipos[t]+'</option>';
+   }
+   var html = '<div class="field"><label>Descripcion *</label><textarea id="rep-edit-desc" placeholder="Descripcion del reporte..." style="min-height:80px">'+(rep.descripcion||'')+'</textarea></div>';
+   html += '<div class="g2"><div class="field"><label>Km</label><input type="number" id="rep-edit-km" value="'+(rep.km||0)+'"></div>';
+   html += '<div class="field"><label>Fecha</label><input type="date" id="rep-edit-fec" value="'+fec+'"></div>';
+   html += '</div>';
+   html += '<div class="field"><label>Tipo</label><select id="rep-edit-tipo">'+opts+'</select></div>';
+   html += '<div class="field"><label>Repuestos</label><input type="text" id="rep-edit-rep" value="'+(rep.repuestos||'')+'"></div>';
+   document.getElementById('reporte-edit-form').innerHTML = html;
+   document.getElementById('reporte-modal').style.display = 'flex';
+}
+function closeReporteEdit() {
+   document.getElementById('reporte-modal').style.display = 'none';
+   reporteEditId = null;
+}
+async function saveEditReporte() {
+   if (!reporteEditId) return;
+   var rep = (allReportes || []).find(function(r) { return r.id === reporteEditId; });
+   if (!rep) { closeReporteEdit(); return; }
+   rep.descripcion = document.getElementById('rep-edit-desc').value.trim();
+   rep.km = parseInt(document.getElementById('rep-edit-km').value) || 0;
+   rep.fecha = document.getElementById('rep-edit-fec').value;
+   rep.tipo = document.getElementById('rep-edit-tipo').value;
+   rep.repuestos = document.getElementById('rep-edit-rep').value.trim();
+   closeReporteEdit();
+   if (!isOnline) {
+     alert('Sin conexion. No se pudo guardar la edicion.');
+     return;
+   }
+   try {
+     var r = await sb.from('reportes').update({
+       descripcion: rep.descripcion,
+       km: rep.km,
+       fecha: rep.fecha,
+       tipo: rep.tipo,
+       repuestos: rep.repuestos
+     }).eq('id', reporteEditId);
+     if (r.error) {
+       alert('Error al guardar: ' + r.error.message);
+       return;
+     }
+     var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
+     if (idx >= 0) allReportes[idx] = rep;
+     saveReportesLocal();
+     if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
+     if (detalleCamionId && document.getElementById('pane-detalle').classList.contains('on')) abrirDetalle(detalleCamionId);
+     alert('Reporte actualizado.');
+   } catch(e) {
+     alert('Error al guardar: ' + e.message);
+    }
+}
 
 function registrarPreventivo() {
-  showTab('nuevo', document.querySelectorAll('.tab')[1]);
+   showTab('nuevo', document.querySelectorAll('.tab')[1]);
   setTimeout(function() {
     if (document.getElementById('qp-step1') && document.getElementById('qp-step2')) {
       pickTipo('preventivo');
@@ -640,7 +734,14 @@ async function abrirDetalle(camId) {
       html += '<div class="rt">'+tbadge(x.tipo)+(x.es_ot?'<span class="chip">'+x.id+'</span>':'')+'</div>';
       html += '<div style="font-size:13px;margin-top:6px">'+x.descripcion+'</div>';
       if (x.km) html += '<div style="font-size:11px;color:#888;margin-top:4px">'+x.km.toLocaleString('es-AR')+' km</div>';
-      if (x.es_ot) html += '<button class="bo" style="font-size:11px;padding:4px 10px;margin-top:6px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> Imprimir OT</button>';
+       if (x.es_ot) html += '<button class="bo" style="font-size:11px;padding:4px 10px;margin-top:6px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> Imprimir OT</button>';
+        if (adminOk || camionesDesbloqueados[camId]) {
+          html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:10px;padding:2px 6px;margin-top:4px"><i class="ti ti-trash"></i></button>';
+          html += '<button class="bd" onclick="editarReporte(\''+x.id+'\')" title="Editar reporte" style="font-size:10px;padding:2px 6px;margin-top:4px;background:var(--az);color:#fff"><i class="ti ti-pencil"></i></button>';
+        }
+       if (!camionesDesbloqueados[camId] && !adminOk) {
+         html += '<button class="bd" onclick="unlockCamion(\''+camId+'\')" title="Desbloquear con contraseña" style="font-size:10px;padding:2px 6px;margin-top:4px"><i class="ti ti-lock"></i></button>';
+       }
       html += '</div></div>';
     }
     html += '</div>';
@@ -1047,10 +1148,28 @@ async function loadHist() {
   var textFil = (document.getElementById('fil-text').value || '').toLowerCase().trim();
   var el = document.getElementById('tabla-hist');
   if (!el) return;
-  var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
-  if (fil) q = q.eq('camion',fil);
-  var r = await q;
-  var data = r.data || [];
+  var unlockBar = document.getElementById('hist-unlock-bar');
+  if (unlockBar) {
+    if (fil) {
+      var icon = camionesDesbloqueados[fil] ? '<i class="ti ti-lock-unlock" style="color:var(--grn)"></i>' : '<i class="ti ti-lock" style="color:var(--muted)"></i>';
+      var label = camionesDesbloqueados[fil] ? 'Desbloqueado' : 'Bloqueado';
+      var color = camionesDesbloqueados[fil] ? 'var(--grn)' : 'var(--muted)';
+      var btnLabel = camionesDesbloqueados[fil] ? 'Bloquear' : 'Desbloquear';
+      unlockBar.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:8px 10px;background:'+(camionesDesbloqueados[fil]?'var(--grnl)':'#f1f5f9')+';border-radius:8px;margin-bottom:8px"><span><strong>'+fil+'</strong> '+label+'</span><button class="bp" onclick="unlockCamion(\''+fil+'\')" style="font-size:11px;padding:4px 10px;background:'+color+';color:#fff;border:1px solid '+color+';border-radius:6px">'+icon+' '+btnLabel+'</button></div>';
+    } else {
+      unlockBar.innerHTML = '<p style="font-size:12px;color:#888;padding:8px;margin-bottom:8px">Seleccioná un camión para desbloquear tu edición.</p>';
+    }
+  }
+  var data = [];
+  try {
+    var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
+    if (fil) q = q.eq('camion',fil);
+    var r = await q;
+    data = r.data || [];
+  } catch(e) {
+    el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin conexión. Los datos no están disponibles.</p>';
+    return;
+  }
   if (textFil) {
     data = data.filter(function(x) {
       var desc = (x.descripcion || '').toLowerCase();
@@ -1066,14 +1185,15 @@ async function loadHist() {
     html += '<div style="font-size:11px;color:#888;display:flex;justify-content:space-between;align-items:center">';
     html += '<span>'+(x.km?x.km.toLocaleString('es-AR')+' km':'')+'</span>';
     html += '<span style="display:flex;gap:6px">';
-    if (adminOk) {
-      html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:12px;padding:4px 8px"><i class="ti ti-trash"></i></button>';
-    }
-    if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
-    html += '</span></div></div>';
+      if (adminOk || camionesDesbloqueados[x.camion]) {
+        html += '<button class="bd bd-del" onclick="delReporte(\''+x.id+'\')" title="Eliminar reporte" style="font-size:12px;padding:4px 8px"><i class="ti ti-trash"></i></button>';
+        html += '<button class="bd" onclick="editarReporte(\''+x.id+'\')" title="Editar reporte" style="font-size:12px;padding:4px 8px;background:var(--az);color:#fff"><i class="ti ti-pencil"></i></button>';
+      }
+     if (x.es_ot) html += '<button class="bo" style="font-size:12px;padding:5px 10px" onclick="openOT(\''+x.id+'\')"><i class="ti ti-printer"></i> '+x.id+'</button>';
+     html += '</span></div></div>';
+   }
+   el.innerHTML = html;
   }
-  el.innerHTML = html;
-}
 
 async function delReporte(id) {
     if (!confirm('Â¿Eliminar este reporte?')) return;
@@ -1188,7 +1308,7 @@ async function addCamion() {
   var data = {id:id,modelo:mod};
   if (!isOnline) {
     addOfflineOp({type:'insert_camion', data:data, timestamp:Date.now()});
-    resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
+    resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---',pass:''});
     saveRes(resData);
     document.getElementById('nc-id').value = '';
     document.getElementById('nc-mod').value = '';
@@ -1200,7 +1320,7 @@ async function addCamion() {
   if (r.error) {
     if (r.error.message && r.error.message.indexOf('Failed to fetch') >= 0) {
       addOfflineOp({type:'insert_camion', data:data, timestamp:Date.now()});
-      resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---'});
+      resData.push({id:id,nom:mod.toUpperCase(),pat:'---',cho:'---',cap:'---',est:'DISPONIBLE',seg:'---',rto:'---',us:'---',ps:'---',ue:'---',pe:'---',uc:'---',pc:'---',ub:'---',pb:'---',pass:''});
       saveRes(resData);
       document.getElementById('nc-id').value = '';
       document.getElementById('nc-mod').value = '';
@@ -1298,12 +1418,27 @@ async function verSeguro() {
     } catch(e) {}
   }
   if (!pdf) { alert('No hay póliza cargada. Contactá al administrador.'); return; }
+  if (pdf.indexOf('data:application/pdf;base64,data:application/pdf;base64,') === 0) {
+    pdf = pdf.replace('data:application/pdf;base64,', '');
+  }
   try { localStorage.setItem('m3v8_seguro_pdf', pdf); } catch(e) {}
-  var modal = document.getElementById('seguro-modal');
-  var frame = document.getElementById('seguro-pdf-frame');
-  if (modal && frame) {
-    frame.src = pdf;
-    modal.style.display = 'flex';
+  try {
+    var base64 = pdf.split(',')[1];
+    if (!base64) { alert('Error: formato de póliza inválido.'); return; }
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'poliza-seguro.pdf';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 100);
+  } catch(err) {
+    alert('Error al abrir la póliza: ' + err.message);
   }
 }
 
@@ -1497,7 +1632,8 @@ function openEdit(id) {
   html += '<div class="field"><label>Ult. cubiertas</label><input type="text" id="ed-uc" value="'+(c.uc||'')+'"></div>';
   html += '<div class="field"><label>Prox. cubiertas</label><input type="text" id="ed-pc" value="'+(c.pc||'')+'"></div>';
   html += '<div class="field"><label>Ult. bateria</label><input type="text" id="ed-ub" value="'+(c.ub||'')+'"></div>';
-  html += '<div class="field"><label>Prox. bateria</label><input type="text" id="ed-pb" value="'+(c.pb||'')+'"></div></div>';
+  html += '<div class="field"><label>Prox. bateria</label><input type="text" id="ed-pb" value="'+(c.pb||'')+'"></div>';
+  html += '<div class="field"><label>Contraseña historial</label><input type="password" id="ed-pass" value="'+(c.pass||'')+'"></div></div>';
   document.getElementById('ed-est').value = c.est || 'DISPONIBLE';
   document.getElementById('edit-form').innerHTML = html;
   document.getElementById('edit-modal').style.display = 'flex';
@@ -1525,11 +1661,12 @@ async function saveEditCamion() {
   c.pc = document.getElementById('ed-pc').value.trim() || '---';
   c.ub = document.getElementById('ed-ub').value.trim() || '---';
   c.pb = document.getElementById('ed-pb').value.trim() || '---';
+  c.pass = document.getElementById('ed-pass').value;
   saveRes(resData);
   await sb.from('camiones').update({
     modelo:c.nom, pat:c.pat, cho:c.cho, cap:c.cap, est:c.est,
     rto:c.rto, seg:c.seg, us:c.us, ps:c.ps, ue:c.ue, pe:c.pe,
-    uc:c.uc, pc:c.pc, ub:c.ub, pb:c.pb
+    uc:c.uc, pc:c.pc, ub:c.ub, pb:c.pb, pass: c.pass
   }).eq('id', editCamionId);
   closeEdit();
   renderFlota();

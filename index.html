@@ -133,6 +133,7 @@
      <select id="fil-cam" onchange="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px;margin-bottom:8px"></select>
      <input type="text" id="fil-text" placeholder="Buscar palabra en descripcion (ej: correa, filtro)..." oninput="loadHist()" style="font-size:14px;width:100%;padding:10px;border:1.5px solid #c5d0ef;border-radius:10px">
    </div>
+   <div id="hist-unlock-bar" style="padding:0 8px 8px"></div>
     <div class="card" id="tabla-hist"><div class="loader">Cargando...</div></div>
   </div>
 
@@ -170,8 +171,9 @@
     <p style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-shield"></i> Póliza de Seguro</p>
     <p style="font-size:12px;color:#888;margin-bottom:10px">Subí la póliza de seguro para que los choferes la vean en Flota.</p>
     <input type="file" id="seguro-file-admin" accept=".pdf" style="display:none" onchange="subirSeguroAdmin(this)">
-    <button class="bp" onclick="document.getElementById('seguro-file-admin').click()" style="width:100%"><i class="ti ti-upload"></i> Subir Póliza</button>
-    <div id="seguro-admin-status" style="font-size:12px;color:#888;margin-top:6px"></div>
+     <button class="bp" onclick="document.getElementById('seguro-file-admin').click()" style="width:100%"><i class="ti ti-upload"></i> Subir Póliza</button>
+     <button class="bo" onclick="verSeguro()" style="width:100%;margin-top:8px"><i class="ti ti-download"></i> Ver / Descargar Póliza</button>
+     <div id="seguro-admin-status" style="font-size:12px;color:#888;margin-top:6px"></div>
   </div>
   <div class="card">
     <p style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--az);display:flex;align-items:center;gap:6px"><i class="ti ti-clipboard-data"></i> Datos de la flota</p>
@@ -204,6 +206,17 @@
   </div>
 </div>
 
+<div id="reporte-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center">
+  <div class="card" style="max-width:420px;width:92%;text-align:left;position:relative">
+    <button class="bo" onclick="closeReporteEdit()" style="position:absolute;top:10px;right:10px;padding:4px 8px;font-size:11px"><i class="ti ti-x"></i></button>
+    <p style="font-size:16px;font-weight:800;margin-bottom:14px;color:var(--az)">Editar reporte</p>
+    <div id="reporte-edit-form"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="bp" onclick="saveEditReporte()" style="flex:1"><i class="ti ti-device-floppy"></i> Guardar</button>
+      <button class="bo" onclick="closeReporteEdit()">Cancelar</button>
+    </div>
+  </div>
+</div>
 <div id="seguro-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;position:relative">
     <button class="bo" onclick="closeSeguroModal()" style="position:absolute;top:10px;right:10px;padding:6px 12px;font-size:13px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;z-index:10"><i class="ti ti-x"></i></button>
@@ -218,7 +231,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
-<script src="js/app.js?v=20260714-1220" defer></script>
+<script src="js/app.js?v=20260828-1818" defer></script>
 </body>
 </html>
 
