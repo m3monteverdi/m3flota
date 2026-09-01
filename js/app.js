@@ -1417,9 +1417,8 @@ async function subirSeguroAdmin(input) {
               camion: null,
               chofer: null,
               tipo: 'seguro_poliza',
-              descripcion: 'Poliza de seguro de la flota',
-              km: 0,
-              pdf: dataUrl
+              descripcion: dataUrl,
+              km: 0
             });
             if (up2.error) console.warn('Fallback reportes error:', up2.error.message);
             else saved = true;
@@ -1453,10 +1452,10 @@ async function getSeguroPdf(forceReload) {
     }
   } catch(e) { console.warn('Tabla seguro_poliza no existe, probando fallback:', e); }
   try {
-    var r2 = await sb.from('reportes').select('pdf').eq('id','SEGURO-POLIZA').single();
-    if (r2.data && r2.data.pdf) {
-      window._seguroPdfCache = r2.data.pdf;
-      return r2.data.pdf;
+    var r2 = await sb.from('reportes').select('descripcion').eq('id','SEGURO-POLIZA').single();
+    if (r2.data && r2.data.descripcion) {
+      window._seguroPdfCache = r2.data.descripcion;
+      return r2.data.descripcion;
     }
   } catch(e2) { console.warn('Fallback tampoco disponible:', e2); }
   return null;
