@@ -33,6 +33,18 @@
   </div>
 
 <div class="pane on" id="pane-flota">
+  <div class="card" style="margin-bottom:10px;background:linear-gradient(135deg,#EEF4FF 0%,#E0EBFF 100%);border:1.5px solid #c5d0ef;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-shield" style="color:var(--az);font-size:22px"></i>
+      <div>
+        <p style="font-size:13px;font-weight:800;color:var(--az);margin:0;line-height:1.2">Póliza de Seguro</p>
+        <p style="font-size:11px;color:#666;margin:0">Consultá la cobertura vigente</p>
+      </div>
+    </div>
+    <button class="bp" onclick="verSeguro()" style="font-size:12px;padding:7px 14px;background:var(--az);color:#fff;border:none;border-radius:8px;display:flex;align-items:center;gap:5px;box-shadow:0 2px 4px rgba(37,99,235,.3)">
+      <i class="ti ti-eye"></i> Ver Póliza
+    </button>
+  </div>
   <div class="search-box">
     <i class="ti ti-search"></i>
     <input type="text" id="search-flota" placeholder="Buscar camion, maquinista o modelo..." oninput="renderFlota()">
@@ -234,7 +246,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
-<script src="js/app.js?v=20260901-1115" defer></script>
+<script src="js/app.js?v=20260901-1128" defer></script>
 </body>
 </html>
 
