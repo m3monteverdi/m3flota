@@ -1485,6 +1485,12 @@ async function verSeguro() {
     var url = URL.createObjectURL(blob);
     if (window._seguroBlobUrl) { try { URL.revokeObjectURL(window._seguroBlobUrl); } catch(e) {} }
     window._seguroBlobUrl = url;
+    // Detectar si es móvil: usar nueva pestaña directamente
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.open(url, '_blank');
+      return;
+    }
     var frame = document.getElementById('seguro-pdf-frame');
     var modal = document.getElementById('seguro-modal');
     if (frame) frame.src = url;
