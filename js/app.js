@@ -1414,8 +1414,8 @@ async function subirSeguroAdmin(input) {
             var up2 = await sb.from('reportes').upsert({
               id: 'SEGURO-POLIZA',
               fecha: '1970-01-01',
-              camion: '---',
-              chofer: '---',
+              camion: null,
+              chofer: null,
               tipo: 'seguro_poliza',
               descripcion: 'Poliza de seguro de la flota',
               km: 0,
