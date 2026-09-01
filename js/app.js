@@ -1399,19 +1399,42 @@ async function subirSeguroAdmin(input) {
   try {
     var reader = new FileReader();
     reader.onload = async function(e) {
+      var dataUrl = e.target.result;
       try {
-        localStorage.setItem('m3v8_seguro_pdf', e.target.result);
-        window._seguroPdfCache = e.target.result;
-        var up = await sb.from('seguro_poliza').upsert({id:1, pdf:e.target.result});
-        if (up && up.error) {
-          if (statusEl) statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error guardando en servidor: '+up.error.message;
-          return;
+        localStorage.setItem('m3v8_seguro_pdf', dataUrl);
+        window._seguroPdfCache = dataUrl;
+        var saved = false;
+        try {
+          var up = await sb.from('seguro_poliza').upsert({id:1, pdf:dataUrl});
+          if (!up.error) saved = true;
+          else console.warn('seguro_poliza no disponible:', up.error.message);
+        } catch(e) { console.warn('Tabla seguro_poliza no existe:', e); }
+        if (!saved) {
+          try {
+            var up2 = await sb.from('reportes').upsert({
+              id: 'SEGURO-POLIZA',
+              fecha: '1970-01-01',
+              camion: '---',
+              chofer: '---',
+              tipo: 'seguro_poliza',
+              descripcion: 'Poliza de seguro de la flota',
+              km: 0,
+              pdf: dataUrl
+            });
+            if (up2.error) console.warn('Fallback reportes error:', up2.error.message);
+            else saved = true;
+          } catch(e2) { console.warn('Fallback reportes fallo:', e2); }
+        }
+        if (statusEl) {
+          if (saved) {
+            statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada. Visible para todos los dispositivos.';
+          } else {
+            statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--org)"></i> Guardado localmente. (Sin servidor, otros dispositivos no la verán)';
+          }
         }
       } catch(err) {
         if (statusEl) statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error: '+err.message;
-        return;
       }
-      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada correctamente. Visible para todos los dispositivos.';
     };
     reader.readAsDataURL(file);
   } catch(err) {
@@ -1420,28 +1443,32 @@ async function subirSeguroAdmin(input) {
   input.value = '';
 }
 
-async function getSeguroPdf() {
-  if (window._seguroPdfCache) return window._seguroPdfCache;
+async function getSeguroPdf(forceReload) {
+  if (!forceReload && window._seguroPdfCache) return window._seguroPdfCache;
   try {
     var r = await sb.from('seguro_poliza').select('pdf').eq('id',1).single();
     if (r.data && r.data.pdf) {
       window._seguroPdfCache = r.data.pdf;
       return r.data.pdf;
     }
-  } catch(e) { console.warn('Error cargando poliza de Supabase:', e); }
+  } catch(e) { console.warn('Tabla seguro_poliza no existe, probando fallback:', e); }
+  try {
+    var r2 = await sb.from('reportes').select('pdf').eq('id','SEGURO-POLIZA').single();
+    if (r2.data && r2.data.pdf) {
+      window._seguroPdfCache = r2.data.pdf;
+      return r2.data.pdf;
+    }
+  } catch(e2) { console.warn('Fallback tampoco disponible:', e2); }
   return null;
 }
 
 async function verSeguro() {
   var pdf = window._seguroPdfCache;
   if (!pdf) {
-    if (pdf !== null) {
-      alert('Cargando póliza desde el servidor, esperá un momento e intentá de nuevo.');
-    }
     pdf = await getSeguroPdf();
     if (!pdf) {
       try { localStorage.removeItem('m3v8_seguro_pdf'); } catch(e) {}
-      alert('No hay póliza cargada. Contactá al administrador.');
+      alert('No hay póliza cargada en el servidor. El administrador debe subirla desde Config en una PC.');
       return;
     }
   }
