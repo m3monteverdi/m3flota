@@ -1462,7 +1462,9 @@ async function getSeguroPdf(forceReload) {
 }
 
 async function verSeguro() {
-   var pdf = window._seguroPdfCache;
+  alert('VER SEGURO FUNCIONA');
+
+  var pdf = window._seguroPdfCache;
 
   if (!pdf) {
     pdf = await getSeguroPdf();
