@@ -1425,23 +1425,31 @@ async function verSeguro() {
   }
   try { localStorage.setItem('m3v8_seguro_pdf', pdf); } catch(e) {}
   try {
-    var base64 = pdf.split(',')[1];
+    var base64 = pdf.indexOf(',') >= 0 ? pdf.split(',')[1] : pdf;
     if (!base64) { alert('Error: formato de póliza inválido.'); return; }
     var binary = atob(base64);
     var bytes = new Uint8Array(binary.length);
     for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'poliza-seguro.pdf';
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function() { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 100);
+    window._seguroBlobUrl = url;
+    var frame = document.getElementById('seguro-pdf-frame');
+    var modal = document.getElementById('seguro-modal');
+    if (frame) frame.src = url;
+    if (modal) modal.style.display = 'flex';
   } catch(err) {
     alert('Error al abrir la póliza: ' + err.message);
   }
+}
+
+function descargarSeguro() {
+  if (!window._seguroBlobUrl) { alert('No hay póliza abierta para descargar.'); return; }
+  var a = document.createElement('a');
+  a.href = window._seguroBlobUrl;
+  a.download = 'poliza-seguro.pdf';
+  document.body.appendChild(a);
+  a.click();
+  if (a.parentNode) a.parentNode.removeChild(a);
 }
 
 function closeSeguroModal() {
@@ -1449,6 +1457,10 @@ function closeSeguroModal() {
   var frame = document.getElementById('seguro-pdf-frame');
   if (modal) modal.style.display = 'none';
   if (frame) frame.src = '';
+  if (window._seguroBlobUrl) {
+    try { URL.revokeObjectURL(window._seguroBlobUrl); } catch(e) {}
+    window._seguroBlobUrl = null;
+  }
 }
 
 /* ============ INFORME EXCEL COMPLETO ============ */

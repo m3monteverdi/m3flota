@@ -172,7 +172,7 @@
     <p style="font-size:12px;color:#888;margin-bottom:10px">Subí la póliza de seguro para que los choferes la vean en Flota.</p>
     <input type="file" id="seguro-file-admin" accept=".pdf" style="display:none" onchange="subirSeguroAdmin(this)">
      <button class="bp" onclick="document.getElementById('seguro-file-admin').click()" style="width:100%"><i class="ti ti-upload"></i> Subir Póliza</button>
-     <button class="bo" onclick="verSeguro()" style="width:100%;margin-top:8px"><i class="ti ti-download"></i> Ver / Descargar Póliza</button>
+     <button class="bo" onclick="verSeguro()" style="width:100%;margin-top:8px"><i class="ti ti-eye"></i> Ver Póliza</button>
      <div id="seguro-admin-status" style="font-size:12px;color:#888;margin-top:6px"></div>
   </div>
   <div class="card">
@@ -220,9 +220,12 @@
 <div id="seguro-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:14px;width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;position:relative">
     <button class="bo" onclick="closeSeguroModal()" style="position:absolute;top:10px;right:10px;padding:6px 12px;font-size:13px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:8px;z-index:10"><i class="ti ti-x"></i></button>
-    <div style="padding:12px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px">
-      <i class="ti ti-shield" style="color:var(--az);font-size:20px"></i>
-      <span style="font-weight:700;font-size:16px">Póliza de Seguro</span>
+    <div style="padding:12px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-shield" style="color:var(--az);font-size:20px"></i>
+        <span style="font-weight:700;font-size:16px">Póliza de Seguro</span>
+      </div>
+      <button class="bo" onclick="descargarSeguro()" style="padding:5px 10px;font-size:12px;background:#f1f5f9;border:1px solid #c5d0ef;color:var(--az)"><i class="ti ti-download"></i> Descargar</button>
     </div>
     <div id="seguro-pdf-container" style="flex:1;overflow:auto;padding:16px;min-height:0">
       <iframe id="seguro-pdf-frame" src="" style="width:100%;height:70vh;border:none;border-radius:8px"></iframe>
@@ -231,7 +234,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
-<script src="js/app.js?v=20260831-1555" defer></script>
+<script src="js/app.js?v=20260901-1115" defer></script>
 </body>
 </html>
 
