@@ -151,8 +151,9 @@ async function init() {
      try { await loadCamionesOffline(); } catch(e) { console.warn('Fallo carga remota de camiones, usando cache local.', e); }
      try { await loadChoferes(); } catch(e) { console.warn('Fallo carga remota de choferes.', e); }
      try { await loadOTCounter(); } catch(e) { console.warn('Fallo carga remota de OT counter.', e); }
-     try { await loadAllReportes(); } catch(e) { console.warn('Fallo carga remota de reportes, usando cache local.', e); }
-     try { await syncOTsArchivadas(); } catch(e) { console.warn('Fallo sincronizacion de OTs archivadas.', e); }
+      try { await loadAllReportes(); } catch(e) { console.warn('Fallo carga remota de reportes, usando cache local.', e); }
+      try { await syncOTsArchivadas(); } catch(e) { console.warn('Fallo sincronizacion de OTs archivadas.', e); }
+      try { getSeguroPdf().then(function(){}).catch(function(){}); } catch(e) {}
      var urlParams = new URLSearchParams(window.location.search);
      var camionParam = urlParams.get('camion');
      var tabParam = urlParams.get('tab');
@@ -1397,12 +1398,20 @@ async function subirSeguroAdmin(input) {
   if (statusEl) statusEl.innerHTML = '<i class="ti ti-loader"></i> Subiendo póliza...';
   try {
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
       try {
         localStorage.setItem('m3v8_seguro_pdf', e.target.result);
-        sb.from('seguro_poliza').upsert({id:1, pdf:e.target.result}).then(function(){});
-      } catch(err) {}
-      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada correctamente.';
+        window._seguroPdfCache = e.target.result;
+        var up = await sb.from('seguro_poliza').upsert({id:1, pdf:e.target.result});
+        if (up && up.error) {
+          if (statusEl) statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error guardando en servidor: '+up.error.message;
+          return;
+        }
+      } catch(err) {
+        if (statusEl) statusEl.innerHTML = '<i class="ti ti-alert-circle" style="color:var(--red)"></i> Error: '+err.message;
+        return;
+      }
+      if (statusEl) statusEl.innerHTML = '<i class="ti ti-check" style="color:var(--grn)"></i> Póliza cargada correctamente. Visible para todos los dispositivos.';
     };
     reader.readAsDataURL(file);
   } catch(err) {
@@ -1411,15 +1420,31 @@ async function subirSeguroAdmin(input) {
   input.value = '';
 }
 
+async function getSeguroPdf() {
+  if (window._seguroPdfCache) return window._seguroPdfCache;
+  try {
+    var r = await sb.from('seguro_poliza').select('pdf').eq('id',1).single();
+    if (r.data && r.data.pdf) {
+      window._seguroPdfCache = r.data.pdf;
+      return r.data.pdf;
+    }
+  } catch(e) { console.warn('Error cargando poliza de Supabase:', e); }
+  return null;
+}
+
 async function verSeguro() {
-  var pdf = localStorage.getItem('m3v8_seguro_pdf');
+  var pdf = window._seguroPdfCache;
   if (!pdf) {
-    try {
-      var r = await sb.from('seguro_poliza').select('pdf').eq('id',1).single();
-      if (r.data && r.data.pdf) pdf = r.data.pdf;
-    } catch(e) {}
+    if (pdf !== null) {
+      alert('Cargando póliza desde el servidor, esperá un momento e intentá de nuevo.');
+    }
+    pdf = await getSeguroPdf();
+    if (!pdf) {
+      try { localStorage.removeItem('m3v8_seguro_pdf'); } catch(e) {}
+      alert('No hay póliza cargada. Contactá al administrador.');
+      return;
+    }
   }
-  if (!pdf) { alert('No hay póliza cargada. Contactá al administrador.'); return; }
   if (pdf.indexOf('data:application/pdf;base64,data:application/pdf;base64,') === 0) {
     pdf = pdf.replace('data:application/pdf;base64,', '');
   }
@@ -1432,6 +1457,7 @@ async function verSeguro() {
     for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
     var url = URL.createObjectURL(blob);
+    if (window._seguroBlobUrl) { try { URL.revokeObjectURL(window._seguroBlobUrl); } catch(e) {} }
     window._seguroBlobUrl = url;
     var frame = document.getElementById('seguro-pdf-frame');
     var modal = document.getElementById('seguro-modal');
