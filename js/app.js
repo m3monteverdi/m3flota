@@ -410,7 +410,8 @@ function closeReporteEdit() {
 }
 async function saveEditReporte() {
    if (!reporteEditId) return;
-   var rep = (allReportes || []).find(function(r) { return r.id === reporteEditId; });
+   var editId = reporteEditId;
+   var rep = (allReportes || []).find(function(r) { return r.id === editId; });
    if (!rep) { closeReporteEdit(); return; }
    var newDesc = document.getElementById('rep-edit-desc').value.trim();
    var newKm = parseInt(document.getElementById('rep-edit-km').value) || 0;
@@ -426,7 +427,7 @@ async function saveEditReporte() {
    };
    if (!isOnline) {
      closeReporteEdit();
-     var idx0 = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
+     var idx0 = allReportes.findIndex(function(x) { return x.id === editId; });
      if (idx0 >= 0) { for (var k in cambios) allReportes[idx0][k] = cambios[k]; }
      saveReportesLocal();
      alert('Sin conexion. Edicion guardada localmente y se sincronizara al recuperar conexion.');
@@ -436,8 +437,8 @@ async function saveEditReporte() {
    }
    closeReporteEdit();
    try {
-     console.log('[EDIT] Intentando update del reporte:', reporteEditId, cambios);
-     var r = await sb.from('reportes').update(cambios).eq('id', reporteEditId).select();
+     console.log('[EDIT] Intentando update del reporte:', editId, cambios);
+     var r = await sb.from('reportes').update(cambios).eq('id', editId).select();
      console.log('[EDIT] Update result:', r);
      if (r.error) {
        alert('Error al guardar: ' + r.error.message + '\n\nVerifica que la fecha y descripcion no esten vacias y que el reporte exista.');
@@ -446,9 +447,9 @@ async function saveEditReporte() {
      var updateOK = (r.data && r.data.length > 0);
      if (!updateOK) {
        try {
-         var rCheck = await sb.from('reportes').select('id,fecha').eq('id', reporteEditId).maybeSingle();
+         var rCheck = await sb.from('reportes').select('id,fecha').eq('id', editId).maybeSingle();
          if (rCheck.data && rCheck.data.fecha === newFecha) {
-           console.log('Update succeeded (verified via SELECT).');
+           console.log('[EDIT] Update succeeded (verified via SELECT).');
            updateOK = true;
          } else if (!rCheck.data) {
            var insertData = Object.assign({}, rep, cambios);
@@ -456,7 +457,7 @@ async function saveEditReporte() {
            var rIns = await sb.from('reportes').insert([insertData]).select();
            if (rIns.error) {
              if (rIns.error.code === '23505' || (rIns.error.message && rIns.error.message.indexOf('duplicate key') >= 0)) {
-               console.log('Reporte existe en Supabase (duplicate key). Update se aplico. Marcando como OK.');
+               console.log('[EDIT] Reporte existe en Supabase (duplicate key). Update se aplico. Marcando como OK.');
                updateOK = true;
              } else {
                alert('El reporte no existe en Supabase y no se pudo insertar: ' + rIns.error.message);
@@ -467,7 +468,7 @@ async function saveEditReporte() {
            }
          }
        } catch(e2) {
-         console.warn('Verify failed:', e2);
+         console.warn('[EDIT] Verify failed:', e2);
          updateOK = true;
        }
      }
@@ -475,15 +476,19 @@ async function saveEditReporte() {
        alert('No se pudo confirmar el update. Reintentá.');
        return;
      }
-     var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
-     if (idx >= 0) { for (var k in cambios) allReportes[idx][k] = cambios[k]; }
+     var idx = allReportes.findIndex(function(x) { return x.id === editId; });
+     if (idx >= 0) {
+       for (var k in cambios) allReportes[idx][k] = cambios[k];
+     } else {
+       var newRep = Object.assign({}, rep, cambios);
+       allReportes.push(newRep);
+     }
      saveReportesLocal();
      await loadAllReportes();
      if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
      if (detalleCamionId && document.getElementById('pane-detalle').classList.contains('on')) abrirDetalle(detalleCamionId);
-     var msg = 'Reporte actualizado.\n\nFecha: ' + newFecha + '\nDescripcion: ' + (newDesc.substring(0, 50) + (newDesc.length>50?'...':'')) + '\n\nSi no ves el cambio, hace Ctrl+F5 para recargar.';
-     if (typeof showMsg === 'function') showMsg('ok-msg','ok','Reporte actualizado. Fecha: ' + newFecha);
-     else alert(msg);
+     console.log('[EDIT] Done. editId:', editId, 'newFecha:', newFecha);
+     try { alert('Reporte actualizado.\n\nFecha nueva: ' + newFecha + '\nID: ' + editId + '\n\nSi no ves el cambio, hace Ctrl+F5.'); } catch(e) {}
    } catch(e) {
      alert('Error al guardar: ' + e.message);
    }
