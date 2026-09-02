@@ -437,8 +437,9 @@ async function saveEditReporte() {
      await loadAllReportes();
      if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
      if (detalleCamionId && document.getElementById('pane-detalle').classList.contains('on')) abrirDetalle(detalleCamionId);
-     if (typeof showMsg === 'function') showMsg('ok-msg','ok','Reporte actualizado correctamente.');
-     else alert('Reporte actualizado.');
+     var msg = 'Reporte actualizado.\n\nFecha: ' + newFecha + '\nDescripcion: ' + (newDesc.substring(0, 50) + (newDesc.length>50?'...':'')) + '\n\nSi no ves el cambio, hace Ctrl+F5 para recargar.';
+     if (typeof showMsg === 'function') showMsg('ok-msg','ok','Reporte actualizado. Fecha: ' + newFecha);
+     else alert(msg);
    } catch(e) {
      alert('Error al guardar: ' + e.message);
    }
