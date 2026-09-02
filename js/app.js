@@ -370,9 +370,18 @@ function unlockCamion(camId) {
 }
 
 var reporteEditId = null;
-function editarReporte(id) {
+async function editarReporte(id) {
    var rep = (allReportes || []).find(function(r) { return r.id === id; });
-   if (!rep) { alert('Reporte no encontrado'); return; }
+   if (!rep) {
+     try {
+       var r = await sb.from('reportes').select('*').eq('id', id).maybeSingle();
+       if (r.data) {
+         rep = r.data;
+         allReportes.push(rep);
+       }
+     } catch(e) { console.warn('Error cargando reporte:', e); }
+   }
+   if (!rep) { alert('Reporte no encontrado. Recargá la página e intentá de nuevo.'); return; }
    reporteEditId = id;
    var fec = (rep.fecha || '').split('T')[0];
    var tipos = {falla:'Falla',service:'Service',reparacion:'Reparacion',preventivo:'Preventivo',engrase:'Engrase',neumatico:'Neumatico'};
@@ -421,8 +430,9 @@ async function saveEditReporte() {
    }
    closeReporteEdit();
    try {
+     console.log('[EDIT] Intentando update del reporte:', reporteEditId, cambios);
      var r = await sb.from('reportes').update(cambios).eq('id', reporteEditId).select();
-     console.log('saveEditReporte update result:', r);
+     console.log('[EDIT] Update result:', r);
      if (r.error) {
        alert('Error al guardar: ' + r.error.message + '\n\nVerifica que la fecha y descripcion no esten vacias y que el reporte exista.');
        return;
