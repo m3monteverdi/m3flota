@@ -247,15 +247,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
 <script>
-  // Cache-buster dinámico: agrega timestamp único cada vez que se carga
+  // Force hard reload - bypass all caches
   (function() {
-    var scripts = document.querySelectorAll('script[src*="app.js"]');
-    scripts.forEach(function(s) {
-      s.src = s.src.split('?')[0] + '?v=' + Date.now();
-    });
+    if (!window._cacheBustApplied) {
+      window._cacheBustApplied = true;
+      var scripts = document.querySelectorAll('script[src*="app.js"]');
+      scripts.forEach(function(s) {
+        s.src = s.src.split('?')[0] + '?v=' + Date.now() + '&r=' + Math.random();
+      });
+    }
   })();
 </script>
-<script src="js/app.js?v=20260902-1450" defer></script>
+<script src="js/app.js?v=20260902-1500" defer></script>
 </body>
 </html>
 

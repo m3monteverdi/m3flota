@@ -432,8 +432,11 @@ async function saveEditReporte() {
          var rCheck = await sb.from('reportes').select('id,fecha,descripcion').eq('id', reporteEditId).single();
          if (rCheck.data && rCheck.data.fecha === newFecha) {
            console.log('Update confirmed via verify query. RLS returning empty but data is updated.');
+         } else if (rCheck.data && rCheck.data.fecha !== newFecha) {
+           alert('El update NO se aplico.\n\nRLS probablemente bloqueando.\n\nPor favor anda a Supabase > SQL Editor y ejecuta el SQL de migracion_camiones.sql (las politicas RLS UPDATE/DELETE).');
+           return;
          } else {
-           alert('Update fallo. RLS probablemente bloqueando.\n\nVerifica que corriste el SQL de migracion con las politicas RLS.');
+           alert('No se encontro el reporte. Puede haber sido eliminado.');
            return;
          }
        } catch(e2) {
