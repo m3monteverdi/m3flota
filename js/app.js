@@ -439,10 +439,16 @@ async function saveEditReporte() {
            delete insertData.pdf;
            var rIns = await sb.from('reportes').insert([insertData]).select();
            if (rIns.error) {
-             alert('El reporte no existe en Supabase y no se pudo insertar: ' + rIns.error.message);
-             return;
+             if (rIns.error.code === '23505' || (rIns.error.message && rIns.error.message.indexOf('duplicate key') >= 0)) {
+               console.log('Reporte existe en Supabase (duplicate key). Update se aplico. Marcando como OK.');
+               updateOK = true;
+             } else {
+               alert('El reporte no existe en Supabase y no se pudo insertar: ' + rIns.error.message);
+               return;
+             }
+           } else {
+             updateOK = true;
            }
-           updateOK = true;
          }
        } catch(e2) {
          console.warn('Verify failed:', e2);
