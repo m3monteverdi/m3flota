@@ -285,7 +285,13 @@ async function loadOTCounter() {
 async function loadAllReportes() {
    try {
      var r = await sb.from('reportes').select('*').order('fecha',{ascending:false}).limit(500);
-     allReportes = r.data || [];
+     var remote = r.data || [];
+     if (remote.length === 0 && allReportes && allReportes.length > 0) {
+       console.warn('Supabase devolvio 0 reportes. RLS probablemente bloqueando. Conservando cache local.');
+       saveReportesLocal();
+       return;
+     }
+     allReportes = remote;
      saveReportesLocal();
    } catch(e) {
      console.error('Error cargando reportes, usando cache local:', e);
@@ -752,8 +758,22 @@ async function abrirDetalle(camId) {
   var cont = document.getElementById('detalle-cont');
   cont.innerHTML = '<div class="loader">Cargando...</div>';
 
-  var r = await sb.from('reportes').select('*').eq('camion',camId).order('fecha',{ascending:false});
-  var reps = r.data || [];
+  var reps = [];
+  try {
+    if (allReportes && allReportes.length > 0) {
+      reps = allReportes.filter(function(x) { return x.camion === camId; });
+      reps.sort(function(a, b) {
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        return b.fecha.localeCompare(a.fecha);
+      });
+    } else {
+      var r = await sb.from('reportes').select('*').eq('camion',camId).order('fecha',{ascending:false});
+      reps = r.data || [];
+    }
+  } catch(e) {
+    reps = [];
+  }
 
   var estB = c.est === 'DISPONIBLE' ? '<span class="badge bgrn"><i class="ti ti-circle-check"></i> Operativo</span>' : '<span class="badge bred"><i class="ti ti-tool"></i> En reparacion</span>';
 
@@ -1218,10 +1238,22 @@ async function loadHist() {
   }
   var data = [];
   try {
-    var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
-    if (fil) q = q.eq('camion',fil);
-    var r = await q;
-    data = r.data || [];
+    if (allReportes && allReportes.length > 0) {
+      data = allReportes.slice();
+      data.sort(function(a, b) {
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        return b.fecha.localeCompare(a.fecha);
+      });
+    } else {
+      var q = sb.from('reportes').select('*').order('fecha',{ascending:false});
+      if (fil) q = q.eq('camion',fil);
+      var r = await q;
+      data = r.data || [];
+    }
+    if (fil) {
+      data = data.filter(function(x) { return x.camion === fil; });
+    }
   } catch(e) {
     el.innerHTML = '<p style="color:#888;text-align:center;padding:1.5rem;font-size:13px">Sin conexión. Los datos no están disponibles.</p>';
     return;
