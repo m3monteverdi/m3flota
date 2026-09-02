@@ -397,15 +397,22 @@ async function saveEditReporte() {
    if (!reporteEditId) return;
    var rep = (allReportes || []).find(function(r) { return r.id === reporteEditId; });
    if (!rep) { closeReporteEdit(); return; }
-   rep.descripcion = document.getElementById('rep-edit-desc').value.trim();
-   rep.km = parseInt(document.getElementById('rep-edit-km').value) || 0;
-   rep.fecha = document.getElementById('rep-edit-fec').value;
-   rep.tipo = document.getElementById('rep-edit-tipo').value;
-   rep.repuestos = document.getElementById('rep-edit-rep').value.trim();
+   var newDesc = document.getElementById('rep-edit-desc').value.trim();
+   var newKm = parseInt(document.getElementById('rep-edit-km').value) || 0;
+   var newFecha = document.getElementById('rep-edit-fec').value;
+   var newTipo = document.getElementById('rep-edit-tipo').value;
+   var newRep = document.getElementById('rep-edit-rep').value.trim();
+   var cambios = {
+     descripcion: newDesc,
+     km: newKm,
+     fecha: newFecha,
+     tipo: newTipo,
+     repuestos: newRep
+   };
    if (!isOnline) {
      closeReporteEdit();
      var idx0 = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
-     if (idx0 >= 0) allReportes[idx0] = rep;
+     if (idx0 >= 0) { for (var k in cambios) allReportes[idx0][k] = cambios[k]; }
      saveReportesLocal();
      alert('Sin conexion. Edicion guardada localmente y se sincronizara al recuperar conexion.');
      if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
@@ -414,19 +421,18 @@ async function saveEditReporte() {
    }
    closeReporteEdit();
    try {
-     var r = await sb.from('reportes').update({
-       descripcion: rep.descripcion,
-       km: rep.km,
-       fecha: rep.fecha,
-       tipo: rep.tipo,
-       repuestos: rep.repuestos
-     }).eq('id', reporteEditId).select();
+     var r = await sb.from('reportes').update(cambios).eq('id', reporteEditId).select();
+     console.log('saveEditReporte update result:', r);
      if (r.error) {
-       alert('Error al guardar: ' + r.error.message);
+       alert('Error al guardar: ' + r.error.message + '\n\nVerifica que la fecha y descripcion no esten vacias y que el reporte exista.');
+       return;
+     }
+     if (!r.data || r.data.length === 0) {
+       alert('Update ejecutado pero sin datos devueltos. Posible problema de permisos RLS en Supabase. Verifica la consola.');
        return;
      }
      var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
-     if (idx >= 0) allReportes[idx] = rep;
+     if (idx >= 0) { for (var k in cambios) allReportes[idx][k] = cambios[k]; }
      saveReportesLocal();
      await loadAllReportes();
      if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
