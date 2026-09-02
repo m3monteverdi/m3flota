@@ -21,3 +21,51 @@ SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns
 WHERE table_name = 'camiones'
 ORDER BY ordinal_position;
+
+-- =====================================================
+-- POLITICAS RLS: permitir UPDATE y DELETE anonimo
+-- Sin esto, editar/eliminar reportes no funciona
+-- =====================================================
+
+-- REPORTES: permitir UPDATE a usuarios anonimos
+DROP POLICY IF EXISTS "anon_update_reportes" ON reportes;
+CREATE POLICY "anon_update_reportes" ON reportes
+FOR UPDATE TO anon
+USING (true)
+WITH CHECK (true);
+
+-- REPORTES: permitir DELETE a usuarios anonimos
+DROP POLICY IF EXISTS "anon_delete_reportes" ON reportes;
+CREATE POLICY "anon_delete_reportes" ON reportes
+FOR DELETE TO anon
+USING (true);
+
+-- CAMIONES: permitir UPDATE/DELETE a usuarios anonimos
+DROP POLICY IF EXISTS "anon_update_camiones" ON camiones;
+CREATE POLICY "anon_update_camiones" ON camiones
+FOR UPDATE TO anon
+USING (true)
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_delete_camiones" ON camiones;
+CREATE POLICY "anon_delete_camiones" ON camiones
+FOR DELETE TO anon
+USING (true);
+
+-- CHOFERES: permitir UPDATE/DELETE a usuarios anonimos
+DROP POLICY IF EXISTS "anon_update_choferes" ON choferes;
+CREATE POLICY "anon_update_choferes" ON choferes
+FOR UPDATE TO anon
+USING (true)
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_delete_choferes" ON choferes;
+CREATE POLICY "anon_delete_choferes" ON choferes
+FOR DELETE TO anon
+USING (true);
+
+-- Verificar politicas
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
