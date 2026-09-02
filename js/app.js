@@ -428,8 +428,18 @@ async function saveEditReporte() {
        return;
      }
      if (!r.data || r.data.length === 0) {
-       alert('Update ejecutado pero sin datos devueltos. Posible problema de permisos RLS en Supabase. Verifica la consola.');
-       return;
+       try {
+         var rCheck = await sb.from('reportes').select('id,fecha,descripcion').eq('id', reporteEditId).single();
+         if (rCheck.data && rCheck.data.fecha === newFecha) {
+           console.log('Update confirmed via verify query. RLS returning empty but data is updated.');
+         } else {
+           alert('Update fallo. RLS probablemente bloqueando.\n\nVerifica que corriste el SQL de migracion con las politicas RLS.');
+           return;
+         }
+       } catch(e2) {
+         alert('No se pudo verificar el update. Posible RLS: ' + e2.message);
+         return;
+       }
      }
      var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
      if (idx >= 0) { for (var k in cambios) allReportes[idx][k] = cambios[k]; }
@@ -1460,19 +1470,12 @@ async function subirSeguroAdmin(input) {
 async function getSeguroPdf(forceReload) {
   if (!forceReload && window._seguroPdfCache) return window._seguroPdfCache;
   try {
-    var r = await sb.from('seguro_poliza').select('pdf').eq('id',1).single();
-    if (r.data && r.data.pdf) {
-      window._seguroPdfCache = r.data.pdf;
-      return r.data.pdf;
-    }
-  } catch(e) { console.warn('Tabla seguro_poliza no existe, probando fallback:', e); }
-  try {
     var r2 = await sb.from('reportes').select('descripcion').eq('id','SEGURO-POLIZA').single();
     if (r2.data && r2.data.descripcion) {
       window._seguroPdfCache = r2.data.descripcion;
       return r2.data.descripcion;
     }
-  } catch(e2) { console.warn('Fallback tampoco disponible:', e2); }
+  } catch(e2) { console.warn('No se encontro poliza guardada:', e2); }
   return null;
 }
 
