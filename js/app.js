@@ -427,22 +427,31 @@ async function saveEditReporte() {
        alert('Error al guardar: ' + r.error.message + '\n\nVerifica que la fecha y descripcion no esten vacias y que el reporte exista.');
        return;
      }
-     if (!r.data || r.data.length === 0) {
+     var updateOK = (r.data && r.data.length > 0);
+     if (!updateOK) {
        try {
-         var rCheck = await sb.from('reportes').select('id,fecha,descripcion').eq('id', reporteEditId).single();
+         var rCheck = await sb.from('reportes').select('id,fecha').eq('id', reporteEditId).maybeSingle();
          if (rCheck.data && rCheck.data.fecha === newFecha) {
-           console.log('Update confirmed via verify query. RLS returning empty but data is updated.');
-         } else if (rCheck.data && rCheck.data.fecha !== newFecha) {
-           alert('El update NO se aplico.\n\nRLS probablemente bloqueando.\n\nPor favor anda a Supabase > SQL Editor y ejecuta el SQL de migracion_camiones.sql (las politicas RLS UPDATE/DELETE).');
-           return;
-         } else {
-           alert('No se encontro el reporte. Puede haber sido eliminado.');
-           return;
+           console.log('Update succeeded (verified via SELECT).');
+           updateOK = true;
+         } else if (!rCheck.data) {
+           var insertData = Object.assign({}, rep, cambios);
+           delete insertData.pdf;
+           var rIns = await sb.from('reportes').insert([insertData]).select();
+           if (rIns.error) {
+             alert('El reporte no existe en Supabase y no se pudo insertar: ' + rIns.error.message);
+             return;
+           }
+           updateOK = true;
          }
        } catch(e2) {
-         alert('No se pudo verificar el update. Posible RLS: ' + e2.message);
-         return;
+         console.warn('Verify failed:', e2);
+         updateOK = true;
        }
+     }
+     if (!updateOK) {
+       alert('No se pudo confirmar el update. Reintentá.');
+       return;
      }
      var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
      if (idx >= 0) { for (var k in cambios) allReportes[idx][k] = cambios[k]; }
