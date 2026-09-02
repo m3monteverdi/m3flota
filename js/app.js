@@ -402,11 +402,17 @@ async function saveEditReporte() {
    rep.fecha = document.getElementById('rep-edit-fec').value;
    rep.tipo = document.getElementById('rep-edit-tipo').value;
    rep.repuestos = document.getElementById('rep-edit-rep').value.trim();
-   closeReporteEdit();
    if (!isOnline) {
-     alert('Sin conexion. No se pudo guardar la edicion.');
+     closeReporteEdit();
+     var idx0 = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
+     if (idx0 >= 0) allReportes[idx0] = rep;
+     saveReportesLocal();
+     alert('Sin conexion. Edicion guardada localmente y se sincronizara al recuperar conexion.');
+     if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
+     if (detalleCamionId && document.getElementById('pane-detalle').classList.contains('on')) abrirDetalle(detalleCamionId);
      return;
    }
+   closeReporteEdit();
    try {
      var r = await sb.from('reportes').update({
        descripcion: rep.descripcion,
@@ -414,7 +420,7 @@ async function saveEditReporte() {
        fecha: rep.fecha,
        tipo: rep.tipo,
        repuestos: rep.repuestos
-     }).eq('id', reporteEditId);
+     }).eq('id', reporteEditId).select();
      if (r.error) {
        alert('Error al guardar: ' + r.error.message);
        return;
@@ -422,12 +428,14 @@ async function saveEditReporte() {
      var idx = allReportes.findIndex(function(x) { return x.id === reporteEditId; });
      if (idx >= 0) allReportes[idx] = rep;
      saveReportesLocal();
+     await loadAllReportes();
      if (document.getElementById('tabla-hist') && document.getElementById('tabla-hist').parentElement.classList.contains('on')) loadHist();
      if (detalleCamionId && document.getElementById('pane-detalle').classList.contains('on')) abrirDetalle(detalleCamionId);
-     alert('Reporte actualizado.');
+     if (typeof showMsg === 'function') showMsg('ok-msg','ok','Reporte actualizado correctamente.');
+     else alert('Reporte actualizado.');
    } catch(e) {
      alert('Error al guardar: ' + e.message);
-    }
+   }
 }
 
 function registrarPreventivo() {
@@ -1462,39 +1470,76 @@ async function getSeguroPdf(forceReload) {
 }
 
 async function verSeguro() {
+  alert('VER SEGURO FUNCIONA');
+
   var pdf = window._seguroPdfCache;
+
   if (!pdf) {
     pdf = await getSeguroPdf();
+
     if (!pdf) {
-      try { localStorage.removeItem('m3v8_seguro_pdf'); } catch(e) {}
+      try {
+        localStorage.removeItem('m3v8_seguro_pdf');
+      } catch(e) {}
+
       alert('No hay póliza cargada en el servidor. El administrador debe subirla desde Config en una PC.');
       return;
     }
   }
+
+  // Corregir posible duplicación del encabezado PDF
   if (pdf.indexOf('data:application/pdf;base64,data:application/pdf;base64,') === 0) {
     pdf = pdf.replace('data:application/pdf;base64,', '');
   }
-  try { localStorage.setItem('m3v8_seguro_pdf', pdf); } catch(e) {}
+
   try {
-    var base64 = pdf.indexOf(',') >= 0 ? pdf.split(',')[1] : pdf;
-    if (!base64) { alert('Error: formato de póliza inválido.'); return; }
-    var binary = atob(base64);
-    var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    var blob = new Blob([bytes.buffer], {type: 'application/pdf'});
-    var url = URL.createObjectURL(blob);
-    if (window._seguroBlobUrl) { try { URL.revokeObjectURL(window._seguroBlobUrl); } catch(e) {} }
-    window._seguroBlobUrl = url;
-    // Detectar si es móvil: usar nueva pestaña directamente
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile) {
-      window.open(url, '_blank');
+    localStorage.setItem('m3v8_seguro_pdf', pdf);
+  } catch(e) {}
+
+  try {
+    var base64 = pdf.indexOf(',') >= 0
+      ? pdf.split(',')[1]
+      : pdf;
+
+    if (!base64) {
+      alert('Error: formato de póliza inválido.');
       return;
     }
+
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+
+    for (var i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    var blob = new Blob(
+      [bytes.buffer],
+      { type: 'application/pdf' }
+    );
+
+    var url = URL.createObjectURL(blob);
+
+    if (window._seguroBlobUrl) {
+      try {
+        URL.revokeObjectURL(window._seguroBlobUrl);
+      } catch(e) {}
+    }
+
+    window._seguroBlobUrl = url;
+
+    // Usar el visor interno de WorkFlot
     var frame = document.getElementById('seguro-pdf-frame');
     var modal = document.getElementById('seguro-modal');
-    if (frame) frame.src = url;
-    if (modal) modal.style.display = 'flex';
+
+    if (frame) {
+      frame.src = url;
+    }
+
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+
   } catch(err) {
     alert('Error al abrir la póliza: ' + err.message);
   }
