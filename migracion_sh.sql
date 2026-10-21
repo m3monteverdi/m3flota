@@ -53,7 +53,48 @@ FROM information_schema.columns
 WHERE table_name = 'sh_checklists'
 ORDER BY ordinal_position;
 
+-- =====================================================
+-- Listas editables de S&H (que camiones/choferes aparecen)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS sh_listas (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  tipo text NOT NULL,                           -- 'camion' | 'chofer'
+  ref text NOT NULL,                            -- id del camion o nombre del chofer
+  modelo text,                                  -- marca (solo camiones custom)
+  accion text NOT NULL DEFAULT 'excluir',       -- 'excluir' | 'agregar'
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tipo, ref)
+);
+
+ALTER TABLE sh_listas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon_select_sh_listas" ON sh_listas;
+CREATE POLICY "anon_select_sh_listas" ON sh_listas
+  FOR SELECT TO anon
+  USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_sh_listas" ON sh_listas;
+CREATE POLICY "anon_insert_sh_listas" ON sh_listas
+  FOR INSERT TO anon
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_update_sh_listas" ON sh_listas;
+CREATE POLICY "anon_update_sh_listas" ON sh_listas
+  FOR UPDATE TO anon
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_delete_sh_listas" ON sh_listas;
+CREATE POLICY "anon_delete_sh_listas" ON sh_listas
+  FOR DELETE TO anon
+  USING (true);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_listas TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_listas TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE sh_listas_id_seq TO anon;
+GRANT USAGE, SELECT ON SEQUENCE sh_listas_id_seq TO authenticated;
+
 SELECT schemaname, tablename, policyname, roles, cmd
 FROM pg_policies
-WHERE tablename = 'sh_checklists'
-ORDER BY policyname;
+WHERE tablename IN ('sh_checklists','sh_listas')
+ORDER BY tablename, policyname;

@@ -151,6 +151,7 @@ async function init() {
      try { await loadCamionesOffline(); } catch(e) { console.warn('Fallo carga remota de camiones, usando cache local.', e); }
       try { await loadChoferes(); } catch(e) { console.warn('Fallo carga remota de choferes.', e); }
       try { await loadSH(); } catch(e) { console.warn('Fallo carga remota de checklists S&H.', e); }
+      try { await loadSHListas(); } catch(e) { console.warn('Fallo carga remota de listas S&H.', e); }
      try { await loadOTCounter(); } catch(e) { console.warn('Fallo carga remota de OT counter.', e); }
       try { await loadAllReportes(); } catch(e) { console.warn('Fallo carga remota de reportes, usando cache local.', e); }
       try { await syncOTsArchivadas(); } catch(e) { console.warn('Fallo sincronizacion de OTs archivadas.', e); }
@@ -343,7 +344,11 @@ var SH_CHOFER_ITEMS = [
   {key:'guantes',  label:'Guantes',  fecha:'Proximo cambio', autoMeses:1}
 ];
 var SH_STORAGE_KEY = 'm3_sh_checklists';
+var SH_LISTAS_KEY = 'm3_sh_listas';
 var shData = {};
+var shListas = { exclCamiones:{}, exclChoferes:{}, addCamiones:[], addChoferes:[] };
+var shAdminOk = false;
+var shModoAdmin = {camion:false, chofer:false};
 
 function loadSHLocal() {
   try {
@@ -354,7 +359,23 @@ function loadSHLocal() {
 function saveSHLocal() {
   try { localStorage.setItem(SH_STORAGE_KEY, JSON.stringify(shData)); } catch(e) {}
 }
+function loadSHListasLocal() {
+  try {
+    var r = localStorage.getItem(SH_LISTAS_KEY);
+    if (r) {
+      var p = JSON.parse(r) || {};
+      shListas.exclCamiones = p.exclCamiones || {};
+      shListas.exclChoferes = p.exclChoferes || {};
+      shListas.addCamiones = p.addCamiones || [];
+      shListas.addChoferes = p.addChoferes || [];
+    }
+  } catch(e) {}
+}
+function saveSHListasLocal() {
+  try { localStorage.setItem(SH_LISTAS_KEY, JSON.stringify(shListas)); } catch(e) {}
+}
 loadSHLocal();
+loadSHListasLocal();
 
 function shKey(tipo, ref, item) { return tipo + '|' + ref + '|' + item; }
 function shGet(tipo, ref, item) {
@@ -387,20 +408,214 @@ function shAutoFecha(item) {
 }
 function shVencida(fecha) { return !!fecha && fecha < shToday(); }
 
-function shChoferes() {
+/* ---- Listas editables de S&H (camiones y choferes) ---- */
+function shAppCamiones() {
+  var out = [];
+  for (var i = 0; i < (camiones || []).length; i++) {
+    var c = camiones[i];
+    if (!camionVisible(c)) continue;
+    out.push({id:c.id, modelo:c.modelo});
+  }
+  return out;
+}
+function shAppChoferes() {
   var out = [], seen = {};
   for (var i = 0; i < (choferes || []).length; i++) {
     var n = choferes[i].nombre;
-    if (n && !seen[n]) { seen[n] = 1; out.push({id: choferes[i].id, nombre: n}); }
+    if (n && !seen[n]) { seen[n] = 1; out.push({id:choferes[i].id, nombre:n}); }
   }
   if (!out.length) {
     for (var j = 0; j < resData.length; j++) {
       var c = resData[j].cho;
-      if (c && c !== '---' && !seen[c]) { seen[c] = 1; out.push({id: c, nombre: c}); }
+      if (c && c !== '---' && !seen[c]) { seen[c] = 1; out.push({id:c, nombre:c}); }
     }
   }
   out.sort(function(a, b) { return a.nombre.localeCompare(b.nombre); });
   return out;
+}
+function shCamionesRows() {
+  var rows = [], seen = {};
+  var app = shAppCamiones();
+  for (var i = 0; i < app.length; i++) {
+    if (shListas.exclCamiones[app[i].id]) continue;
+    seen[app[i].id] = true;
+    rows.push({id:app[i].id, modelo:app[i].modelo});
+  }
+  for (var j = 0; j < shListas.addCamiones.length; j++) {
+    var a = shListas.addCamiones[j];
+    if (seen[a.id] || shListas.exclCamiones[a.id]) continue;
+    seen[a.id] = true;
+    rows.push({id:a.id, modelo:a.modelo || ''});
+  }
+  rows.sort(function(a, b) { return String(a.id).localeCompare(String(b.id), undefined, {numeric:true}); });
+  return rows;
+}
+function shChoferesRows() {
+  var rows = [], seen = {};
+  var app = shAppChoferes();
+  for (var i = 0; i < app.length; i++) {
+    if (shListas.exclChoferes[app[i].nombre]) continue;
+    seen[app[i].nombre] = true;
+    rows.push({id:app[i].id, nombre:app[i].nombre});
+  }
+  for (var j = 0; j < shListas.addChoferes.length; j++) {
+    var a = shListas.addChoferes[j];
+    if (seen[a.nombre] || shListas.exclChoferes[a.nombre]) continue;
+    seen[a.nombre] = true;
+    rows.push({id:a.id, nombre:a.nombre});
+  }
+  rows.sort(function(a, b) { return a.nombre.localeCompare(b.nombre); });
+  return rows;
+}
+function shCamionEsApp(id) {
+  var app = shAppCamiones();
+  for (var i = 0; i < app.length; i++) if (app[i].id === id) return true;
+  return false;
+}
+function shChoferEsApp(nombre) {
+  var app = shAppChoferes();
+  for (var i = 0; i < app.length; i++) if (app[i].nombre === nombre) return true;
+  return false;
+}
+function shEscAttr(s) {
+  return String(s).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+function shPedirClave() {
+  var c = prompt('Ingresa la clave de administrador:');
+  if (c === null) return false;
+  if (c !== ADMIN_KEY) { alert('Clave incorrecta.'); return false; }
+  shAdminOk = true;
+  return true;
+}
+
+function shToggleAdmin(tipo) {
+  if (!shAdminOk) {
+    if (!shPedirClave()) return;
+  }
+  shModoAdmin[tipo] = !shModoAdmin[tipo];
+  renderSH();
+}
+
+function shRemove(tipo, ref) {
+  if (!shAdminOk) {
+    if (!shPedirClave()) return;
+    shModoAdmin[tipo] = true;
+  }
+  if (!confirm('Quitar "'+ref+'" de la lista de S&H?')) return;
+  if (tipo === 'camion') {
+    if (shCamionEsApp(ref)) {
+      shListas.exclCamiones[ref] = true;
+      shSyncLista('camion', ref, 'excluir', '');
+    } else {
+      shListas.addCamiones = shListas.addCamiones.filter(function(a) { return a.id !== ref; });
+      shSyncListaDel('camion', ref);
+    }
+  } else {
+    if (shChoferEsApp(ref)) {
+      shListas.exclChoferes[ref] = true;
+      shSyncLista('chofer', ref, 'excluir', '');
+    } else {
+      shListas.addChoferes = shListas.addChoferes.filter(function(a) { return a.nombre !== ref; });
+      shSyncListaDel('chofer', ref);
+    }
+  }
+  saveSHListasLocal();
+  renderSH();
+}
+
+function shAdd(tipo, ref, modelo) {
+  if (!shAdminOk) {
+    if (!shPedirClave()) return;
+    shModoAdmin[tipo] = true;
+  }
+  ref = (ref || '').trim();
+  if (!ref) return;
+  if (tipo === 'camion') {
+    if (shCamionEsApp(ref)) {
+      delete shListas.exclCamiones[ref];
+      shSyncListaDel('camion', ref);
+    } else {
+      shListas.addCamiones = shListas.addCamiones.filter(function(a) { return a.id !== ref; });
+      shListas.addCamiones.push({id:ref, modelo:(modelo || '').trim()});
+      shSyncLista('camion', ref, 'agregar', (modelo || '').trim());
+    }
+  } else {
+    if (shChoferEsApp(ref)) {
+      delete shListas.exclChoferes[ref];
+      shSyncListaDel('chofer', ref);
+    } else {
+      shListas.addChoferes = shListas.addChoferes.filter(function(a) { return a.nombre !== ref; });
+      shListas.addChoferes.push({id:ref, nombre:ref});
+      shSyncLista('chofer', ref, 'agregar', ref);
+    }
+  }
+  saveSHListasLocal();
+  renderSH();
+}
+
+function shAddDesdeSelect(tipo) {
+  var sel = document.getElementById('sh-sel-' + tipo);
+  if (!sel || !sel.value) { alert('Elegi un elemento de la lista.'); return; }
+  shAdd(tipo, sel.value, '');
+}
+function shAddNuevo(tipo) {
+  if (tipo === 'camion') {
+    var id = (document.getElementById('sh-new-id').value || '').trim();
+    var mod = (document.getElementById('sh-new-mod').value || '').trim();
+    if (!id) { alert('Ingresa el ID del camion.'); return; }
+    shAdd('camion', id, mod);
+    document.getElementById('sh-new-id').value = '';
+    document.getElementById('sh-new-mod').value = '';
+  } else {
+    var nom = (document.getElementById('sh-new-nom').value || '').trim();
+    if (!nom) { alert('Ingresa el nombre del chofer.'); return; }
+    shAdd('chofer', nom, '');
+    document.getElementById('sh-new-nom').value = '';
+  }
+}
+
+function shDelBtn(tipo, ref) {
+  return '<button class="sh-del" onclick="shRemove(\'' + tipo + '\',\'' + shEscAttr(ref) + '\')" title="Quitar de la lista"><i class="ti ti-trash"></i></button>';
+}
+
+function shAdminPanel(tipo) {
+  if (!shModoAdmin[tipo]) return '';
+  var h = '<div class="sh-admin">';
+  h += '<p class="sh-admin-tit"><i class="ti ti-lock-open"></i> Modo administrador - podes agregar o quitar elementos de la lista</p>';
+  if (tipo === 'camion') {
+    var app = shAppCamiones();
+    var sel = '<option value="">Restaurar camion existente...</option>';
+    for (var i = 0; i < app.length; i++) {
+      if (shListas.exclCamiones[app[i].id]) sel += '<option value="'+shEscAttr(app[i].id)+'">'+app[i].id+' - '+app[i].modelo+'</option>';
+    }
+    h += '<div class="sh-admin-row">';
+    h += '<select id="sh-sel-camion" class="sh-admin-input">'+sel+'</select>';
+    h += '<button class="bo" onclick="shAddDesdeSelect(\'camion\')"><i class="ti ti-plus"></i> Agregar</button>';
+    h += '</div>';
+    h += '<div class="sh-admin-row">';
+    h += '<input type="text" id="sh-new-id" class="sh-admin-input" placeholder="ID nuevo (ej: 120)">';
+    h += '<input type="text" id="sh-new-mod" class="sh-admin-input" placeholder="Marca (ej: SCANIA P420)">';
+    h += '<button class="bo" onclick="shAddNuevo(\'camion\')"><i class="ti ti-plus"></i> Agregar</button>';
+    h += '</div>';
+  } else {
+    var app2 = shAppChoferes();
+    var sel2 = '<option value="">Restaurar chofer existente...</option>';
+    for (var j = 0; j < app2.length; j++) {
+      if (shListas.exclChoferes[app2[j].nombre]) sel2 += '<option value="'+shEscAttr(app2[j].nombre)+'">'+app2[j].nombre+'</option>';
+    }
+    h += '<div class="sh-admin-row">';
+    h += '<select id="sh-sel-chofer" class="sh-admin-input">'+sel2+'</select>';
+    h += '<button class="bo" onclick="shAddDesdeSelect(\'chofer\')"><i class="ti ti-plus"></i> Agregar</button>';
+    h += '</div>';
+    h += '<div class="sh-admin-row">';
+    h += '<input type="text" id="sh-new-nom" class="sh-admin-input" placeholder="Nombre del chofer">';
+    h += '<button class="bo" onclick="shAddNuevo(\'chofer\')"><i class="ti ti-plus"></i> Agregar</button>';
+    h += '</div>';
+  }
+  h += '<p class="sh-admin-note">Para quitar un elemento de la lista, toca el tacho de basura en su fila.</p>';
+  h += '</div>';
+  return h;
 }
 
 function shCell(tipo, ref, item) {
@@ -451,41 +666,51 @@ function renderSH() {
   shInitDelegation();
   var elC = document.getElementById('sh-tbl-camiones');
   var elH = document.getElementById('sh-tbl-choferes');
+  var btnC = document.getElementById('sh-mgmt-camion');
+  var btnH = document.getElementById('sh-mgmt-chofer');
+  if (btnC) {
+    btnC.innerHTML = shModoAdmin.camion ? '<i class="ti ti-lock-open"></i> Listo' : '<i class="ti ti-lock"></i> Administrar';
+    btnC.classList.toggle('sh-mgmt-on', shModoAdmin.camion);
+  }
+  if (btnH) {
+    btnH.innerHTML = shModoAdmin.chofer ? '<i class="ti ti-lock-open"></i> Listo' : '<i class="ti ti-lock"></i> Administrar';
+    btnH.classList.toggle('sh-mgmt-on', shModoAdmin.chofer);
+  }
   if (!elC || !elH) return;
 
-  var visibles = (camiones || []).filter(camionVisible);
-  if (!visibles.length) {
-    elC.innerHTML = '<div class="sh-empty">No hay camiones cargados.</div>';
+  var cRows = shCamionesRows();
+  if (!cRows.length) {
+    elC.innerHTML = '<div class="sh-empty">No hay camiones en la lista.</div>' + shAdminPanel('camion');
   } else {
     var h = '<div class="sh-wrap"><table class="sh-tbl"><thead><tr><th class="sh-col1">Camion</th><th>Marca</th>';
     for (var i = 0; i < SH_CAMION_ITEMS.length; i++) h += '<th>'+SH_CAMION_ITEMS[i].label+'</th>';
     h += '<th>Resumen</th></tr></thead><tbody>';
-    for (var j = 0; j < visibles.length; j++) {
-      var c = visibles[j];
-      h += '<tr><td class="sh-col1"><div class="sh-col1-id">'+c.id+'</div></td>';
+    for (var j = 0; j < cRows.length; j++) {
+      var c = cRows[j];
+      h += '<tr><td class="sh-col1"><div class="sh-cell-id">'+c.id+shDelBtn('camion', c.id)+'</div></td>';
       h += '<td style="text-align:left;white-space:nowrap"><div class="sh-col1-mod">'+c.modelo+'</div></td>';
       for (var k = 0; k < SH_CAMION_ITEMS.length; k++) h += '<td>'+shCell('camion', c.id, SH_CAMION_ITEMS[k])+'</td>';
       h += '<td><div class="sh-col1-badges">'+shResumen('camion', c.id, SH_CAMION_ITEMS)+'</div></td></tr>';
     }
     h += '</tbody></table></div>';
-    elC.innerHTML = h;
+    elC.innerHTML = h + shAdminPanel('camion');
   }
 
-  var chs = shChoferes();
-  if (!chs.length) {
-    elH.innerHTML = '<div class="sh-empty">No hay choferes cargados.</div>';
+  var hRows = shChoferesRows();
+  if (!hRows.length) {
+    elH.innerHTML = '<div class="sh-empty">No hay choferes en la lista.</div>' + shAdminPanel('chofer');
   } else {
     var h2 = '<div class="sh-wrap"><table class="sh-tbl"><thead><tr><th class="sh-col1">Chofer</th>';
     for (var m = 0; m < SH_CHOFER_ITEMS.length; m++) h2 += '<th>'+SH_CHOFER_ITEMS[m].label+'</th>';
     h2 += '<th>Resumen</th></tr></thead><tbody>';
-    for (var n = 0; n < chs.length; n++) {
-      var ch = chs[n];
-      h2 += '<tr><td class="sh-col1"><div class="sh-col1-id">'+ch.nombre+'</div></td>';
+    for (var n = 0; n < hRows.length; n++) {
+      var ch = hRows[n];
+      h2 += '<tr><td class="sh-col1"><div class="sh-cell-id">'+ch.nombre+shDelBtn('chofer', ch.nombre)+'</div></td>';
       for (var p = 0; p < SH_CHOFER_ITEMS.length; p++) h2 += '<td>'+shCell('chofer', ch.nombre, SH_CHOFER_ITEMS[p])+'</td>';
       h2 += '<td><div class="sh-col1-badges">'+shResumen('chofer', ch.nombre, SH_CHOFER_ITEMS)+'</div></td></tr>';
     }
     h2 += '</tbody></table></div>';
-    elH.innerHTML = h2;
+    elH.innerHTML = h2 + shAdminPanel('chofer');
   }
 }
 
@@ -534,6 +759,51 @@ async function loadSH() {
     if (rows.length) saveSHLocal();
   } catch(e) {
     console.warn('Fallo carga sh_checklists, usando cache local.', e);
+  }
+}
+
+function shSyncLista(tipo, ref, accion, modelo) {
+  if (!isOnline) return;
+  try {
+    sb.from('sh_listas')
+      .upsert({tipo:tipo, ref:ref, modelo:modelo || null, accion:accion}, {onConflict:'tipo,ref'})
+      .then(function(r) { if (r && r.error) console.warn('sh_listas:', r.error.message); })
+      .catch(function(e) { console.warn('sh_listas sync fallo:', e); });
+  } catch(e) { console.warn('sh_listas sync fallo:', e); }
+}
+function shSyncListaDel(tipo, ref) {
+  if (!isOnline) return;
+  try {
+    sb.from('sh_listas').delete().eq('tipo',tipo).eq('ref',ref)
+      .then(function(r) { if (r && r.error) console.warn('sh_listas del:', r.error.message); })
+      .catch(function(e) { console.warn('sh_listas sync fallo:', e); });
+  } catch(e) { console.warn('sh_listas sync fallo:', e); }
+}
+
+async function loadSHListas() {
+  loadSHListasLocal();
+  try {
+    var r = await sb.from('sh_listas').select('*');
+    var rows = r.data || [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (!row || !row.tipo || !row.ref) continue;
+      if (row.accion === 'excluir') {
+        if (row.tipo === 'camion') shListas.exclCamiones[row.ref] = true;
+        else shListas.exclChoferes[row.ref] = true;
+      } else if (row.accion === 'agregar') {
+        if (row.tipo === 'camion') {
+          if (!shListas.addCamiones.some(function(a) { return a.id === row.ref; }))
+            shListas.addCamiones.push({id:row.ref, modelo:row.modelo || ''});
+        } else {
+          if (!shListas.addChoferes.some(function(a) { return a.nombre === row.ref; }))
+            shListas.addChoferes.push({id:row.ref, nombre:row.ref});
+        }
+      }
+    }
+    saveSHListasLocal();
+  } catch(e) {
+    console.warn('Fallo carga sh_listas, usando cache local.', e);
   }
 }
 

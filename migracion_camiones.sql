@@ -102,6 +102,36 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON sh_checklists TO authenticated;
 GRANT USAGE, SELECT ON SEQUENCE sh_checklists_id_seq TO anon;
 GRANT USAGE, SELECT ON SEQUENCE sh_checklists_id_seq TO authenticated;
 
+-- S&H: listas editables (que camiones/choferes aparecen en los checklists)
+CREATE TABLE IF NOT EXISTS sh_listas (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  tipo text NOT NULL,
+  ref text NOT NULL,
+  modelo text,
+  accion text NOT NULL DEFAULT 'excluir',
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tipo, ref)
+);
+
+ALTER TABLE sh_listas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon_select_sh_listas" ON sh_listas;
+CREATE POLICY "anon_select_sh_listas" ON sh_listas FOR SELECT TO anon USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_sh_listas" ON sh_listas;
+CREATE POLICY "anon_insert_sh_listas" ON sh_listas FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_update_sh_listas" ON sh_listas;
+CREATE POLICY "anon_update_sh_listas" ON sh_listas FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_delete_sh_listas" ON sh_listas;
+CREATE POLICY "anon_delete_sh_listas" ON sh_listas FOR DELETE TO anon USING (true);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_listas TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_listas TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE sh_listas_id_seq TO anon;
+GRANT USAGE, SELECT ON SEQUENCE sh_listas_id_seq TO authenticated;
+
 -- Verificar politicas
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
 FROM pg_policies
