@@ -64,6 +64,44 @@ CREATE POLICY "anon_delete_choferes" ON choferes
 FOR DELETE TO anon
 USING (true);
 
+-- =====================================================
+-- S&H: tabla de checklists de seguridad e higiene
+-- (mismo contenido que migracion_sh.sql)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS sh_checklists (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  tipo text NOT NULL,
+  ref text NOT NULL,
+  item text NOT NULL,
+  estado text NOT NULL DEFAULT 'pend',
+  fecha date,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tipo, ref, item)
+);
+
+ALTER TABLE sh_checklists ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon_select_sh_checklists" ON sh_checklists;
+CREATE POLICY "anon_select_sh_checklists" ON sh_checklists
+  FOR SELECT TO anon USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_sh_checklists" ON sh_checklists;
+CREATE POLICY "anon_insert_sh_checklists" ON sh_checklists
+  FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_update_sh_checklists" ON sh_checklists;
+CREATE POLICY "anon_update_sh_checklists" ON sh_checklists
+  FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "anon_delete_sh_checklists" ON sh_checklists;
+CREATE POLICY "anon_delete_sh_checklists" ON sh_checklists
+  FOR DELETE TO anon USING (true);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_checklists TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON sh_checklists TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE sh_checklists_id_seq TO anon;
+GRANT USAGE, SELECT ON SEQUENCE sh_checklists_id_seq TO authenticated;
+
 -- Verificar politicas
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
 FROM pg_policies

@@ -149,28 +149,27 @@ async function init() {
      document.getElementById('rep-fec').value = new Date().toISOString().split('T')[0];
      loadReportesLocal();
      try { await loadCamionesOffline(); } catch(e) { console.warn('Fallo carga remota de camiones, usando cache local.', e); }
-     try { await loadChoferes(); } catch(e) { console.warn('Fallo carga remota de choferes.', e); }
+      try { await loadChoferes(); } catch(e) { console.warn('Fallo carga remota de choferes.', e); }
+      try { await loadSH(); } catch(e) { console.warn('Fallo carga remota de checklists S&H.', e); }
      try { await loadOTCounter(); } catch(e) { console.warn('Fallo carga remota de OT counter.', e); }
       try { await loadAllReportes(); } catch(e) { console.warn('Fallo carga remota de reportes, usando cache local.', e); }
       try { await syncOTsArchivadas(); } catch(e) { console.warn('Fallo sincronizacion de OTs archivadas.', e); }
       try { getSeguroPdf().then(function(){}).catch(function(){}); } catch(e) {}
-     var urlParams = new URLSearchParams(window.location.search);
-     var camionParam = urlParams.get('camion');
-     var tabParam = urlParams.get('tab');
-     if (camionParam) {
-       var exists = camiones.some(function(c) { return c.id === camionParam; });
-       if (exists) {
-         document.getElementById('r-cam').value = camionParam;
-         var tabBtn = document.querySelectorAll('.tab')[1];
-         showTab('nuevo', tabBtn);
-       }
-     }
-     if (tabParam === 'nuevo') {
-       var tabBtn2 = document.querySelectorAll('.tab')[1];
-       showTab('nuevo', tabBtn2);
-     } else {
-       showTab('nuevo', document.querySelectorAll('.tab')[1]);
-     }
+      var urlParams = new URLSearchParams(window.location.search);
+      var camionParam = urlParams.get('camion');
+      var tabParam = urlParams.get('tab');
+      if (camionParam) {
+        var exists = camiones.some(function(c) { return c.id === camionParam; });
+        if (exists) {
+          document.getElementById('r-cam').value = camionParam;
+          var tabBtn = document.querySelectorAll('.tab')[1];
+          showTab('nuevo', tabBtn);
+        }
+      }
+      var TAB_IDS = ['flota','nuevo','reparaciones','historial','ot','sh'];
+      var tabIdx = TAB_IDS.indexOf(tabParam);
+      if (tabIdx < 0) tabIdx = 1;
+      showTab(TAB_IDS[tabIdx], document.querySelectorAll('.tab')[tabIdx]);
    } catch(e) {
      console.error('Error en init:', e);
    }
@@ -325,6 +324,219 @@ function fillChoferes() {
   document.getElementById('r-cho').innerHTML = o;
 }
 
+/* =====================================================
+   S&H - CHECKLISTS DE SEGURIDAD E HIGIENE
+   ===================================================== */
+var SH_CAMION_ITEMS = [
+  {key:'matafuego', label:'Matafuego', fecha:'Vence', autoMeses:12},
+  {key:'cinturon',  label:'Cinturon de seguridad'},
+  {key:'balizas',   label:'Balizas de seguridad'},
+  {key:'botiquin',  label:'Botiquin de seguridad'},
+  {key:'bocinas',   label:'Bocinas de retroceso'}
+];
+var SH_CHOFER_ITEMS = [
+  {key:'casco',    label:'Casco',    fecha:'Proximo cambio', autoMeses:6},
+  {key:'pantalon', label:'Pantalon', fecha:'Proximo cambio', autoMeses:6},
+  {key:'camisa',   label:'Camisa',   fecha:'Proximo cambio', autoMeses:6},
+  {key:'botines',  label:'Botines',  fecha:'Proximo cambio', autoMeses:6},
+  {key:'chaleco',  label:'Chaleco',  fecha:'Proximo cambio', autoMeses:1},
+  {key:'guantes',  label:'Guantes',  fecha:'Proximo cambio', autoMeses:1}
+];
+var SH_STORAGE_KEY = 'm3_sh_checklists';
+var shData = {};
+
+function loadSHLocal() {
+  try {
+    var r = localStorage.getItem(SH_STORAGE_KEY);
+    shData = r ? (JSON.parse(r) || {}) : {};
+  } catch(e) { shData = {}; }
+}
+function saveSHLocal() {
+  try { localStorage.setItem(SH_STORAGE_KEY, JSON.stringify(shData)); } catch(e) {}
+}
+loadSHLocal();
+
+function shKey(tipo, ref, item) { return tipo + '|' + ref + '|' + item; }
+function shGet(tipo, ref, item) {
+  var st = shData[shKey(tipo, ref, item)];
+  if (!st) return {estado:'pend', fecha:''};
+  return {estado: st.estado || 'pend', fecha: st.fecha || ''};
+}
+function shItemCfg(tipo, key) {
+  var list = tipo === 'camion' ? SH_CAMION_ITEMS : SH_CHOFER_ITEMS;
+  for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i];
+  return null;
+}
+function shToday() {
+  var d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+function shAddMonths(iso, months) {
+  var p = String(iso).split('-');
+  var d = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  var day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  var last = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  d.setDate(Math.min(day, last));
+  return d.getFullYear() + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+function shAutoFecha(item) {
+  if (!item.autoMeses) return '';
+  return shAddMonths(shToday(), item.autoMeses);
+}
+function shVencida(fecha) { return !!fecha && fecha < shToday(); }
+
+function shChoferes() {
+  var out = [], seen = {};
+  for (var i = 0; i < (choferes || []).length; i++) {
+    var n = choferes[i].nombre;
+    if (n && !seen[n]) { seen[n] = 1; out.push({id: choferes[i].id, nombre: n}); }
+  }
+  if (!out.length) {
+    for (var j = 0; j < resData.length; j++) {
+      var c = resData[j].cho;
+      if (c && c !== '---' && !seen[c]) { seen[c] = 1; out.push({id: c, nombre: c}); }
+    }
+  }
+  out.sort(function(a, b) { return a.nombre.localeCompare(b.nombre); });
+  return out;
+}
+
+function shCell(tipo, ref, item) {
+  var st = shGet(tipo, ref, item.key);
+  var cls = st.estado === 'ok' ? 'sh-ok' : (st.estado === 'no' ? 'sh-no' : 'sh-pend');
+  var lbl = st.estado === 'ok' ? 'OK' : (st.estado === 'no' ? 'NO' : '—');
+  var h = '<button class="sh-btn ' + cls + '" data-tipo="'+tipo+'" data-ref="'+ref+'" data-item="'+item.key+'" title="Tocar para cambiar">'+lbl+'</button>';
+  if (item.fecha && st.estado === 'ok') {
+    var venc = shVencida(st.fecha);
+    h += '<input type="date" class="sh-date' + (venc ? ' venc' : '') + '" data-tipo="'+tipo+'" data-ref="'+ref+'" data-item="'+item.key+'" value="'+st.fecha+'">';
+    h += '<div class="sh-hint' + (venc ? ' venc' : '') + '">' + (venc ? 'Vencido ' : '') + formatDateToDMY(st.fecha) + '</div>';
+  }
+  return h;
+}
+
+function shResumen(tipo, ref, items) {
+  var ok = 0, no = 0, venc = 0;
+  for (var i = 0; i < items.length; i++) {
+    var st = shGet(tipo, ref, items[i].key);
+    if (st.estado === 'ok') {
+      ok++;
+      if (items[i].fecha && shVencida(st.fecha)) venc++;
+    } else if (st.estado === 'no') no++;
+  }
+  var h = '<span class="sh-mini ok">'+ok+' OK</span>';
+  if (no) h += '<span class="sh-mini no">'+no+' NO</span>';
+  if (venc) h += '<span class="sh-mini venc">'+venc+' vencido</span>';
+  return h;
+}
+
+function shInitDelegation() {
+  var root = document.getElementById('pane-sh');
+  if (!root || root._shBound) return;
+  root._shBound = true;
+  root.addEventListener('click', function(e) {
+    var b = e.target.closest ? e.target.closest('.sh-btn') : null;
+    if (!b) return;
+    shToggle(b.getAttribute('data-tipo'), b.getAttribute('data-ref'), b.getAttribute('data-item'));
+  });
+  root.addEventListener('change', function(e) {
+    var inp = e.target.closest ? e.target.closest('.sh-date') : null;
+    if (!inp) return;
+    shSetFecha(inp.getAttribute('data-tipo'), inp.getAttribute('data-ref'), inp.getAttribute('data-item'), inp.value);
+  });
+}
+
+function renderSH() {
+  shInitDelegation();
+  var elC = document.getElementById('sh-tbl-camiones');
+  var elH = document.getElementById('sh-tbl-choferes');
+  if (!elC || !elH) return;
+
+  var visibles = (camiones || []).filter(camionVisible);
+  if (!visibles.length) {
+    elC.innerHTML = '<div class="sh-empty">No hay camiones cargados.</div>';
+  } else {
+    var h = '<div class="sh-wrap"><table class="sh-tbl"><thead><tr><th class="sh-col1">Camion</th><th>Marca</th>';
+    for (var i = 0; i < SH_CAMION_ITEMS.length; i++) h += '<th>'+SH_CAMION_ITEMS[i].label+'</th>';
+    h += '<th>Resumen</th></tr></thead><tbody>';
+    for (var j = 0; j < visibles.length; j++) {
+      var c = visibles[j];
+      h += '<tr><td class="sh-col1"><div class="sh-col1-id">'+c.id+'</div></td>';
+      h += '<td style="text-align:left;white-space:nowrap"><div class="sh-col1-mod">'+c.modelo+'</div></td>';
+      for (var k = 0; k < SH_CAMION_ITEMS.length; k++) h += '<td>'+shCell('camion', c.id, SH_CAMION_ITEMS[k])+'</td>';
+      h += '<td><div class="sh-col1-badges">'+shResumen('camion', c.id, SH_CAMION_ITEMS)+'</div></td></tr>';
+    }
+    h += '</tbody></table></div>';
+    elC.innerHTML = h;
+  }
+
+  var chs = shChoferes();
+  if (!chs.length) {
+    elH.innerHTML = '<div class="sh-empty">No hay choferes cargados.</div>';
+  } else {
+    var h2 = '<div class="sh-wrap"><table class="sh-tbl"><thead><tr><th class="sh-col1">Chofer</th>';
+    for (var m = 0; m < SH_CHOFER_ITEMS.length; m++) h2 += '<th>'+SH_CHOFER_ITEMS[m].label+'</th>';
+    h2 += '<th>Resumen</th></tr></thead><tbody>';
+    for (var n = 0; n < chs.length; n++) {
+      var ch = chs[n];
+      h2 += '<tr><td class="sh-col1"><div class="sh-col1-id">'+ch.nombre+'</div></td>';
+      for (var p = 0; p < SH_CHOFER_ITEMS.length; p++) h2 += '<td>'+shCell('chofer', ch.nombre, SH_CHOFER_ITEMS[p])+'</td>';
+      h2 += '<td><div class="sh-col1-badges">'+shResumen('chofer', ch.nombre, SH_CHOFER_ITEMS)+'</div></td></tr>';
+    }
+    h2 += '</tbody></table></div>';
+    elH.innerHTML = h2;
+  }
+}
+
+function shToggle(tipo, ref, item) {
+  var cfg = shItemCfg(tipo, item);
+  if (!cfg) return;
+  var st = shGet(tipo, ref, item);
+  var next = st.estado === 'pend' ? 'ok' : (st.estado === 'ok' ? 'no' : 'pend');
+  var fecha = st.fecha;
+  if (next === 'ok' && !fecha) fecha = shAutoFecha(cfg);
+  if (next === 'pend') fecha = '';
+  shData[shKey(tipo, ref, item)] = {estado: next, fecha: fecha || ''};
+  saveSHLocal();
+  renderSH();
+  shSync(tipo, ref, item, next, fecha || null);
+}
+
+function shSetFecha(tipo, ref, item, val) {
+  var st = shGet(tipo, ref, item);
+  shData[shKey(tipo, ref, item)] = {estado: st.estado, fecha: val || ''};
+  saveSHLocal();
+  renderSH();
+  shSync(tipo, ref, item, st.estado, val || null);
+}
+
+function shSync(tipo, ref, item, estado, fecha) {
+  if (!isOnline) return;
+  try {
+    sb.from('sh_checklists')
+      .upsert({tipo:tipo, ref:ref, item:item, estado:estado, fecha:fecha || null}, {onConflict:'tipo,ref,item'})
+      .then(function(r) { if (r && r.error) console.warn('sh_checklists:', r.error.message); })
+      .catch(function(e) { console.warn('sh_checklists sync fallo:', e); });
+  } catch(e) { console.warn('sh_checklists sync fallo:', e); }
+}
+
+async function loadSH() {
+  loadSHLocal();
+  try {
+    var r = await sb.from('sh_checklists').select('*');
+    var rows = r.data || [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (!row || !row.tipo || !row.ref || !row.item) continue;
+      shData[shKey(row.tipo, row.ref, row.item)] = {estado: row.estado || 'pend', fecha: row.fecha || ''};
+    }
+    if (rows.length) saveSHLocal();
+  } catch(e) {
+    console.warn('Fallo carga sh_checklists, usando cache local.', e);
+  }
+}
+
 function showTab(id, btn) {
   document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('on'); });
   document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('on'); });
@@ -340,6 +552,7 @@ function showTab(id, btn) {
   if (id === 'flota') renderFlota();
   if (id === 'reparaciones') { loadOTs(); loadReps(); }
   if (id === 'nuevo') { qpReset(); }
+  if (id === 'sh') { renderSH(); }
 }
 
 function askKey(btn) {
