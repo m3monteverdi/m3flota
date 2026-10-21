@@ -141,6 +141,15 @@ var resData = loadRes();
 function getCam(id) { for (var i=0;i<resData.length;i++) if (resData[i].id===id) return resData[i]; return null; }
 function getCamModelo(id) { for (var i=0;i<camiones.length;i++) if (camiones[i].id===id) return camiones[i].modelo; return ''; }
 
+/* La poliza de seguro se guarda como data URL dentro de reportes.descripcion.
+   Esa fila no es un reporte real: se filtra de las listas y del informe Excel. */
+function xlsxEsFilaInforme(r) {
+  if (!r) return false;
+  if (r.id === 'SEGURO-POLIZA') return false;
+  if (r.tipo === 'seguro_poliza') return false;
+  return true;
+}
+
 async function init() {
    try {
      updateOnlineStatus();
@@ -291,7 +300,7 @@ async function loadAllReportes() {
        saveReportesLocal();
        return;
      }
-     allReportes = remote;
+     allReportes = remote.filter(xlsxEsFilaInforme);
      saveReportesLocal();
    } catch(e) {
      console.error('Error cargando reportes, usando cache local:', e);
@@ -304,7 +313,7 @@ function saveReportesLocal() {
  }
 
 function loadReportesLocal() {
-   try { var r = localStorage.getItem('m3v7_reportes'); if (r) allReportes = JSON.parse(r); } catch(e) {}
+   try { var r = localStorage.getItem('m3v7_reportes'); if (r) allReportes = JSON.parse(r).filter(xlsxEsFilaInforme); } catch(e) {}
  }
 
 function fillCamiones() {
@@ -2125,6 +2134,23 @@ function closeSeguroModal() {
 }
 
 /* ============ INFORME EXCEL COMPLETO ============ */
+/* Excel no admite celdas de mas de 32767 caracteres.
+   Los PDF de la poliza se guardan como data URL en reportes.descripcion,
+   asi que hay que recortarlos y ademas excluir esas filas del informe. */
+var XLSX_MAX_CELL = 32000;
+function xlsxClip(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' && v.length > XLSX_MAX_CELL) {
+    return v.substring(0, XLSX_MAX_CELL) + '...[texto recortado]';
+  }
+  return v;
+}
+function xlsxRow(arr) {
+  var out = [];
+  for (var i = 0; i < arr.length; i++) out.push(xlsxClip(arr[i]));
+  return out;
+}
+
  async function exportExcel() {
     if (!adminOk) { alert('Necesitas clave de administrador para generar informes.'); return; }
     var btn = document.getElementById('btn-export');
@@ -2134,7 +2160,7 @@ function closeSeguroModal() {
      var r1;
      try { r1 = await sb.from('reportes').select('*').order('fecha',{ascending:false}); }
      catch(e) { console.warn('Usando cache local para exportar:', e); r1 = {data: allReportes}; }
-     var reps = r1.data || [];
+     var reps = (r1.data || []).filter(xlsxEsFilaInforme);
     var wb = XLSX.utils.book_new();
     var fechaHoy = new Date().toLocaleDateString('es-AR');
 
@@ -2161,7 +2187,7 @@ function closeSeguroModal() {
     ];
     for (var i=0;i<resData.length;i++) {
       var c = resData[i];
-      resumenRows.push([c.id, c.nom, c.cho, c.est==='DISPONIBLE'?'Operativo':'En reparacion', c.rto, c.seg, c.us, c.ue]);
+      resumenRows.push(xlsxRow([c.id, c.nom, c.cho, c.est==='DISPONIBLE'?'Operativo':'En reparacion', c.rto, c.seg, c.us, c.ue]));
     }
     var wsResumen = XLSX.utils.aoa_to_sheet(resumenRows);
     wsResumen['!cols'] = [{wch:20},{wch:22},{wch:18},{wch:16},{wch:14},{wch:14},{wch:14},{wch:14}];
@@ -2172,7 +2198,7 @@ function closeSeguroModal() {
     var rowsOTA = [['OT','Fecha','Camion','Chofer','Urgencia','Descripcion','Km','Repuestos Estimados']];
     for (var i=0;i<otAbiertas.length;i++) {
       var x = otAbiertas[i];
-      rowsOTA.push([x.id, x.fecha, x.camion, x.chofer||'', x.urgencia||'', x.descripcion||'', x.km||'', x.repuestos||'']);
+      rowsOTA.push(xlsxRow([x.id, x.fecha, x.camion, x.chofer||'', x.urgencia||'', x.descripcion||'', x.km||'', x.repuestos||'']));
     }
     var wsOTA = XLSX.utils.aoa_to_sheet(rowsOTA);
     wsOTA['!cols'] = [{wch:10},{wch:12},{wch:10},{wch:18},{wch:10},{wch:50},{wch:10},{wch:30},{wch:14}];
@@ -2185,7 +2211,7 @@ function closeSeguroModal() {
       var x = reparaciones[i];
       var otMatch = (x.descripcion||'').match(/\[OT:([^\]]+)\]/);
       var otRef = otMatch ? otMatch[1] : '';
-      rowsRep.push([x.fecha, x.camion, otRef, x.chofer||'', x.descripcion||'', x.repuestos||'']);
+      rowsRep.push(xlsxRow([x.fecha, x.camion, otRef, x.chofer||'', x.descripcion||'', x.repuestos||'']));
     }
     var wsRep = XLSX.utils.aoa_to_sheet(rowsRep);
     wsRep['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:18},{wch:50},{wch:30},{wch:14}];
@@ -2196,7 +2222,7 @@ function closeSeguroModal() {
     var rowsServ = [['Fecha','Camion','Tipo','Chofer','Descripcion','Km']];
     for (var i=0;i<servicios.length;i++) {
       var x = servicios[i];
-      rowsServ.push([x.fecha, x.camion, x.tipo, x.chofer||'', x.descripcion||'', x.km||'']);
+      rowsServ.push(xlsxRow([x.fecha, x.camion, x.tipo, x.chofer||'', x.descripcion||'', x.km||'']));
     }
     var wsServ = XLSX.utils.aoa_to_sheet(rowsServ);
     wsServ['!cols'] = [{wch:12},{wch:10},{wch:12},{wch:18},{wch:50},{wch:10},{wch:14}];
@@ -2210,7 +2236,7 @@ function closeSeguroModal() {
         var d = diasHasta(c[k]);
         if (d !== null) {
           var estadoTxt = d < 0 ? 'VENCIDO' : (d < 10 ? 'Urgente (10d)' : (d < 30 ? 'Proximo' : 'OK'));
-          rowsVenc.push([c.id, k==='rto'?'RTO':'Seguro', c[k], d, estadoTxt]);
+          rowsVenc.push(xlsxRow([c.id, k==='rto'?'RTO':'Seguro', c[k], d, estadoTxt]));
         }
       });
     }
@@ -2221,7 +2247,11 @@ function closeSeguroModal() {
     /* HOJAS POR CAMION */
     var todosIds = []; for (var i=0;i<camiones.length;i++) todosIds.push(camiones[i].id);
     var sinCamion = [];
-    for (var i=0;i<reps.length;i++) { if (todosIds.indexOf(reps[i].camion)===-1 && sinCamion.indexOf(reps[i].camion)===-1) sinCamion.push(reps[i].camion); }
+    for (var i=0;i<reps.length;i++) {
+      var cid = reps[i].camion;
+      if (!cid) continue;
+      if (todosIds.indexOf(cid)===-1 && sinCamion.indexOf(cid)===-1) sinCamion.push(cid);
+    }
     var allIds = todosIds.concat(sinCamion);
     for (var ci=0;ci<allIds.length;ci++) {
       var camId = allIds[ci];
@@ -2231,11 +2261,13 @@ function closeSeguroModal() {
       var rows = [['Fecha','Tipo','Descripcion','Km','Chofer','Urgencia','Repuestos','OT']];
       for (var ri=0;ri<camReps.length;ri++) {
         var x = camReps[ri];
-        rows.push([x.fecha,x.tipo,x.descripcion||'',x.km||'',x.chofer||'',x.urgencia||'',x.repuestos||'',x.es_ot?x.id:'']);
+        rows.push(xlsxRow([x.fecha,x.tipo,x.descripcion||'',x.km||'',x.chofer||'',x.urgencia||'',x.repuestos||'',x.es_ot?x.id:'']));
       }
       var ws = XLSX.utils.aoa_to_sheet(rows);
       ws['!cols'] = [{wch:12},{wch:12},{wch:50},{wch:10},{wch:18},{wch:10},{wch:30},{wch:10}];
-      var sheetName = (camId+' '+camMod).substring(0,31).replace(/[\/\\?*\[\]:]/g,'');
+      var sheetName = (camId+' '+camMod).substring(0,31).replace(/[\/\\?*\[\]:]/g,'').trim();
+      if (!sheetName) sheetName = 'Camion';
+      if (wb.SheetNames.indexOf(sheetName) >= 0) sheetName = sheetName.substring(0,28) + ' (' + (ci+1) + ')';
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
 
@@ -2246,7 +2278,8 @@ function closeSeguroModal() {
   } catch(e) {
     btn.innerHTML = '<i class="ti ti-alert-circle"></i> Error al generar';
     btn.disabled = false;
-    console.error(e);
+    console.error('Error exportExcel:', e);
+    try { alert('Error al generar el informe: ' + (e && e.message ? e.message : e)); } catch(e2) {}
   }
 }
 
